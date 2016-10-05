@@ -1,0 +1,100 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	.KEYW {color: #933;}
+	.COMM {color: #bbb; font-style: italic;}
+	.NUMB {color: #393;}
+	.STRN {color: #393;}
+	.REGX {color: #339;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="COMM">/**
+<span class='line'>  2</span>  * The MIT License (MIT)
+<span class='line'>  3</span>  *
+<span class='line'>  4</span>  * Copyright (c) 2016 DeNA Co., Ltd.
+<span class='line'>  5</span>  *
+<span class='line'>  6</span>  * Permission is hereby granted, free of charge, to any person obtaining a copy
+<span class='line'>  7</span>  * of this software and associated documentation files (the "Software"), to deal
+<span class='line'>  8</span>  * in the Software without restriction, including without limitation the rights
+<span class='line'>  9</span>  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+<span class='line'> 10</span>  * copies of the Software, and to permit persons to whom the Software is
+<span class='line'> 11</span>  * furnished to do so, subject to the following conditions:
+<span class='line'> 12</span>  *
+<span class='line'> 13</span>  * The above copyright notice and this permission notice shall be included in
+<span class='line'> 14</span>  * all copies or substantial portions of the Software.
+<span class='line'> 15</span>  *
+<span class='line'> 16</span>  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+<span class='line'> 17</span>  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+<span class='line'> 18</span>  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+<span class='line'> 19</span>  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+<span class='line'> 20</span>  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+<span class='line'> 21</span>  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+<span class='line'> 22</span>  * SOFTWARE.
+<span class='line'> 23</span>  */</span><span class="WHIT">
+<span class='line'> 24</span> 
+<span class='line'> 25</span> </span><span class="COMM">/// &lt;reference path="base.js"/></span><span class="WHIT">
+<span class='line'> 26</span> </span><span class="COMM">/// &lt;reference path="tween_target.js"/></span><span class="WHIT">
+<span class='line'> 27</span> 
+<span class='line'> 28</span> </span><span class="COMM">/**
+<span class='line'> 29</span>  * An interface used for controlling a tween.
+<span class='line'> 30</span>  * @interface
+<span class='line'> 31</span>  */</span><span class="WHIT">
+<span class='line'> 32</span> </span><span class="NAME">createjs.TweenObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 33</span> 
+<span class='line'> 34</span> </span><span class="COMM">/**
+<span class='line'> 35</span>  * Masks used by the updateTween() method.
+<span class='line'> 36</span>  * @enum {number}
+<span class='line'> 37</span>  */</span><span class="WHIT">
+<span class='line'> 38</span> </span><span class="NAME">createjs.TweenObject.Flag</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 39</span> </span><span class="WHIT">  </span><span class="NAME">PLAY_MODE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">3</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 40</span> </span><span class="WHIT">  </span><span class="NAME">UPDATE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="WHIT">
+<span class='line'> 41</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 42</span> 
+<span class='line'> 43</span> </span><span class="COMM">/**
+<span class='line'> 44</span>  * Updates the position of this tween.
+<span class='line'> 45</span>  * @param {number} time
+<span class='line'> 46</span>  * @param {number} flag
+<span class='line'> 47</span>  * @param {number} next
+<span class='line'> 48</span>  * @return {number}
+<span class='line'> 49</span>  */</span><span class="WHIT">
+<span class='line'> 50</span> </span><span class="NAME">createjs.TweenObject.prototype.updateTween</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">time</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">flag</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">next</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 51</span> 
+<span class='line'> 52</span> </span><span class="COMM">/**
+<span class='line'> 53</span>  * Starts playing this tween.
+<span class='line'> 54</span>  * @param {number} time
+<span class='line'> 55</span>  */</span><span class="WHIT">
+<span class='line'> 56</span> </span><span class="NAME">createjs.TweenObject.prototype.playTween</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">time</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 57</span> 
+<span class='line'> 58</span> </span><span class="COMM">/**
+<span class='line'> 59</span>  * Stops playing this tween.
+<span class='line'> 60</span>  * @param {number} time
+<span class='line'> 61</span>  */</span><span class="WHIT">
+<span class='line'> 62</span> </span><span class="NAME">createjs.TweenObject.prototype.stopTween</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">time</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 63</span> 
+<span class='line'> 64</span> </span><span class="COMM">/**
+<span class='line'> 65</span>  * Sets a proxy that intermediates this tween and its target.
+<span class='line'> 66</span>  * @param {createjs.TweenTarget} proxy
+<span class='line'> 67</span>  * @param {Array.&lt;createjs.TweenTarget>} targets
+<span class='line'> 68</span>  * @return {number}
+<span class='line'> 69</span>  */</span><span class="WHIT">
+<span class='line'> 70</span> </span><span class="NAME">createjs.TweenObject.prototype.setProxy</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">proxy</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">targets</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 71</span> 
+<span class='line'> 72</span> </span><span class="COMM">/**
+<span class='line'> 73</span>  * Sets the play offset of this tween.
+<span class='line'> 74</span>  * @param {number} position
+<span class='line'> 75</span>  * @param {number} mode
+<span class='line'> 76</span>  */</span><span class="WHIT">
+<span class='line'> 77</span> </span><span class="NAME">createjs.TweenObject.prototype.setPosition</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">position</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mode</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 78</span> 
+<span class='line'> 79</span> </span><span class="COMM">/**
+<span class='line'> 80</span>  * Sets the properties of this tween.
+<span class='line'> 81</span>  * @param {boolean} loop
+<span class='line'> 82</span>  * @param {number} position
+<span class='line'> 83</span>  * @param {boolean} single
+<span class='line'> 84</span>  */</span><span class="WHIT">
+<span class='line'> 85</span> </span><span class="NAME">createjs.TweenObject.prototype.setProperties</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'> 86</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">loop</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">position</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">single</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 87</span> 
+<span class='line'> 88</span> </span><span class="COMM">/**
+<span class='line'> 89</span>  * Returns whether this tween reaches its end.
+<span class='line'> 90</span>  * @return {boolean}
+<span class='line'> 91</span>  */</span><span class="WHIT">
+<span class='line'> 92</span> </span><span class="NAME">createjs.TweenObject.prototype.isEnded</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 93</span> </span></pre></body></html>

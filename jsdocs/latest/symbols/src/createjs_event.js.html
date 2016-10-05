@@ -1,0 +1,436 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	.KEYW {color: #933;}
+	.COMM {color: #bbb; font-style: italic;}
+	.NUMB {color: #393;}
+	.STRN {color: #393;}
+	.REGX {color: #339;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="COMM">/**
+<span class='line'>  2</span>  * The MIT License (MIT)
+<span class='line'>  3</span>  *
+<span class='line'>  4</span>  * Copyright (c) 2016 DeNA Co., Ltd.
+<span class='line'>  5</span>  *
+<span class='line'>  6</span>  * Permission is hereby granted, free of charge, to any person obtaining a copy
+<span class='line'>  7</span>  * of this software and associated documentation files (the "Software"), to deal
+<span class='line'>  8</span>  * in the Software without restriction, including without limitation the rights
+<span class='line'>  9</span>  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+<span class='line'> 10</span>  * copies of the Software, and to permit persons to whom the Software is
+<span class='line'> 11</span>  * furnished to do so, subject to the following conditions:
+<span class='line'> 12</span>  *
+<span class='line'> 13</span>  * The above copyright notice and this permission notice shall be included in
+<span class='line'> 14</span>  * all copies or substantial portions of the Software.
+<span class='line'> 15</span>  *
+<span class='line'> 16</span>  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+<span class='line'> 17</span>  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+<span class='line'> 18</span>  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+<span class='line'> 19</span>  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+<span class='line'> 20</span>  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+<span class='line'> 21</span>  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+<span class='line'> 22</span>  * SOFTWARE.
+<span class='line'> 23</span>  */</span><span class="WHIT">
+<span class='line'> 24</span> 
+<span class='line'> 25</span> </span><span class="COMM">/// &lt;reference path="base.js"/></span><span class="WHIT">
+<span class='line'> 26</span> </span><span class="COMM">/// &lt;reference path="object.js"/></span><span class="WHIT">
+<span class='line'> 27</span> 
+<span class='line'> 28</span> </span><span class="COMM">/**
+<span class='line'> 29</span>  * A base class for all CreateJS events. A CreateJS event is an event dispatched
+<span class='line'> 30</span>  * through CreateJS objects. It consists of events encapsulating DOM events
+<span class='line'> 31</span>  * (e.g. mouse events, load events, etc.) and events fired by CreateJS objects
+<span class='line'> 32</span>  * (e.g. animation events, tick events.) It is slow to bubble events on old
+<span class='line'> 33</span>  * Android devices (4.3 or earlier) and this class currently disables event
+<span class='line'> 34</span>  * bubbling.
+<span class='line'> 35</span>  * @param {string} type
+<span class='line'> 36</span>  * @param {boolean} bubbles
+<span class='line'> 37</span>  * @param {boolean} cancelable
+<span class='line'> 38</span>  * @extends {createjs.Object}
+<span class='line'> 39</span>  * @constructor
+<span class='line'> 40</span>  */</span><span class="WHIT">
+<span class='line'> 41</span> </span><span class="NAME">createjs.Event</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">bubbles</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">cancelable</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 42</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'> 43</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="boolean" name="bubbles"/></span><span class="WHIT">
+<span class='line'> 44</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="boolean" name="cancelable"/></span><span class="WHIT">
+<span class='line'> 45</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 46</span>    * The type of this event.
+<span class='line'> 47</span>    * @type {string}
+<span class='line'> 48</span>    */</span><span class="WHIT">
+<span class='line'> 49</span> </span><span class="WHIT">  </span><span class="NAME">this.type</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">type</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 50</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 51</span> </span><span class="NAME">createjs.inherits</span><span class="PUNC">(</span><span class="STRN">'Event'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">createjs.Event</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">createjs.Object</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 52</span> 
+<span class='line'> 53</span> </span><span class="COMM">/**
+<span class='line'> 54</span>  * Key codes for common characters.
+<span class='line'> 55</span>  * @enum {number}
+<span class='line'> 56</span>  */</span><span class="WHIT">
+<span class='line'> 57</span> </span><span class="NAME">createjs.Event.KeyCodes</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 58</span> </span><span class="WHIT">  </span><span class="NAME">BACKSPACE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">8</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 59</span> </span><span class="WHIT">  </span><span class="NAME">TAB</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">9</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 60</span> </span><span class="WHIT">  </span><span class="NAME">ENTER</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">13</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 61</span> </span><span class="WHIT">  </span><span class="NAME">SHIFT</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">16</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 62</span> </span><span class="WHIT">  </span><span class="NAME">CTRL</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">17</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 63</span> </span><span class="WHIT">  </span><span class="NAME">ALT</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">18</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 64</span> </span><span class="WHIT">  </span><span class="NAME">PAUSE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">19</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 65</span> </span><span class="WHIT">  </span><span class="NAME">CAPS_LOCK</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">20</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 66</span> </span><span class="WHIT">  </span><span class="NAME">ESC</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">27</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 67</span> </span><span class="WHIT">  </span><span class="NAME">SPACE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">32</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 68</span> </span><span class="WHIT">  </span><span class="NAME">PAGE_UP</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">33</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 69</span> </span><span class="WHIT">  </span><span class="NAME">PAGE_DOWN</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">34</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 70</span> </span><span class="WHIT">  </span><span class="NAME">END</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">35</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 71</span> </span><span class="WHIT">  </span><span class="NAME">HOME</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">36</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 72</span> </span><span class="WHIT">  </span><span class="NAME">LEFT</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">37</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 73</span> </span><span class="WHIT">  </span><span class="NAME">UP</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">38</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 74</span> </span><span class="WHIT">  </span><span class="NAME">RIGHT</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">39</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 75</span> </span><span class="WHIT">  </span><span class="NAME">DOWN</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">40</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 76</span> </span><span class="WHIT">  </span><span class="NAME">PRINT_SCREEN</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">44</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 77</span> </span><span class="WHIT">  </span><span class="NAME">INSERT</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">45</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 78</span> </span><span class="WHIT">  </span><span class="NAME">DELETE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">46</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 79</span> </span><span class="WHIT">  </span><span class="NAME">ZERO</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">48</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 80</span> </span><span class="WHIT">  </span><span class="NAME">ONE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">49</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 81</span> </span><span class="WHIT">  </span><span class="NAME">TWO</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">50</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 82</span> </span><span class="WHIT">  </span><span class="NAME">THREE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">51</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 83</span> </span><span class="WHIT">  </span><span class="NAME">FOUR</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">52</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 84</span> </span><span class="WHIT">  </span><span class="NAME">FIVE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">53</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 85</span> </span><span class="WHIT">  </span><span class="NAME">SIX</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">54</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 86</span> </span><span class="WHIT">  </span><span class="NAME">SEVEN</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">55</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 87</span> </span><span class="WHIT">  </span><span class="NAME">EIGHT</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">56</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 88</span> </span><span class="WHIT">  </span><span class="NAME">NINE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">57</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 89</span> </span><span class="WHIT">  </span><span class="NAME">QUESTION_MARK</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">63</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 90</span> </span><span class="WHIT">  </span><span class="NAME">A</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">65</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 91</span> </span><span class="WHIT">  </span><span class="NAME">B</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">66</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 92</span> </span><span class="WHIT">  </span><span class="NAME">C</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">67</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 93</span> </span><span class="WHIT">  </span><span class="NAME">D</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">68</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 94</span> </span><span class="WHIT">  </span><span class="NAME">E</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">69</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 95</span> </span><span class="WHIT">  </span><span class="NAME">F</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">70</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 96</span> </span><span class="WHIT">  </span><span class="NAME">G</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">71</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 97</span> </span><span class="WHIT">  </span><span class="NAME">H</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">72</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 98</span> </span><span class="WHIT">  </span><span class="NAME">I</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">73</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 99</span> </span><span class="WHIT">  </span><span class="NAME">J</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">74</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>100</span> </span><span class="WHIT">  </span><span class="NAME">K</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">75</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>101</span> </span><span class="WHIT">  </span><span class="NAME">L</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">76</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>102</span> </span><span class="WHIT">  </span><span class="NAME">M</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">77</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>103</span> </span><span class="WHIT">  </span><span class="NAME">N</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">78</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>104</span> </span><span class="WHIT">  </span><span class="NAME">O</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">79</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>105</span> </span><span class="WHIT">  </span><span class="NAME">P</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">80</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>106</span> </span><span class="WHIT">  </span><span class="NAME">Q</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">81</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>107</span> </span><span class="WHIT">  </span><span class="NAME">R</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">82</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>108</span> </span><span class="WHIT">  </span><span class="NAME">S</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">83</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>109</span> </span><span class="WHIT">  </span><span class="NAME">T</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">84</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>110</span> </span><span class="WHIT">  </span><span class="NAME">U</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">85</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>111</span> </span><span class="WHIT">  </span><span class="NAME">V</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">86</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>112</span> </span><span class="WHIT">  </span><span class="NAME">W</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">87</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>113</span> </span><span class="WHIT">  </span><span class="NAME">X</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">88</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>114</span> </span><span class="WHIT">  </span><span class="NAME">Y</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">89</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>115</span> </span><span class="WHIT">  </span><span class="NAME">Z</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">90</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>116</span> </span><span class="WHIT">  </span><span class="NAME">META</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">91</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>117</span> </span><span class="WHIT">  </span><span class="NAME">WIN_KEY_RIGHT</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">92</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>118</span> </span><span class="WHIT">  </span><span class="NAME">CONTEXT_MENU</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">93</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>119</span> </span><span class="WHIT">  </span><span class="NAME">NUM_ZERO</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">96</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>120</span> </span><span class="WHIT">  </span><span class="NAME">NUM_ONE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">97</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>121</span> </span><span class="WHIT">  </span><span class="NAME">NUM_TWO</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">98</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>122</span> </span><span class="WHIT">  </span><span class="NAME">NUM_THREE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">99</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>123</span> </span><span class="WHIT">  </span><span class="NAME">NUM_FOUR</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">100</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>124</span> </span><span class="WHIT">  </span><span class="NAME">NUM_FIVE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">101</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>125</span> </span><span class="WHIT">  </span><span class="NAME">NUM_SIX</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">102</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>126</span> </span><span class="WHIT">  </span><span class="NAME">NUM_SEVEN</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">103</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>127</span> </span><span class="WHIT">  </span><span class="NAME">NUM_EIGHT</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">104</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>128</span> </span><span class="WHIT">  </span><span class="NAME">NUM_NINE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">105</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>129</span> </span><span class="WHIT">  </span><span class="NAME">NUM_MULTIPLY</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">106</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>130</span> </span><span class="WHIT">  </span><span class="NAME">NUM_PLUS</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">107</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>131</span> </span><span class="WHIT">  </span><span class="NAME">NUM_MINUS</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">109</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>132</span> </span><span class="WHIT">  </span><span class="NAME">NUM_PERIOD</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">110</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>133</span> </span><span class="WHIT">  </span><span class="NAME">NUM_DIVIDE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">111</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>134</span> </span><span class="WHIT">  </span><span class="NAME">F1</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">112</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>135</span> </span><span class="WHIT">  </span><span class="NAME">F2</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">113</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>136</span> </span><span class="WHIT">  </span><span class="NAME">F3</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">114</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>137</span> </span><span class="WHIT">  </span><span class="NAME">F4</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">115</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>138</span> </span><span class="WHIT">  </span><span class="NAME">F5</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">116</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>139</span> </span><span class="WHIT">  </span><span class="NAME">F6</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">117</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>140</span> </span><span class="WHIT">  </span><span class="NAME">F7</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">118</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>141</span> </span><span class="WHIT">  </span><span class="NAME">F8</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">119</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>142</span> </span><span class="WHIT">  </span><span class="NAME">F9</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">120</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>143</span> </span><span class="WHIT">  </span><span class="NAME">F10</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">121</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>144</span> </span><span class="WHIT">  </span><span class="NAME">F11</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">122</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>145</span> </span><span class="WHIT">  </span><span class="NAME">F12</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">123</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>146</span> </span><span class="WHIT">  </span><span class="NAME">NUMLOCK</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">144</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>147</span> </span><span class="WHIT">  </span><span class="NAME">SCROLL_LOCK</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">145</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>148</span> </span><span class="WHIT">  </span><span class="NAME">SEMICOLON</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">186</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>149</span> </span><span class="WHIT">  </span><span class="NAME">DASH</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">189</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>150</span> </span><span class="WHIT">  </span><span class="NAME">EQUALS</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">187</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>151</span> </span><span class="WHIT">  </span><span class="NAME">COMMA</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">188</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>152</span> </span><span class="WHIT">  </span><span class="NAME">PERIOD</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">190</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>153</span> </span><span class="WHIT">  </span><span class="NAME">SLASH</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">191</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>154</span> </span><span class="WHIT">  </span><span class="NAME">APOSTROPHE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">192</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>155</span> </span><span class="WHIT">  </span><span class="NAME">TILDE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">192</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>156</span> </span><span class="WHIT">  </span><span class="NAME">SINGLE_QUOTE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">222</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>157</span> </span><span class="WHIT">  </span><span class="NAME">OPEN_SQUARE_BRACKET</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">219</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>158</span> </span><span class="WHIT">  </span><span class="NAME">BACKSLASH</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">220</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>159</span> </span><span class="WHIT">  </span><span class="NAME">CLOSE_SQUARE_BRACKET</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">221</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>160</span> </span><span class="WHIT">  </span><span class="NAME">WIN_KEY</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">224</span><span class="WHIT">
+<span class='line'>161</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>162</span> 
+<span class='line'>163</span> </span><span class="COMM">/**
+<span class='line'>164</span>  * An interface that adds event listeners or removes them. (This interface is
+<span class='line'>165</span>  * for removing a cycling dependency.)
+<span class='line'>166</span>  * @interface
+<span class='line'>167</span>  */</span><span class="WHIT">
+<span class='line'>168</span> </span><span class="NAME">createjs.Event.Target</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>169</span> 
+<span class='line'>170</span> </span><span class="COMM">/**
+<span class='line'>171</span>  * Adds the specified event listener. Note that this method does not remove
+<span class='line'>172</span>  * existing listeners even when the specified listener has been already added.
+<span class='line'>173</span>  * So, adding a function three times results that the function is called three
+<span class='line'>174</span>  * times as listed in the following code snippet.
+<span class='line'>175</span>  *
+<span class='line'>176</span>  *   function handleClick(event) {
+<span class='line'>177</span>  *     // This function will be called three times on click.
+<span class='line'>178</span>  *   }
+<span class='line'>179</span>  *   displayObject.on('click', handleClick);
+<span class='line'>180</span>  *   displayObject.on('click', handleClick);
+<span class='line'>181</span>  *   displayObject.on('click', handleClick);
+<span class='line'>182</span>  *
+<span class='line'>183</span>  * @param {string} type
+<span class='line'>184</span>  * @param {Function|Object} listener
+<span class='line'>185</span>  * @param {Object=} opt_scope
+<span class='line'>186</span>  * @param {boolean=} opt_once
+<span class='line'>187</span>  * @param {*=} opt_data
+<span class='line'>188</span>  * @param {boolean=} opt_useCapture
+<span class='line'>189</span>  * @return {Function|Object}
+<span class='line'>190</span>  */</span><span class="WHIT">
+<span class='line'>191</span> </span><span class="NAME">createjs.Event.Target.prototype.on</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>192</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opt_scope</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opt_once</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opt_data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opt_useCapture</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>193</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>194</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>195</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Function" name="callback"/></span><span class="WHIT">
+<span class='line'>196</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" optional="true" name="opt_scope"/></span><span class="WHIT">
+<span class='line'>197</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" optional="true" name="opt_once"/></span><span class="WHIT">
+<span class='line'>198</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param optional="true" optional="true" name="opt_data"/></span><span class="WHIT">
+<span class='line'>199</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" optional="true" name="opt_useCapture"/></span><span class="WHIT">
+<span class='line'>200</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="Function"/></span><span class="WHIT">
+<span class='line'>201</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>202</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>203</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>204</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" name="listener"/></span><span class="WHIT">
+<span class='line'>205</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" optional="true" name="opt_scope"/></span><span class="WHIT">
+<span class='line'>206</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" optional="true" name="opt_once"/></span><span class="WHIT">
+<span class='line'>207</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param optional="true" optional="true" name="opt_data"/></span><span class="WHIT">
+<span class='line'>208</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" optional="true" name="opt_useCapture"/></span><span class="WHIT">
+<span class='line'>209</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="Object"/></span><span class="WHIT">
+<span class='line'>210</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>211</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>212</span> 
+<span class='line'>213</span> </span><span class="COMM">/**
+<span class='line'>214</span>  * Removes the specified event listener. Note that this method needs the exact
+<span class='line'>215</span>  * function object used in adding an event listener. If a closure function is
+<span class='line'>216</span>  * added to an event, the closure function itself must be used and another new
+<span class='line'>217</span>  * proxy or closure does not remove the handler as listed in the following code
+<span class='line'>218</span>  * snippet.
+<span class='line'>219</span>  *
+<span class='line'>220</span>  *   function closure(fn, scope) {
+<span class='line'>221</span>  *     return function() { fn.call(scope); };
+<span class='line'>222</span>  *   }
+<span class='line'>223</span>  *   function handleClick(event) {
+<span class='line'>224</span>  *     // The following code does not remove this method.
+<span class='line'>225</span>  *     displayObject.off('click', closure(handleClick, window));
+<span class='line'>226</span>  *   }
+<span class='line'>227</span>  *   displayObject.on('click', closure(handleClick, window));
+<span class='line'>228</span>  *
+<span class='line'>229</span>  * The 'Event.prototype.remove()' method can remove such closure functions as
+<span class='line'>230</span>  * listed in the following code snippet.
+<span class='line'>231</span>  *
+<span class='line'>232</span>  *   function closure(fn, scope) {
+<span class='line'>233</span>  *     return function() { fn.call(scope); };
+<span class='line'>234</span>  *   }
+<span class='line'>235</span>  *   function handleClick(event) {
+<span class='line'>236</span>  *     // This event listener will be removed when it returns.
+<span class='line'>237</span>  *     event.remove();
+<span class='line'>238</span>  *   }
+<span class='line'>239</span>  *   displayObject.on('click', closure(handleClick, window));
+<span class='line'>240</span>  *
+<span class='line'>241</span>  * @param {string} type
+<span class='line'>242</span>  * @param {Function|Object} listener
+<span class='line'>243</span>  * @param {boolean=} opt_useCapture
+<span class='line'>244</span>  */</span><span class="WHIT">
+<span class='line'>245</span> </span><span class="NAME">createjs.Event.Target.prototype.off</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>246</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opt_useCapture</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>247</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>248</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>249</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Function" name="callback"/></span><span class="WHIT">
+<span class='line'>250</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" optional="true" name="opt_useCapture"/></span><span class="WHIT">
+<span class='line'>251</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="Function"/></span><span class="WHIT">
+<span class='line'>252</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>253</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>254</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>255</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" name="listener"/></span><span class="WHIT">
+<span class='line'>256</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" optional="true" name="opt_useCapture"/></span><span class="WHIT">
+<span class='line'>257</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="Object"/></span><span class="WHIT">
+<span class='line'>258</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>259</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>260</span> 
+<span class='line'>261</span> </span><span class="COMM">/**
+<span class='line'>262</span>  * Indicates whether the event will bubble through CreateJS objects. (This
+<span class='line'>263</span>  * feature is disabled.)
+<span class='line'>264</span>  * @type {boolean}
+<span class='line'>265</span>  */</span><span class="WHIT">
+<span class='line'>266</span> </span><span class="NAME">createjs.Event.prototype.bubbles</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>267</span> </span><span class="WHIT"> 
+<span class='line'>268</span> </span><span class="COMM">/**
+<span class='line'>269</span>  * Indicates whether the Event.prototype.preventDefault() method can prevent the
+<span class='line'>270</span>  * default behavior of an event. For CreateJS events encapsulating DOM events,
+<span class='line'>271</span>  * their default behaviors are dispatching DOM events to the ancestors of the
+<span class='line'>272</span>  * &lt;canvas> element that receives them. For CreateJS events fired by CreateJS
+<span class='line'>273</span>  * objects, they do not have default behaviors, i.e. their default behaviors are
+<span class='line'>274</span>  * "do nothing".
+<span class='line'>275</span>  * @const {boolean}
+<span class='line'>276</span>  */</span><span class="WHIT">
+<span class='line'>277</span> </span><span class="NAME">createjs.Event.prototype.cancelable</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>278</span> 
+<span class='line'>279</span> </span><span class="COMM">/**
+<span class='line'>280</span>  * Indicates the current event phase:
+<span class='line'>281</span>  * 1. Capture phase: starting from the top parent to the target;
+<span class='line'>282</span>  * 2. at target phase: currently being dispatched from the target;
+<span class='line'>283</span>  * 3. bubbling phase: from the target to the top parent.
+<span class='line'>284</span>  * @const {number}
+<span class='line'>285</span>  */</span><span class="WHIT">
+<span class='line'>286</span> </span><span class="NAME">createjs.Event.prototype.eventPhase</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">2</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>287</span> 
+<span class='line'>288</span> </span><span class="COMM">/**
+<span class='line'>289</span>  * The epoch time at which this event was created.
+<span class='line'>290</span>  * (This event is not exported to games.)
+<span class='line'>291</span>  * @type {number}
+<span class='line'>292</span>  */</span><span class="WHIT">
+<span class='line'>293</span> </span><span class="NAME">createjs.Event.prototype.timeStamp</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>294</span> 
+<span class='line'>295</span> </span><span class="COMM">/**
+<span class='line'>296</span>  * Whether a handler has called the Event.prototype.preventDefault() method.
+<span class='line'>297</span>  * (This event is not exported to games.)
+<span class='line'>298</span>  * @type {boolean}
+<span class='line'>299</span>  */</span><span class="WHIT">
+<span class='line'>300</span> </span><span class="NAME">createjs.Event.prototype.defaultPrevented</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>301</span> 
+<span class='line'>302</span> </span><span class="COMM">/**
+<span class='line'>303</span>  * Whether a handler has called the Event.prototype.stopPropagation() method or
+<span class='line'>304</span>  * the Event.prototype.stopImmediatePropagation() method. (This event is not
+<span class='line'>305</span>  * exported to games.)
+<span class='line'>306</span>  * @type {boolean}
+<span class='line'>307</span>  */</span><span class="WHIT">
+<span class='line'>308</span> </span><span class="NAME">createjs.Event.prototype.propagationStopped</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>309</span> 
+<span class='line'>310</span> </span><span class="COMM">/**
+<span class='line'>311</span>  * Whether a handler has called the Event.stopImmediatePropagation() method.
+<span class='line'>312</span>  * (This event is not exported to games.)
+<span class='line'>313</span>  * @type {boolean}
+<span class='line'>314</span>  */</span><span class="WHIT">
+<span class='line'>315</span> </span><span class="NAME">createjs.Event.prototype.immediatePropagationStopped</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>316</span> 
+<span class='line'>317</span> </span><span class="COMM">/**
+<span class='line'>318</span>  * Whether a handler has called the Event.prototype.remove() method. (This event
+<span class='line'>319</span>  * is not exported to games.)
+<span class='line'>320</span>  * @type {boolean}
+<span class='line'>321</span>  */</span><span class="WHIT">
+<span class='line'>322</span> </span><span class="NAME">createjs.Event.prototype.removed</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>323</span> 
+<span class='line'>324</span> </span><span class="COMM">/**
+<span class='line'>325</span>  * The current event target, i.e. an object that this event is being dispatched
+<span class='line'>326</span>  * from.
+<span class='line'>327</span>  * @type {createjs.Event.Target}
+<span class='line'>328</span>  * @private
+<span class='line'>329</span>  */</span><span class="WHIT">
+<span class='line'>330</span> </span><span class="NAME">createjs.Event.prototype.currentTarget_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>331</span> 
+<span class='line'>332</span> </span><span class="COMM">/**
+<span class='line'>333</span>  * Prevents the default action of this event.
+<span class='line'>334</span>  * @const
+<span class='line'>335</span>  */</span><span class="WHIT">
+<span class='line'>336</span> </span><span class="NAME">createjs.Event.prototype</span><span class="PUNC">[</span><span class="STRN">'preventDefault'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>337</span> </span><span class="WHIT">  </span><span class="NAME">this.defaultPrevented</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>338</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>339</span> 
+<span class='line'>340</span> </span><span class="COMM">/**
+<span class='line'>341</span>  * Stops the event propagation.
+<span class='line'>342</span>  * @const
+<span class='line'>343</span>  */</span><span class="WHIT">
+<span class='line'>344</span> </span><span class="NAME">createjs.Event.prototype</span><span class="PUNC">[</span><span class="STRN">'stopPropagation'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>345</span> </span><span class="WHIT">  </span><span class="NAME">this.propagationStopped</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>346</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>347</span> 
+<span class='line'>348</span> </span><span class="COMM">/**
+<span class='line'>349</span>  * Stops the immediate event propagation.
+<span class='line'>350</span>  * @const
+<span class='line'>351</span>  */</span><span class="WHIT">
+<span class='line'>352</span> </span><span class="NAME">createjs.Event.prototype.stopImmediatePropagation</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>353</span> </span><span class="WHIT">  </span><span class="NAME">this.immediatePropagationStopped</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.propagationStopped</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>354</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>355</span> </span><span class="WHIT">  
+<span class='line'>356</span> </span><span class="COMM">/**
+<span class='line'>357</span>  * Resets the properties used by event targets. To reduce the number of new
+<span class='line'>358</span>  * createjs.Event() calls, some event listeners (in this library) use object
+<span class='line'>359</span>  * spools. This method is used by such event dispatchers to clean up an used
+<span class='line'>360</span>  * event.
+<span class='line'>361</span>  * @const
+<span class='line'>362</span>  */</span><span class="WHIT">
+<span class='line'>363</span> </span><span class="NAME">createjs.Event.prototype.resetProperties</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>364</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'target'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>365</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'currentTarget'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>366</span> </span><span class="WHIT">  </span><span class="NAME">this.currentTarget_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>367</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>368</span> 
+<span class='line'>369</span> </span><span class="COMM">/**
+<span class='line'>370</span>  * Sets properties used by event targets.
+<span class='line'>371</span>  * @param {createjs.Event.Target} target
+<span class='line'>372</span>  * @param {number} phase
+<span class='line'>373</span>  * @const
+<span class='line'>374</span>  */</span><span class="WHIT">
+<span class='line'>375</span> </span><span class="NAME">createjs.Event.prototype.setProperties</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">target</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">phase</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>376</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.Event.Target" name="target"/></span><span class="WHIT">
+<span class='line'>377</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="phase"/></span><span class="WHIT">
+<span class='line'>378</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'target'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">target</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>379</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'currentTarget'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">target</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>380</span> </span><span class="WHIT">  </span><span class="NAME">this.currentTarget_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">target</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>381</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>382</span> 
+<span class='line'>383</span> </span><span class="COMM">/**
+<span class='line'>384</span>  * Removes the event listener which receives this event after returning from it.
+<span class='line'>385</span>  * @const
+<span class='line'>386</span>  */</span><span class="WHIT">
+<span class='line'>387</span> </span><span class="NAME">createjs.Event.prototype</span><span class="PUNC">[</span><span class="STRN">'remove'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>388</span> </span><span class="WHIT">  </span><span class="NAME">this.removed</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>389</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>390</span> </span><span class="WHIT">  
+<span class='line'>391</span> </span><span class="COMM">/**
+<span class='line'>392</span>  * Adds the specified event listener to the target of this event.
+<span class='line'>393</span>  * @param {string} type
+<span class='line'>394</span>  * @param {Function|Object} listener
+<span class='line'>395</span>  * @return {Function|Object}
+<span class='line'>396</span>  * @const
+<span class='line'>397</span>  */</span><span class="WHIT">
+<span class='line'>398</span> </span><span class="NAME">createjs.Event.prototype</span><span class="PUNC">[</span><span class="STRN">'addEventListener'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>399</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>400</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>401</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Function" name="callback"/></span><span class="WHIT">
+<span class='line'>402</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="Function"/></span><span class="WHIT">
+<span class='line'>403</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>404</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>405</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>406</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" name="listener"/></span><span class="WHIT">
+<span class='line'>407</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="Object"/></span><span class="WHIT">
+<span class='line'>408</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>409</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.currentTarget_.on</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>410</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>411</span> 
+<span class='line'>412</span> </span><span class="COMM">/**
+<span class='line'>413</span>  * Removes the specified event listener from the target of this event.
+<span class='line'>414</span>  * @param {string} type
+<span class='line'>415</span>  * @param {Function|Object} listener
+<span class='line'>416</span>  * @const
+<span class='line'>417</span>  */</span><span class="WHIT">
+<span class='line'>418</span> </span><span class="NAME">createjs.Event.prototype</span><span class="PUNC">[</span><span class="STRN">'removeEventListener'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>419</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>420</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>421</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Function" name="callback"/></span><span class="WHIT">
+<span class='line'>422</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>423</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>424</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>425</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" name="listener"/></span><span class="WHIT">
+<span class='line'>426</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>427</span> </span><span class="WHIT">  </span><span class="NAME">this.currentTarget_.off</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>428</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>429</span> </span></pre></body></html>

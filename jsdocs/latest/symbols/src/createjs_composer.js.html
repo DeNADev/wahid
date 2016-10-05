@@ -1,0 +1,517 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	.KEYW {color: #933;}
+	.COMM {color: #bbb; font-style: italic;}
+	.NUMB {color: #393;}
+	.STRN {color: #393;}
+	.REGX {color: #339;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="COMM">/**
+<span class='line'>  2</span>  * The MIT License (MIT)
+<span class='line'>  3</span>  *
+<span class='line'>  4</span>  * Copyright (c) 2016 DeNA Co., Ltd.
+<span class='line'>  5</span>  *
+<span class='line'>  6</span>  * Permission is hereby granted, free of charge, to any person obtaining a copy
+<span class='line'>  7</span>  * of this software and associated documentation files (the "Software"), to deal
+<span class='line'>  8</span>  * in the Software without restriction, including without limitation the rights
+<span class='line'>  9</span>  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+<span class='line'> 10</span>  * copies of the Software, and to permit persons to whom the Software is
+<span class='line'> 11</span>  * furnished to do so, subject to the following conditions:
+<span class='line'> 12</span>  *
+<span class='line'> 13</span>  * The above copyright notice and this permission notice shall be included in
+<span class='line'> 14</span>  * all copies or substantial portions of the Software.
+<span class='line'> 15</span>  *
+<span class='line'> 16</span>  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+<span class='line'> 17</span>  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+<span class='line'> 18</span>  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+<span class='line'> 19</span>  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+<span class='line'> 20</span>  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+<span class='line'> 21</span>  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+<span class='line'> 22</span>  * SOFTWARE.
+<span class='line'> 23</span>  */</span><span class="WHIT">
+<span class='line'> 24</span> 
+<span class='line'> 25</span> </span><span class="COMM">/// &lt;reference path="base.js"/></span><span class="WHIT">
+<span class='line'> 26</span> </span><span class="COMM">/// &lt;reference path="object.js"/></span><span class="WHIT">
+<span class='line'> 27</span> </span><span class="COMM">/// &lt;reference path="color.js"/></span><span class="WHIT">
+<span class='line'> 28</span> </span><span class="COMM">/// &lt;reference path="renderer.js"/></span><span class="WHIT">
+<span class='line'> 29</span> </span><span class="COMM">/// &lt;reference path="user_agent.js"/></span><span class="WHIT">
+<span class='line'> 30</span> 
+<span class='line'> 31</span> </span><span class="COMM">/**
+<span class='line'> 32</span>  * A class that composes an image.
+<span class='line'> 33</span>  * @constructor
+<span class='line'> 34</span>  */</span><span class="WHIT">
+<span class='line'> 35</span> </span><span class="NAME">createjs.Composer</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 36</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 37</span> 
+<span class='line'> 38</span> </span><span class="COMM">/**
+<span class='line'> 39</span>  * An inner class that encapsulates a composed image.
+<span class='line'> 40</span>  * @param {number} width
+<span class='line'> 41</span>  * @param {number} height
+<span class='line'> 42</span>  * @constructor
+<span class='line'> 43</span>  */</span><span class="WHIT">
+<span class='line'> 44</span> </span><span class="NAME">createjs.Composer.Renderer</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 45</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'> 46</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'> 47</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">canvas</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.createCanvas</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 48</span> </span><span class="WHIT">  </span><span class="NAME">canvas.width</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 49</span> </span><span class="WHIT">  </span><span class="NAME">canvas.height</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 50</span> 
+<span class='line'> 51</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 52</span>    * The HTMLCanvasElement object representing the composed image.
+<span class='line'> 53</span>    * @type {HTMLCanvasElement}
+<span class='line'> 54</span>    * @private
+<span class='line'> 55</span>    */</span><span class="WHIT">
+<span class='line'> 56</span> </span><span class="WHIT">  </span><span class="NAME">this.canvas_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">canvas</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 57</span> 
+<span class='line'> 58</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 59</span>    * The 2D rendering context attached to the HTMLCanvasElement object.
+<span class='line'> 60</span>    * @type {CanvasRenderingContext2D}
+<span class='line'> 61</span>    * @private
+<span class='line'> 62</span>    */</span><span class="WHIT">
+<span class='line'> 63</span> </span><span class="WHIT">  </span><span class="NAME">this.context_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.getRenderingContext2D</span><span class="PUNC">(</span><span class="NAME">canvas</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 64</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 65</span> 
+<span class='line'> 66</span> </span><span class="COMM">/**
+<span class='line'> 67</span>  * Returns the HTMLCanvasElement object associated with this renderer.
+<span class='line'> 68</span>  * @param {number} width
+<span class='line'> 69</span>  * @param {number} height
+<span class='line'> 70</span>  * @const
+<span class='line'> 71</span>  */</span><span class="WHIT">
+<span class='line'> 72</span> </span><span class="NAME">createjs.Composer.Renderer.prototype.reset</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 73</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'> 74</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'> 75</span> </span><span class="WHIT">  </span><span class="NAME">this.canvas_.width</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 76</span> </span><span class="WHIT">  </span><span class="NAME">this.canvas_.height</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 77</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 78</span> 
+<span class='line'> 79</span> </span><span class="COMM">/**
+<span class='line'> 80</span>  * Deletes all resources associated with this renderer.
+<span class='line'> 81</span>  * @const
+<span class='line'> 82</span>  */</span><span class="WHIT">
+<span class='line'> 83</span> </span><span class="NAME">createjs.Composer.Renderer.prototype.destroy</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 84</span> </span><span class="WHIT">  </span><span class="NAME">this.context_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 85</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.canvas_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 86</span> </span><span class="WHIT">    </span><span class="NAME">this.canvas_.width</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 87</span> </span><span class="WHIT">    </span><span class="NAME">this.canvas_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 88</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 89</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 90</span> 
+<span class='line'> 91</span> </span><span class="COMM">/**
+<span class='line'> 92</span>  * Returns the HTMLCanvasElement object associated with this renderer.
+<span class='line'> 93</span>  * @return {HTMLCanvasElement}
+<span class='line'> 94</span>  * @const
+<span class='line'> 95</span>  */</span><span class="WHIT">
+<span class='line'> 96</span> </span><span class="NAME">createjs.Composer.Renderer.prototype.getCanvas</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 97</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="HTMLCanvasElement"/></span><span class="WHIT">
+<span class='line'> 98</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.canvas_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 99</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>100</span> 
+<span class='line'>101</span> </span><span class="COMM">/**
+<span class='line'>102</span>  * Sets the alpha value used by this renderer.
+<span class='line'>103</span>  * @param {number} alpha
+<span class='line'>104</span>  * @const
+<span class='line'>105</span>  */</span><span class="WHIT">
+<span class='line'>106</span> </span><span class="NAME">createjs.Composer.Renderer.prototype.setAlpha</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">alpha</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>107</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="alpha"/></span><span class="WHIT">
+<span class='line'>108</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.globalAlpha</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">alpha</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>109</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>110</span> 
+<span class='line'>111</span> </span><span class="COMM">/**
+<span class='line'>112</span>  * Sets the composition operation used by this renderer.
+<span class='line'>113</span>  * @param {number} operation
+<span class='line'>114</span>  * @const
+<span class='line'>115</span>  */</span><span class="WHIT">
+<span class='line'>116</span> </span><span class="NAME">createjs.Composer.Renderer.prototype.setComposition</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">operation</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>117</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.globalCompositeOperation</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>118</span> </span><span class="WHIT">      </span><span class="NAME">createjs.Renderer.getCompositionName</span><span class="PUNC">(</span><span class="NAME">operation</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>119</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>120</span> 
+<span class='line'>121</span> </span><span class="COMM">/**
+<span class='line'>122</span>  * Sets the fill color used by the 'fillRect()' method.
+<span class='line'>123</span>  * @param {string} color
+<span class='line'>124</span>  * @const
+<span class='line'>125</span>  */</span><span class="WHIT">
+<span class='line'>126</span> </span><span class="NAME">createjs.Composer.Renderer.prototype.setFillColor</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">color</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>127</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.fillStyle</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">color</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>128</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>129</span> 
+<span class='line'>130</span> </span><span class="COMM">/**
+<span class='line'>131</span>  * Fills the specified region of this renderer with the color specified with a
+<span class='line'>132</span>  * 'setFillColor()' call.
+<span class='line'>133</span>  * @param {number} width
+<span class='line'>134</span>  * @param {number} height
+<span class='line'>135</span>  * @const
+<span class='line'>136</span>  */</span><span class="WHIT">
+<span class='line'>137</span> </span><span class="NAME">createjs.Composer.Renderer.prototype.fillRect</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>138</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'>139</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'>140</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.fillRect</span><span class="PUNC">(</span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>141</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>142</span> 
+<span class='line'>143</span> </span><span class="COMM">/**
+<span class='line'>144</span>  * Draws an image.
+<span class='line'>145</span>  * @param {HTMLImageElement|HTMLCanvasElement} image
+<span class='line'>146</span>  * @const
+<span class='line'>147</span>  */</span><span class="WHIT">
+<span class='line'>148</span> </span><span class="NAME">createjs.Composer.Renderer.prototype.drawImage</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">image</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>149</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>150</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="HTMLImageElement" name="image"/></span><span class="WHIT">
+<span class='line'>151</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>152</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>153</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="HTMLCanvasElement" name="canvas"/></span><span class="WHIT">
+<span class='line'>154</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>155</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.drawImage</span><span class="PUNC">(</span><span class="NAME">image</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>156</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>157</span> 
+<span class='line'>158</span> </span><span class="COMM">/**
+<span class='line'>159</span>  * Draws an alpha mask. This method copies the specified image and applies the
+<span class='line'>160</span>  * following color-matrix filter to the copy.
+<span class='line'>161</span>  *       | 1 0 0 0 0 |
+<span class='line'>162</span>  *       | 0 1 0 0 0 |
+<span class='line'>163</span>  *   A = | 0 0 1 0 0 |
+<span class='line'>164</span>  *       | 1 0 0 0 0 |
+<span class='line'>165</span>  *       | 0 0 0 0 0 |
+<span class='line'>166</span>  * @param {HTMLImageElement|HTMLCanvasElement} alpha
+<span class='line'>167</span>  * @param {number} width
+<span class='line'>168</span>  * @param {number} height
+<span class='line'>169</span>  * @const
+<span class='line'>170</span>  */</span><span class="WHIT">
+<span class='line'>171</span> </span><span class="NAME">createjs.Composer.Renderer.prototype.drawAlphaMask</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>172</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">alpha</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>173</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>174</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="HTMLImageElement" name="alpha"/></span><span class="WHIT">
+<span class='line'>175</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'>176</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'>177</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>178</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>179</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="HTMLCanvasElement" name="alpha"/></span><span class="WHIT">
+<span class='line'>180</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'>181</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'>182</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>183</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.drawImage</span><span class="PUNC">(</span><span class="NAME">alpha</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>184</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">image</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.context_.getImageData</span><span class="PUNC">(</span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>185</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">data</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">image.data</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>186</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">length</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">data.length</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>187</span> </span><span class="WHIT">  </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">length</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>188</span> </span><span class="WHIT">    </span><span class="NAME">data</span><span class="PUNC">[</span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">3</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">data</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>189</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>190</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.putImageData</span><span class="PUNC">(</span><span class="NAME">image</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>191</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>192</span> 
+<span class='line'>193</span> </span><span class="COMM">/**
+<span class='line'>194</span>  * Multiplies the specified color to this renderer. This method applies the
+<span class='line'>195</span>  * following color-matrix filter to the HTMLCanvasElement object associated with
+<span class='line'>196</span>  * this renderer.
+<span class='line'>197</span>  *       | 1 0 0 0 red   |
+<span class='line'>198</span>  *       | 0 1 0 0 green |
+<span class='line'>199</span>  *   A = | 0 0 1 0 blue  |
+<span class='line'>200</span>  *       | 0 0 0 1 0     |
+<span class='line'>201</span>  *       | 0 0 0 0 0     |
+<span class='line'>202</span>  * @param {number} red
+<span class='line'>203</span>  * @param {number} green
+<span class='line'>204</span>  * @param {number} blue
+<span class='line'>205</span>  * @param {number} width
+<span class='line'>206</span>  * @param {number} height
+<span class='line'>207</span>  * @const
+<span class='line'>208</span>  */</span><span class="WHIT">
+<span class='line'>209</span> </span><span class="NAME">createjs.Composer.Renderer.prototype.addOffset</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>210</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">red</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">green</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">blue</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>211</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="red"/></span><span class="WHIT">
+<span class='line'>212</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="green"/></span><span class="WHIT">
+<span class='line'>213</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="blue"/></span><span class="WHIT">
+<span class='line'>214</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'>215</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'>216</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">output</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">createjs.Composer.Renderer</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>217</span> </span><span class="WHIT">  </span><span class="NAME">output.drawImage</span><span class="PUNC">(</span><span class="NAME">this.getCanvas</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>218</span> </span><span class="WHIT">  </span><span class="NAME">output.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.LIGHTER</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>219</span> </span><span class="WHIT">  </span><span class="NAME">output.setFillColor</span><span class="PUNC">(</span><span class="STRN">'rgb('</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">red</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">','</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">green</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">','</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">blue</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">')'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>220</span> </span><span class="WHIT">  </span><span class="NAME">output.fillRect</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>221</span> </span><span class="WHIT">  </span><span class="NAME">this.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.SOURCE_IN</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>222</span> </span><span class="WHIT">  </span><span class="NAME">this.drawImage</span><span class="PUNC">(</span><span class="NAME">output.getCanvas</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>223</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>224</span> 
+<span class='line'>225</span> </span><span class="COMM">/**
+<span class='line'>226</span>  * Multiplies the specified color to this renderer. This method applies the
+<span class='line'>227</span>  * following color-matrix filter to the HTMLCanvasElement object associated with
+<span class='line'>228</span>  * this renderer.
+<span class='line'>229</span>  *       | red 0     0    0 0 |
+<span class='line'>230</span>  *       | 0   green 0    0 0 |
+<span class='line'>231</span>  *   A = | 0   0     blue 0 0 |
+<span class='line'>232</span>  *       | 0   0     0    1 0 |
+<span class='line'>233</span>  *       | 0   0     0    0 0 |
+<span class='line'>234</span>  * @param {Array.&lt;number>} matrix
+<span class='line'>235</span>  * @param {number} width
+<span class='line'>236</span>  * @param {number} height
+<span class='line'>237</span>  * @return {number}
+<span class='line'>238</span>  * @const
+<span class='line'>239</span>  */</span><span class="WHIT">
+<span class='line'>240</span> </span><span class="NAME">createjs.Composer.Renderer.prototype.multiplyColor</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>241</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">matrix</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>242</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="Array" elementType="number" name="matrix"/></span><span class="WHIT">
+<span class='line'>243</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'>244</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'>245</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>246</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">red</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">0</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>247</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">green</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>248</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">blue</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">2</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">2</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>249</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">red</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NAME">green</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="NAME">green</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NAME">blue</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>250</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">red</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>251</span> </span><span class="WHIT">      </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>252</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>253</span> </span><span class="WHIT">    </span><span class="COMM">// Draws a black rectangle onto the source image with the 'source-atop'</span><span class="WHIT">
+<span class='line'>254</span> </span><span class="WHIT">    </span><span class="COMM">// operation. This 'source-atop' operation multiplies (1 - globalAlpha)</span><span class="WHIT">
+<span class='line'>255</span> </span><span class="WHIT">    </span><span class="COMM">// with background colors and writes the multiplied colors onto the</span><span class="WHIT">
+<span class='line'>256</span> </span><span class="WHIT">    </span><span class="COMM">// destination if it is not transparent as listed in the following code</span><span class="WHIT">
+<span class='line'>257</span> </span><span class="WHIT">    </span><span class="COMM">// snippet. (This operation preserves the alpha values of the original</span><span class="WHIT">
+<span class='line'>258</span> </span><span class="WHIT">    </span><span class="COMM">// image.)</span><span class="WHIT">
+<span class='line'>259</span> </span><span class="WHIT">    </span><span class="COMM">//    for (var i = 0; i &lt; p.length; i += 4) {</span><span class="WHIT">
+<span class='line'>260</span> </span><span class="WHIT">    </span><span class="COMM">//      if (p[i + 3] > 0) {</span><span class="WHIT">
+<span class='line'>261</span> </span><span class="WHIT">    </span><span class="COMM">//        p[i + 0] = (1 - red) * 0 + (1 - (1 - red)) * p[i + 0];</span><span class="WHIT">
+<span class='line'>262</span> </span><span class="WHIT">    </span><span class="COMM">//        p[i + 1] = (1 - red) * 0 + (1 - (1 - red)) * p[i + 1];</span><span class="WHIT">
+<span class='line'>263</span> </span><span class="WHIT">    </span><span class="COMM">//        p[i + 2] = (1 - red) * 0 + (1 - (1 - red)) * p[i + 2];</span><span class="WHIT">
+<span class='line'>264</span> </span><span class="WHIT">    </span><span class="COMM">//      }</span><span class="WHIT">
+<span class='line'>265</span> </span><span class="WHIT">    </span><span class="COMM">//    }</span><span class="WHIT">
+<span class='line'>266</span> </span><span class="WHIT">    </span><span class="NAME">this.setAlpha</span><span class="PUNC">(</span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="WHIT"> </span><span class="NAME">red</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>267</span> </span><span class="WHIT">    </span><span class="NAME">this.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.SOURCE_ATOP</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>268</span> </span><span class="WHIT">    </span><span class="NAME">this.setFillColor</span><span class="PUNC">(</span><span class="STRN">'#000'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>269</span> </span><span class="WHIT">    </span><span class="NAME">this.fillRect</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>270</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>271</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>272</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.UserAgent.isMSIE</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>273</span> </span><span class="WHIT">    </span><span class="COMM">// Read each pixel in the original image and multiply the specified color on</span><span class="WHIT">
+<span class='line'>274</span> </span><span class="WHIT">    </span><span class="COMM">// IE 11 or earlier, which does not provide the blend mode "multiply".</span><span class="WHIT">
+<span class='line'>275</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">image</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.context_.getImageData</span><span class="PUNC">(</span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>276</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">data</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">image.data</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>277</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">length</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">data.length</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>278</span> </span><span class="WHIT">    </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">length</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>279</span> </span><span class="WHIT">      </span><span class="NAME">data</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">red</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>280</span> </span><span class="WHIT">      </span><span class="NAME">data</span><span class="PUNC">[</span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">green</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>281</span> </span><span class="WHIT">      </span><span class="NAME">data</span><span class="PUNC">[</span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">2</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">blue</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>282</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>283</span> </span><span class="WHIT">    </span><span class="NAME">this.context_.putImageData</span><span class="PUNC">(</span><span class="NAME">image</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>284</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>285</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>286</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">output</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">createjs.Composer.Renderer</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>287</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">createjs.UserAgent.isAndroidBrowser</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>288</span> </span><span class="WHIT">    </span><span class="COMM">// Use the blend mode "multiply" for color multiplication on browsers that</span><span class="WHIT">
+<span class='line'>289</span> </span><span class="WHIT">    </span><span class="COMM">// provide it. (This blend mode is implemented by all major browsers except</span><span class="WHIT">
+<span class='line'>290</span> </span><span class="WHIT">    </span><span class="COMM">// IE (11 or earlier) or Android browsers (on Android 4.3 or earlier), as of</span><span class="WHIT">
+<span class='line'>291</span> </span><span class="WHIT">    </span><span class="COMM">// 11 September, 2015.) This operation sets 1 to all alpha values of this</span><span class="WHIT">
+<span class='line'>292</span> </span><span class="WHIT">    </span><span class="COMM">// renderer and needs to restore the alpha values of the original image</span><span class="WHIT">
+<span class='line'>293</span> </span><span class="WHIT">    </span><span class="COMM">// later.</span><span class="WHIT">
+<span class='line'>294</span> </span><span class="WHIT">    </span><span class="NAME">output.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.COPY</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>295</span> </span><span class="WHIT">    </span><span class="NAME">output.drawImage</span><span class="PUNC">(</span><span class="NAME">this.getCanvas</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>296</span> </span><span class="WHIT">    </span><span class="NAME">output.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.MULTIPLY</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>297</span> </span><span class="WHIT">    </span><span class="NAME">output.setFillColor</span><span class="PUNC">(</span><span class="STRN">'rgb('</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>298</span> </span><span class="WHIT">        </span><span class="NAME">createjs.floor</span><span class="PUNC">(</span><span class="NAME">red</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">255</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">','</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>299</span> </span><span class="WHIT">        </span><span class="NAME">createjs.floor</span><span class="PUNC">(</span><span class="NAME">green</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">255</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">','</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>300</span> </span><span class="WHIT">        </span><span class="NAME">createjs.floor</span><span class="PUNC">(</span><span class="NAME">blue</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">255</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">')'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>301</span> </span><span class="WHIT">    </span><span class="NAME">output.fillRect</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>302</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>303</span> </span><span class="WHIT">    </span><span class="COMM">// Use the non-standard blend mode "darker" on Android 4.3 or earlier.</span><span class="WHIT">
+<span class='line'>304</span> </span><span class="WHIT">    </span><span class="NAME">output.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.LIGHTER</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>305</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">renderer</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">createjs.Composer.Renderer</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>306</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">colors</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="WHIT">
+<span class='line'>307</span> </span><span class="WHIT">      </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">color</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="WHIT"> </span><span class="NAME">red</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mask</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'#f00'</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>308</span> </span><span class="WHIT">      </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">color</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="WHIT"> </span><span class="NAME">green</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mask</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'#0f0'</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>309</span> </span><span class="WHIT">      </span><span class="PUNC">{</span><span class="WHIT"> </span><span class="NAME">color</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="WHIT"> </span><span class="NAME">blue</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">mask</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="STRN">'#00f'</span><span class="WHIT"> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>310</span> </span><span class="WHIT">    </span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>311</span> </span><span class="WHIT">    </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NUMB">3</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">++</span><span class="NAME">i</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>312</span> </span><span class="WHIT">      </span><span class="COMM">// Copy the source image.</span><span class="WHIT">
+<span class='line'>313</span> </span><span class="WHIT">      </span><span class="NAME">renderer.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.COPY</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>314</span> </span><span class="WHIT">      </span><span class="NAME">renderer.drawImage</span><span class="PUNC">(</span><span class="NAME">this.getCanvas</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>315</span> 
+<span class='line'>316</span> </span><span class="WHIT">      </span><span class="COMM">// Extract the specified color component of the source image.</span><span class="WHIT">
+<span class='line'>317</span> </span><span class="WHIT">      </span><span class="NAME">renderer.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.DARKER</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>318</span> </span><span class="WHIT">      </span><span class="NAME">renderer.setFillColor</span><span class="PUNC">(</span><span class="NAME">colors</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">mask</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>319</span> </span><span class="WHIT">      </span><span class="NAME">renderer.fillRect</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>320</span> 
+<span class='line'>321</span> </span><span class="WHIT">      </span><span class="COMM">// Draw a black rectangle onto the extracted image with the 'source-over'</span><span class="WHIT">
+<span class='line'>322</span> </span><span class="WHIT">      </span><span class="COMM">// operation to multiply the given multiplier with all pixels of the</span><span class="WHIT">
+<span class='line'>323</span> </span><span class="WHIT">      </span><span class="COMM">// extracted image as listed in the following formulas. This operation</span><span class="WHIT">
+<span class='line'>324</span> </span><span class="WHIT">      </span><span class="COMM">// also sets 1 to all alpha values of this renderer and needs to restore</span><span class="WHIT">
+<span class='line'>325</span> </span><span class="WHIT">      </span><span class="COMM">// the alpha values of the original image later.</span><span class="WHIT">
+<span class='line'>326</span> </span><span class="WHIT">      </span><span class="COMM">//    for (var i = 0; i &lt; p.length; i += 4) {</span><span class="WHIT">
+<span class='line'>327</span> </span><span class="WHIT">      </span><span class="COMM">//      p[i + 0] = (1 - red)   * 0 + (1 - (1 - red))   * p[i + 0];</span><span class="WHIT">
+<span class='line'>328</span> </span><span class="WHIT">      </span><span class="COMM">//      p[i + 1] = (1 - green) * 0 + (1 - (1 - green)) * p[i + 1];</span><span class="WHIT">
+<span class='line'>329</span> </span><span class="WHIT">      </span><span class="COMM">//      p[i + 2] = (1 - blue)  * 0 + (1 - (1 - blue))  * p[i + 2];</span><span class="WHIT">
+<span class='line'>330</span> </span><span class="WHIT">      </span><span class="COMM">//      p[i + 3] = 1;</span><span class="WHIT">
+<span class='line'>331</span> </span><span class="WHIT">      </span><span class="COMM">//    }</span><span class="WHIT">
+<span class='line'>332</span> </span><span class="WHIT">      </span><span class="NAME">renderer.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.SOURCE_OVER</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>333</span> </span><span class="WHIT">      </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">colors</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">color</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>334</span> </span><span class="WHIT">        </span><span class="NAME">renderer.setAlpha</span><span class="PUNC">(</span><span class="NAME">colors</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">color</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>335</span> </span><span class="WHIT">        </span><span class="NAME">renderer.setFillColor</span><span class="PUNC">(</span><span class="STRN">'#000'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>336</span> </span><span class="WHIT">        </span><span class="NAME">renderer.fillRect</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>337</span> </span><span class="WHIT">        </span><span class="NAME">renderer.setAlpha</span><span class="PUNC">(</span><span class="NUMB">1</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>338</span> </span><span class="WHIT">      </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>339</span> </span><span class="WHIT">      </span><span class="NAME">output.drawImage</span><span class="PUNC">(</span><span class="NAME">renderer.getCanvas</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>340</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>341</span> </span><span class="WHIT">    </span><span class="NAME">renderer.destroy</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>342</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>343</span> </span><span class="WHIT">  </span><span class="COMM">// Add an offset color to the output &lt;canvas> element.</span><span class="WHIT">
+<span class='line'>344</span> </span><span class="WHIT">  </span><span class="NAME">red</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">0</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>345</span> </span><span class="WHIT">  </span><span class="NAME">green</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>346</span> </span><span class="WHIT">  </span><span class="NAME">blue</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">2</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>347</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">red</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">green</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">blue</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>348</span> </span><span class="WHIT">    </span><span class="COMM">// Add each pixel of the output canvas by the offset color. (</span><span class="WHIT">
+<span class='line'>349</span> </span><span class="WHIT">    </span><span class="COMM">// Fill the output canvas with the offset color and the "lighter" operation</span><span class="WHIT">
+<span class='line'>350</span> </span><span class="WHIT">    </span><span class="NAME">output.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.LIGHTER</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>351</span> </span><span class="WHIT">    </span><span class="NAME">output.setFillColor</span><span class="PUNC">(</span><span class="STRN">'rgb('</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">red</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">','</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">green</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">','</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">blue</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">')'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>352</span> </span><span class="WHIT">    </span><span class="NAME">output.fillRect</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>353</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>354</span> </span><span class="WHIT">  </span><span class="COMM">// Draws the composed image into the original image to restore the alpha</span><span class="WHIT">
+<span class='line'>355</span> </span><span class="WHIT">  </span><span class="COMM">// values of the original one.</span><span class="WHIT">
+<span class='line'>356</span> </span><span class="WHIT">  </span><span class="NAME">this.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.SOURCE_IN</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>357</span> </span><span class="WHIT">  </span><span class="NAME">this.drawImage</span><span class="PUNC">(</span><span class="NAME">output.getCanvas</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>358</span> </span><span class="WHIT">  </span><span class="NAME">output.destroy</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>359</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>360</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>361</span> 
+<span class='line'>362</span> </span><span class="COMM">/**
+<span class='line'>363</span>  * Whether this composer can use the blend mode 'multiply'.
+<span class='line'>364</span>  * @type {number}
+<span class='line'>365</span>  * @private
+<span class='line'>366</span>  */</span><span class="WHIT">
+<span class='line'>367</span> </span><span class="NAME">createjs.Composer.hasMultiply_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>368</span> 
+<span class='line'>369</span> </span><span class="COMM">/**
+<span class='line'>370</span>  * The renderer that represents the composed image.
+<span class='line'>371</span>  * @type {createjs.Composer.Renderer}
+<span class='line'>372</span>  * @private
+<span class='line'>373</span>  */</span><span class="WHIT">
+<span class='line'>374</span> </span><span class="NAME">createjs.Composer.prototype.renderer_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>375</span> 
+<span class='line'>376</span> </span><span class="COMM">/**
+<span class='line'>377</span>  * The image that represents the alpha component of the source image. This
+<span class='line'>378</span>  * composer copies the red component of this image to the alpha component of the
+<span class='line'>379</span>  * source image.
+<span class='line'>380</span>  * @type {HTMLImageElement}
+<span class='line'>381</span>  * @private
+<span class='line'>382</span>  */</span><span class="WHIT">
+<span class='line'>383</span> </span><span class="NAME">createjs.Composer.prototype.alpha_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>384</span> 
+<span class='line'>385</span> </span><span class="COMM">/**
+<span class='line'>386</span>  * The color matrix applied to the source image.
+<span class='line'>387</span>  * @type {Array.&lt;number>}
+<span class='line'>388</span>  * @private
+<span class='line'>389</span>  */</span><span class="WHIT">
+<span class='line'>390</span> </span><span class="NAME">createjs.Composer.prototype.matrix_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>391</span> 
+<span class='line'>392</span> </span><span class="COMM">/**
+<span class='line'>393</span>  * Returns whether the hosting browser supports the blend mode "multiply".
+<span class='line'>394</span>  * @return {number}
+<span class='line'>395</span>  * @private
+<span class='line'>396</span>  */</span><span class="WHIT">
+<span class='line'>397</span> </span><span class="NAME">createjs.Composer.prototype.hasMultiply</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>398</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.Composer.hasMultiply_</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>399</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.UserAgent.isMSIE</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">createjs.UserAgent.isAndroidBrowser</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>400</span> </span><span class="WHIT">      </span><span class="NAME">createjs.Composer.hasMultiply_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>401</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>402</span> </span><span class="WHIT">      </span><span class="NAME">createjs.Composer.hasMultiply_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>403</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>404</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>405</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.Composer.hasMultiply_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>406</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>407</span> 
+<span class='line'>408</span> </span><span class="COMM">/**
+<span class='line'>409</span>  * Returns whether the hosting browser supports the blend mode "multiply".
+<span class='line'>410</span>  * @return {HTMLCanvasElement}
+<span class='line'>411</span>  * @const
+<span class='line'>412</span>  */</span><span class="WHIT">
+<span class='line'>413</span> </span><span class="NAME">createjs.Composer.prototype.getOutput</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>414</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="HTMLCanvasElement"/></span><span class="WHIT">
+<span class='line'>415</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.renderer_</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="NAME">this.renderer_.getCanvas</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>416</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>417</span> 
+<span class='line'>418</span> </span><span class="COMM">/**
+<span class='line'>419</span>  * Destroys all resources owned by this composer.
+<span class='line'>420</span>  * @const
+<span class='line'>421</span>  */</span><span class="WHIT">
+<span class='line'>422</span> </span><span class="NAME">createjs.Composer.prototype.destroy</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>423</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.renderer_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>424</span> </span><span class="WHIT">    </span><span class="NAME">this.renderer_.destroy</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>425</span> </span><span class="WHIT">    </span><span class="NAME">this.renderer_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>426</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>427</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>428</span> 
+<span class='line'>429</span> </span><span class="COMM">/**
+<span class='line'>430</span>  * Applies an alpha-map filter to the specified image.
+<span class='line'>431</span>  * @param {HTMLImageElement} image
+<span class='line'>432</span>  * @param {HTMLImageElement} alpha
+<span class='line'>433</span>  * @const
+<span class='line'>434</span>  */</span><span class="WHIT">
+<span class='line'>435</span> </span><span class="NAME">createjs.Composer.prototype.applyAlphaMap</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">image</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">alpha</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>436</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="HTMLImageElement" name="image"/></span><span class="WHIT">
+<span class='line'>437</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="HTMLImageElement" name="alpha"/></span><span class="WHIT">
+<span class='line'>438</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.alpha_</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="NAME">alpha</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>439</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>440</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>441</span> </span><span class="WHIT">  </span><span class="NAME">this.alpha_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">alpha</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>442</span> </span><span class="WHIT">  </span><span class="NAME">this.matrix_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>443</span> 
+<span class='line'>444</span> </span><span class="WHIT">  </span><span class="COMM">// Create a renderer that stores the output &lt;canvas> element and apply the</span><span class="WHIT">
+<span class='line'>445</span> </span><span class="WHIT">  </span><span class="COMM">// specified alpha-mask filter to the source image. (The output &lt;canvas></span><span class="WHIT">
+<span class='line'>446</span> </span><span class="WHIT">  </span><span class="COMM">// element represents an alpha-masked image.)</span><span class="WHIT">
+<span class='line'>447</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">width</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">image.width</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>448</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">height</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">image.height</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>449</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">this.renderer_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>450</span> </span><span class="WHIT">    </span><span class="NAME">this.renderer_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">createjs.Composer.Renderer</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>451</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>452</span> </span><span class="WHIT">  </span><span class="NAME">this.renderer_.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.COPY</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>453</span> </span><span class="WHIT">  </span><span class="NAME">this.renderer_.drawAlphaMask</span><span class="PUNC">(</span><span class="NAME">alpha</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>454</span> </span><span class="WHIT">  </span><span class="NAME">this.renderer_.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.SOURCE_IN</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>455</span> </span><span class="WHIT">  </span><span class="NAME">this.renderer_.drawImage</span><span class="PUNC">(</span><span class="NAME">image</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>456</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>457</span> 
+<span class='line'>458</span> </span><span class="COMM">/**
+<span class='line'>459</span>  * Applies a color filter to the specified image.
+<span class='line'>460</span>  * @param {HTMLImageElement} image
+<span class='line'>461</span>  * @param {Array.&lt;number>} matrix
+<span class='line'>462</span>  * @const
+<span class='line'>463</span>  */</span><span class="WHIT">
+<span class='line'>464</span> </span><span class="NAME">createjs.Composer.prototype.applyColorFilter</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">image</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>465</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="HTMLImageElement" name="image"/></span><span class="WHIT">
+<span class='line'>466</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="Array" elementType="number" name="matrix"/></span><span class="WHIT">
+<span class='line'>467</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">this.alpha_</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="NAME">this.matrix_</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>468</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>469</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>470</span> </span><span class="WHIT">  </span><span class="NAME">this.alpha_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>471</span> </span><span class="WHIT">  </span><span class="NAME">this.matrix_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>472</span> 
+<span class='line'>473</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">width</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">image.width</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>474</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">height</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">image.height</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>475</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">red</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">0</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>476</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">green</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>477</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">blue</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">2</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">2</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>478</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">red</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="NAME">green</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="NAME">blue</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>479</span> </span><span class="WHIT">    </span><span class="NAME">red</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">0</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>480</span> </span><span class="WHIT">    </span><span class="NAME">green</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>481</span> </span><span class="WHIT">    </span><span class="NAME">blue</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">2</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>482</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">red</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">green</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">blue</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>483</span> </span><span class="WHIT">      </span><span class="NAME">this.destroy</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>484</span> </span><span class="WHIT">      </span><span class="KEYW">return</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>485</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>486</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">this.renderer_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>487</span> </span><span class="WHIT">      </span><span class="NAME">this.renderer_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">createjs.Composer.Renderer</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>488</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>489</span> </span><span class="WHIT">    </span><span class="NAME">this.renderer_.drawImage</span><span class="PUNC">(</span><span class="NAME">image</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>490</span> </span><span class="WHIT">    </span><span class="NAME">this.renderer_.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.LIGHTER</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>491</span> </span><span class="WHIT">    </span><span class="NAME">this.renderer_.setFillColor</span><span class="PUNC">(</span><span class="STRN">'rgb('</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">red</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">','</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">green</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">','</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">blue</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">')'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>492</span> </span><span class="WHIT">    </span><span class="NAME">this.renderer_.fillRect</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>493</span> </span><span class="WHIT">    </span><span class="NAME">this.renderer_.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.DESTINATION_IN</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>494</span> </span><span class="WHIT">    </span><span class="NAME">this.renderer_.drawImage</span><span class="PUNC">(</span><span class="NAME">image</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>495</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>496</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>497</span> </span><span class="WHIT">  </span><span class="COMM">// Apply a color filter to the output.</span><span class="WHIT">
+<span class='line'>498</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">this.renderer_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>499</span> </span><span class="WHIT">    </span><span class="NAME">this.renderer_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">createjs.Composer.Renderer</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>500</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>501</span> </span><span class="WHIT">  </span><span class="NAME">this.renderer_.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.COPY</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>502</span> </span><span class="WHIT">  </span><span class="NAME">this.renderer_.drawImage</span><span class="PUNC">(</span><span class="NAME">image</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>503</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">this.renderer_.multiplyColor</span><span class="PUNC">(</span><span class="NAME">matrix</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>504</span> </span><span class="WHIT">    </span><span class="NAME">red</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">0</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>505</span> </span><span class="WHIT">    </span><span class="NAME">green</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>506</span> </span><span class="WHIT">    </span><span class="NAME">blue</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">matrix</span><span class="PUNC">[</span><span class="NUMB">2</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>507</span> </span><span class="WHIT">    </span><span class="NAME">this.renderer_.addOffset</span><span class="PUNC">(</span><span class="NAME">red</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">green</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">blue</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>508</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>509</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>510</span> </span></pre></body></html>

@@ -1,0 +1,145 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	.KEYW {color: #933;}
+	.COMM {color: #bbb; font-style: italic;}
+	.NUMB {color: #393;}
+	.STRN {color: #393;}
+	.REGX {color: #339;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="COMM">/**
+<span class='line'>  2</span>  * The MIT License (MIT)
+<span class='line'>  3</span>  *
+<span class='line'>  4</span>  * Copyright (c) 2016 DeNA Co., Ltd.
+<span class='line'>  5</span>  *
+<span class='line'>  6</span>  * Permission is hereby granted, free of charge, to any person obtaining a copy
+<span class='line'>  7</span>  * of this software and associated documentation files (the "Software"), to deal
+<span class='line'>  8</span>  * in the Software without restriction, including without limitation the rights
+<span class='line'>  9</span>  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+<span class='line'> 10</span>  * copies of the Software, and to permit persons to whom the Software is
+<span class='line'> 11</span>  * furnished to do so, subject to the following conditions:
+<span class='line'> 12</span>  *
+<span class='line'> 13</span>  * The above copyright notice and this permission notice shall be included in
+<span class='line'> 14</span>  * all copies or substantial portions of the Software.
+<span class='line'> 15</span>  *
+<span class='line'> 16</span>  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+<span class='line'> 17</span>  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+<span class='line'> 18</span>  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+<span class='line'> 19</span>  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+<span class='line'> 20</span>  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+<span class='line'> 21</span>  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+<span class='line'> 22</span>  * SOFTWARE.
+<span class='line'> 23</span>  */</span><span class="WHIT">
+<span class='line'> 24</span> 
+<span class='line'> 25</span> </span><span class="COMM">/// &lt;reference path="base.js"/></span><span class="WHIT">
+<span class='line'> 26</span> </span><span class="COMM">/// &lt;reference path="event.js"/></span><span class="WHIT">
+<span class='line'> 27</span> 
+<span class='line'> 28</span> </span><span class="COMM">/**
+<span class='line'> 29</span>  * The base class for file events dispatched by the createjs.Loader class and
+<span class='line'> 30</span>  * the createjs.LoadQueue class.
+<span class='line'> 31</span>  * @param {string} type
+<span class='line'> 32</span>  * @param {boolean} bubbles
+<span class='line'> 33</span>  * @param {boolean} cancelable
+<span class='line'> 34</span>  * @param {Object} item
+<span class='line'> 35</span>  * @extends {createjs.Event}
+<span class='line'> 36</span>  * @constructor
+<span class='line'> 37</span>  */</span><span class="WHIT">
+<span class='line'> 38</span> </span><span class="NAME">createjs.FileEvent</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'> 39</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">bubbles</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">cancelable</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">item</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 40</span> </span><span class="WHIT">  </span><span class="NAME">createjs.Event.call</span><span class="PUNC">(</span><span class="KEYW">this</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">bubbles</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">cancelable</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 41</span> 
+<span class='line'> 42</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 43</span>    * The item provided by games. The createjs.LoadQueue class sets the item
+<span class='line'> 44</span>    * provided by games to this property when it dispatches an event.
+<span class='line'> 45</span>    * @type {Object}
+<span class='line'> 46</span>    */</span><span class="WHIT">
+<span class='line'> 47</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'item'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">item</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 48</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 49</span> </span><span class="NAME">createjs.inherits</span><span class="PUNC">(</span><span class="STRN">'FileEvent'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">createjs.FileEvent</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">createjs.Event</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 50</span> 
+<span class='line'> 51</span> </span><span class="COMM">/**
+<span class='line'> 52</span>  * A class that represents a fileerror event.
+<span class='line'> 53</span>  * @param {string} type
+<span class='line'> 54</span>  * @param {boolean} bubbles
+<span class='line'> 55</span>  * @param {boolean} cancelable
+<span class='line'> 56</span>  * @param {Object} item
+<span class='line'> 57</span>  * @param {string} message
+<span class='line'> 58</span>  * @extends {createjs.FileEvent}
+<span class='line'> 59</span>  * @constructor
+<span class='line'> 60</span>  */</span><span class="WHIT">
+<span class='line'> 61</span> </span><span class="NAME">createjs.FileErrorEvent</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'> 62</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">bubbles</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">cancelable</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">item</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">message</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 63</span> </span><span class="WHIT">  </span><span class="NAME">createjs.FileEvent.call</span><span class="PUNC">(</span><span class="KEYW">this</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">bubbles</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">cancelable</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">item</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 64</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 65</span> </span><span class="NAME">createjs.inherits</span><span class="PUNC">(</span><span class="STRN">'FileErrorEvent'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 66</span> </span><span class="WHIT">                  </span><span class="NAME">createjs.FileErrorEvent</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 67</span> </span><span class="WHIT">                  </span><span class="NAME">createjs.FileEvent</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 68</span> 
+<span class='line'> 69</span> </span><span class="COMM">/**
+<span class='line'> 70</span>  * A class that represents a fileprogress event.
+<span class='line'> 71</span>  * @param {string} type
+<span class='line'> 72</span>  * @param {boolean} bubbles
+<span class='line'> 73</span>  * @param {boolean} cancelable
+<span class='line'> 74</span>  * @param {Object} item
+<span class='line'> 75</span>  * @param {number} loaded
+<span class='line'> 76</span>  * @param {number} total
+<span class='line'> 77</span>  * @param {number} progress
+<span class='line'> 78</span>  * @extends {createjs.FileEvent}
+<span class='line'> 79</span>  * @constructor
+<span class='line'> 80</span>  */</span><span class="WHIT">
+<span class='line'> 81</span> </span><span class="NAME">createjs.FileProgressEvent</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'> 82</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">bubbles</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">cancelable</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">item</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">loaded</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">total</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">progress</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 83</span> </span><span class="WHIT">  </span><span class="NAME">createjs.FileEvent.call</span><span class="PUNC">(</span><span class="KEYW">this</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">bubbles</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">cancelable</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">item</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 84</span> 
+<span class='line'> 85</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 86</span>    * The amount that has been loaded so far.
+<span class='line'> 87</span>    * @type {number}
+<span class='line'> 88</span>    */</span><span class="WHIT">
+<span class='line'> 89</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'loaded'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">loaded</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 90</span> 
+<span class='line'> 91</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 92</span>    * The total number of bytes read by a loader object.
+<span class='line'> 93</span>    * @type {number}
+<span class='line'> 94</span>    */</span><span class="WHIT">
+<span class='line'> 95</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'total'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">total</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 96</span> 
+<span class='line'> 97</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 98</span>    * The ratio that has been loaded between 0 and 1.
+<span class='line'> 99</span>    * @type {number}
+<span class='line'>100</span>    */</span><span class="WHIT">
+<span class='line'>101</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'progress'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">progress</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>102</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>103</span> </span><span class="NAME">createjs.inherits</span><span class="PUNC">(</span><span class="STRN">'FileProgressEvent'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>104</span> </span><span class="WHIT">                  </span><span class="NAME">createjs.FileProgressEvent</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>105</span> </span><span class="WHIT">                  </span><span class="NAME">createjs.FileEvent</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>106</span> 
+<span class='line'>107</span> </span><span class="COMM">/**
+<span class='line'>108</span>  * A class that represents a fileload event.
+<span class='line'>109</span>  * @param {string} type
+<span class='line'>110</span>  * @param {boolean} bubbles
+<span class='line'>111</span>  * @param {boolean} cancelable
+<span class='line'>112</span>  * @param {Object} item
+<span class='line'>113</span>  * @param {*} result
+<span class='line'>114</span>  * @param {*} rawResult
+<span class='line'>115</span>  * @extends {createjs.FileEvent}
+<span class='line'>116</span>  * @constructor
+<span class='line'>117</span>  */</span><span class="WHIT">
+<span class='line'>118</span> </span><span class="NAME">createjs.FileLoadEvent</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>119</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">bubbles</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">cancelable</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">item</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">result</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">rawResult</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>120</span> </span><span class="WHIT">  </span><span class="NAME">createjs.FileEvent.call</span><span class="PUNC">(</span><span class="KEYW">this</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">bubbles</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">cancelable</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">item</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>121</span> 
+<span class='line'>122</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>123</span>    * The load result. (The type of this object depends on the file type.)
+<span class='line'>124</span>    * @type {*}
+<span class='line'>125</span>    */</span><span class="WHIT">
+<span class='line'>126</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'result'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">result</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>127</span> 
+<span class='line'>128</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>129</span>    * The raw result. (This object should be either an ArrayBuffer object or a
+<span class='line'>130</span>    * string.)
+<span class='line'>131</span>    * @type {*}
+<span class='line'>132</span>    */</span><span class="WHIT">
+<span class='line'>133</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'rawResult'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">rawResult</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>134</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>135</span> </span><span class="NAME">createjs.inherits</span><span class="PUNC">(</span><span class="STRN">'FileLoadEvent'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>136</span> </span><span class="WHIT">                  </span><span class="NAME">createjs.FileLoadEvent</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>137</span> </span><span class="WHIT">                  </span><span class="NAME">createjs.FileEvent</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>138</span> </span></pre></body></html>

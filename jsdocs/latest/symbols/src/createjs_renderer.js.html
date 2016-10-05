@@ -1,0 +1,693 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	.KEYW {color: #933;}
+	.COMM {color: #bbb; font-style: italic;}
+	.NUMB {color: #393;}
+	.STRN {color: #393;}
+	.REGX {color: #339;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="COMM">/**
+<span class='line'>  2</span>  * The MIT License (MIT)
+<span class='line'>  3</span>  *
+<span class='line'>  4</span>  * Copyright (c) 2016 DeNA Co., Ltd.
+<span class='line'>  5</span>  *
+<span class='line'>  6</span>  * Permission is hereby granted, free of charge, to any person obtaining a copy
+<span class='line'>  7</span>  * of this software and associated documentation files (the "Software"), to deal
+<span class='line'>  8</span>  * in the Software without restriction, including without limitation the rights
+<span class='line'>  9</span>  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+<span class='line'> 10</span>  * copies of the Software, and to permit persons to whom the Software is
+<span class='line'> 11</span>  * furnished to do so, subject to the following conditions:
+<span class='line'> 12</span>  *
+<span class='line'> 13</span>  * The above copyright notice and this permission notice shall be included in
+<span class='line'> 14</span>  * all copies or substantial portions of the Software.
+<span class='line'> 15</span>  *
+<span class='line'> 16</span>  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+<span class='line'> 17</span>  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+<span class='line'> 18</span>  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+<span class='line'> 19</span>  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+<span class='line'> 20</span>  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+<span class='line'> 21</span>  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+<span class='line'> 22</span>  * SOFTWARE.
+<span class='line'> 23</span>  */</span><span class="WHIT">
+<span class='line'> 24</span> 
+<span class='line'> 25</span> </span><span class="COMM">/// &lt;reference path="base.js"/></span><span class="WHIT">
+<span class='line'> 26</span> </span><span class="COMM">/// &lt;reference path="object.js"/></span><span class="WHIT">
+<span class='line'> 27</span> </span><span class="COMM">/// &lt;reference path="shadow.js"/></span><span class="WHIT">
+<span class='line'> 28</span> </span><span class="COMM">/// &lt;reference path="bounding_box.js"/></span><span class="WHIT">
+<span class='line'> 29</span> </span><span class="COMM">/// &lt;reference path="color.js"/></span><span class="WHIT">
+<span class='line'> 30</span> </span><span class="COMM">/// &lt;reference path="rectangle.js"/></span><span class="WHIT">
+<span class='line'> 31</span> </span><span class="COMM">/// &lt;reference path="transform.js"/></span><span class="WHIT">
+<span class='line'> 32</span> </span><span class="COMM">/// &lt;reference path="point.js"/></span><span class="WHIT">
+<span class='line'> 33</span> 
+<span class='line'> 34</span> </span><span class="COMM">/**
+<span class='line'> 35</span>  * An abstract class that renders shapes and objects to an HTMLCanvasElement
+<span class='line'> 36</span>  * object.
+<span class='line'> 37</span>  * @param {HTMLCanvasElement} canvas
+<span class='line'> 38</span>  * @param {number} width
+<span class='line'> 39</span>  * @param {number} height
+<span class='line'> 40</span>  * @constructor
+<span class='line'> 41</span>  */</span><span class="WHIT">
+<span class='line'> 42</span> </span><span class="NAME">createjs.Renderer</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">canvas</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 43</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="HTMLCanvasElement" name="canvas"/></span><span class="WHIT">
+<span class='line'> 44</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'> 45</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'> 46</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 47</span>    * The output &lt;canvas> element.
+<span class='line'> 48</span>    * @type {HTMLCanvasElement}
+<span class='line'> 49</span>    * @private
+<span class='line'> 50</span>    */</span><span class="WHIT">
+<span class='line'> 51</span> </span><span class="WHIT">  </span><span class="NAME">this.canvas_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">canvas</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 52</span> 
+<span class='line'> 53</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 54</span>    * The current width of the output &lt;canvas> element.
+<span class='line'> 55</span>    * @type {number}
+<span class='line'> 56</span>    * @private
+<span class='line'> 57</span>    */</span><span class="WHIT">
+<span class='line'> 58</span> </span><span class="WHIT">  </span><span class="NAME">this.width_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 59</span> 
+<span class='line'> 60</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 61</span>    * The current height of the output &lt;canvas> element.
+<span class='line'> 62</span>    * @type {number}
+<span class='line'> 63</span>    * @private
+<span class='line'> 64</span>    */</span><span class="WHIT">
+<span class='line'> 65</span> </span><span class="WHIT">  </span><span class="NAME">this.height_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 66</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 67</span> 
+<span class='line'> 68</span> </span><span class="COMM">/**
+<span class='line'> 69</span>  * Whether this renderer applies workarounds for Android browsers.
+<span class='line'> 70</span>  * @type {number}
+<span class='line'> 71</span>  * @private
+<span class='line'> 72</span>  */</span><span class="WHIT">
+<span class='line'> 73</span> </span><span class="NAME">createjs.Renderer.prototype.useAndroidWorkarounds_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 74</span> 
+<span class='line'> 75</span> </span><span class="COMM">/**
+<span class='line'> 76</span>  * The ratio of a point in this renderer to one of CSS.
+<span class='line'> 77</span>  * @type {createjs.Point}
+<span class='line'> 78</span>  * @private
+<span class='line'> 79</span>  */</span><span class="WHIT">
+<span class='line'> 80</span> </span><span class="NAME">createjs.Renderer.prototype.cssRatio_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 81</span> 
+<span class='line'> 82</span> </span><span class="COMM">/**
+<span class='line'> 83</span>  * Composite operations.
+<span class='line'> 84</span>  * @enum {number}
+<span class='line'> 85</span>  */</span><span class="WHIT">
+<span class='line'> 86</span> </span><span class="NAME">createjs.Renderer.Composition</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 87</span> </span><span class="WHIT">  </span><span class="NAME">SOURCE_OVER</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 88</span> </span><span class="WHIT">  </span><span class="NAME">SOURCE_ATOP</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 89</span> </span><span class="WHIT">  </span><span class="NAME">SOURCE_IN</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">2</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 90</span> </span><span class="WHIT">  </span><span class="NAME">SOURCE_OUT</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">3</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 91</span> </span><span class="WHIT">  </span><span class="NAME">DESTINATION_OVER</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 92</span> </span><span class="WHIT">  </span><span class="NAME">DESTINATION_ATOP</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 93</span> </span><span class="WHIT">  </span><span class="NAME">DESTINATION_IN</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">6</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 94</span> </span><span class="WHIT">  </span><span class="NAME">DESTINATION_OUT</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">7</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 95</span> </span><span class="WHIT">  </span><span class="NAME">LIGHTER</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">8</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 96</span> </span><span class="WHIT">  </span><span class="NAME">COPY</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">9</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 97</span> </span><span class="WHIT">  </span><span class="NAME">XOR</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">10</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 98</span> </span><span class="WHIT">  </span><span class="NAME">DARKER</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">11</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 99</span> </span><span class="WHIT">  </span><span class="NAME">MULTIPLY</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">12</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>100</span> </span><span class="WHIT">  </span><span class="NAME">MASK</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">15</span><span class="WHIT">
+<span class='line'>101</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>102</span> 
+<span class='line'>103</span> </span><span class="COMM">/**
+<span class='line'>104</span>  * Mask methods.
+<span class='line'>105</span>  * @enum {number}
+<span class='line'>106</span>  */</span><span class="WHIT">
+<span class='line'>107</span> </span><span class="NAME">createjs.Renderer.Mask</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>108</span> </span><span class="WHIT">  </span><span class="NAME">SCISSOR</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>109</span> </span><span class="WHIT">  </span><span class="NAME">COMPOSE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">2</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>110</span> </span><span class="WHIT">  </span><span class="NAME">SHOW</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">3</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>111</span> </span><span class="WHIT">  </span><span class="NAME">HIDE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="WHIT">
+<span class='line'>112</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>113</span> 
+<span class='line'>114</span> </span><span class="COMM">/**
+<span class='line'>115</span>  * Color formats used by WebGLTextures.
+<span class='line'>116</span>  * @enum {number}
+<span class='line'>117</span>  */</span><span class="WHIT">
+<span class='line'>118</span> </span><span class="NAME">createjs.Renderer.Format</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>119</span> </span><span class="WHIT">  </span><span class="NAME">RGBA8888</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>120</span> </span><span class="WHIT">  </span><span class="NAME">RGBA4444</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="WHIT">
+<span class='line'>121</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>122</span> 
+<span class='line'>123</span> </span><span class="COMM">/**
+<span class='line'>124</span>  * Extensions.
+<span class='line'>125</span>  * @enum {number}
+<span class='line'>126</span>  */</span><span class="WHIT">
+<span class='line'>127</span> </span><span class="NAME">createjs.Renderer.Extension</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>128</span> </span><span class="WHIT">  </span><span class="NAME">VIDEO</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">&lt;&lt;</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="WHIT">
+<span class='line'>129</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>130</span> 
+<span class='line'>131</span> </span><span class="COMM">/**
+<span class='line'>132</span>  * Returns the composition ID associated with the specified name.
+<span class='line'>133</span>  * @param {string} name
+<span class='line'>134</span>  * @return {number}
+<span class='line'>135</span>  */</span><span class="WHIT">
+<span class='line'>136</span> </span><span class="NAME">createjs.Renderer.getCompositionKey</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">name</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>137</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">KEYS</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>138</span> </span><span class="WHIT">    </span><span class="STRN">'source-over'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Composition.SOURCE_OVER</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>139</span> </span><span class="WHIT">    </span><span class="STRN">'source-atop'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Composition.SOURCE_ATOP</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>140</span> </span><span class="WHIT">    </span><span class="STRN">'source-in'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Composition.SOURCE_IN</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>141</span> </span><span class="WHIT">    </span><span class="STRN">'source-out'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Composition.SOURCE_OUT</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>142</span> </span><span class="WHIT">    </span><span class="STRN">'destination-over'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Composition.DESTINATION_OVER</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>143</span> </span><span class="WHIT">    </span><span class="STRN">'destination-atop'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Composition.DESTINATION_ATOP</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>144</span> </span><span class="WHIT">    </span><span class="STRN">'destination-in'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Composition.DESTINATION_IN</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>145</span> </span><span class="WHIT">    </span><span class="STRN">'destination-out'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Composition.DESTINATION_OUT</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>146</span> </span><span class="WHIT">    </span><span class="STRN">'lighter'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Composition.LIGHTER</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>147</span> </span><span class="WHIT">    </span><span class="STRN">'copy'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Composition.COPY</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>148</span> </span><span class="WHIT">    </span><span class="STRN">'xor'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Composition.XOR</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>149</span> </span><span class="WHIT">    </span><span class="STRN">'darker'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Composition.DARKER</span><span class="WHIT">
+<span class='line'>150</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>151</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">KEYS</span><span class="PUNC">[</span><span class="NAME">name</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Composition.SOURCE_OVER</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>152</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>153</span> 
+<span class='line'>154</span> </span><span class="COMM">/**
+<span class='line'>155</span>  * Returns the composition name from the specified ID.
+<span class='line'>156</span>  * @param {number} key
+<span class='line'>157</span>  * @return {string}
+<span class='line'>158</span>  */</span><span class="WHIT">
+<span class='line'>159</span> </span><span class="NAME">createjs.Renderer.getCompositionName</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">key</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>160</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">NAMES</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="WHIT">
+<span class='line'>161</span> </span><span class="WHIT">    </span><span class="STRN">'source-over'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>162</span> </span><span class="WHIT">    </span><span class="STRN">'source-atop'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>163</span> </span><span class="WHIT">    </span><span class="STRN">'source-in'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>164</span> </span><span class="WHIT">    </span><span class="STRN">'source-out'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>165</span> </span><span class="WHIT">    </span><span class="STRN">'destination-over'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>166</span> </span><span class="WHIT">    </span><span class="STRN">'destination-atop'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>167</span> </span><span class="WHIT">    </span><span class="STRN">'destination-in'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>168</span> </span><span class="WHIT">    </span><span class="STRN">'destination-out'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>169</span> </span><span class="WHIT">    </span><span class="STRN">'lighter'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>170</span> </span><span class="WHIT">    </span><span class="STRN">'copy'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>171</span> </span><span class="WHIT">    </span><span class="STRN">'xor'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>172</span> </span><span class="WHIT">    </span><span class="STRN">'darker'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>173</span> </span><span class="WHIT">    </span><span class="STRN">'multiply'</span><span class="WHIT">
+<span class='line'>174</span> </span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>175</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">NAMES</span><span class="PUNC">[</span><span class="NAME">key</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>176</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>177</span> 
+<span class='line'>178</span> </span><span class="COMM">/**
+<span class='line'>179</span>  * An inner class used by createjs.Renderer objects to clip RenderObject
+<span class='line'>180</span>  * objects.
+<span class='line'>181</span>  * @param {createjs.Transform} transform
+<span class='line'>182</span>  * @param {createjs.BoundingBox} rectangle
+<span class='line'>183</span>  * @param {createjs.BoundingBox} box
+<span class='line'>184</span>  * @param {number} method
+<span class='line'>185</span>  * @param {number} composition
+<span class='line'>186</span>  * @param {createjs.Renderer.RenderObject} shape
+<span class='line'>187</span>  * @constructor
+<span class='line'>188</span>  */</span><span class="WHIT">
+<span class='line'>189</span> </span><span class="NAME">createjs.Renderer.Clip</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>190</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">transform</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">rectangle</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">box</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">method</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">composition</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">shape</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>191</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.Transform" name="transform"/></span><span class="WHIT">
+<span class='line'>192</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.BoundingBox" name="rectangle"/></span><span class="WHIT">
+<span class='line'>193</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.BoundingBox" name="box"/></span><span class="WHIT">
+<span class='line'>194</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="method"/></span><span class="WHIT">
+<span class='line'>195</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="composition"/></span><span class="WHIT">
+<span class='line'>196</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.Renderer.RenderObject" name="shape"/></span><span class="WHIT">
+<span class='line'>197</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>198</span>    * An affine transformation applied to a clipping rectangle.
+<span class='line'>199</span>    * @const {createjs.Transform}
+<span class='line'>200</span>    * @private
+<span class='line'>201</span>    */</span><span class="WHIT">
+<span class='line'>202</span> </span><span class="WHIT">  </span><span class="NAME">this.transform_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">transform</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>203</span> 
+<span class='line'>204</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>205</span>    * A clipping rectangle in the local coordinate.
+<span class='line'>206</span>    * @const {createjs.Rectangle}
+<span class='line'>207</span>    * @private
+<span class='line'>208</span>    */</span><span class="WHIT">
+<span class='line'>209</span> </span><span class="WHIT">  </span><span class="NAME">this.rectangle_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">createjs.Rectangle</span><span class="PUNC">(</span><span class="NAME">rectangle.getLeft</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>210</span> </span><span class="WHIT">                                           </span><span class="NAME">rectangle.getTop</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>211</span> </span><span class="WHIT">                                           </span><span class="NAME">rectangle.getWidth</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>212</span> </span><span class="WHIT">                                           </span><span class="NAME">rectangle.getHeight</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>213</span> 
+<span class='line'>214</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>215</span>    * A clipping rectangle in the global coordinate.
+<span class='line'>216</span>    * @const {createjs.BoundingBox}
+<span class='line'>217</span>    * @private
+<span class='line'>218</span>    */</span><span class="WHIT">
+<span class='line'>219</span> </span><span class="WHIT">  </span><span class="NAME">this.box_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Clip.cloneBox</span><span class="PUNC">(</span><span class="NAME">box</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>220</span> 
+<span class='line'>221</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>222</span>    * A method used for applying this clip to a render object.
+<span class='line'>223</span>    * rectangle.
+<span class='line'>224</span>    * @const {number}
+<span class='line'>225</span>    * @private
+<span class='line'>226</span>    */</span><span class="WHIT">
+<span class='line'>227</span> </span><span class="WHIT">  </span><span class="NAME">this.method_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">method</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>228</span> 
+<span class='line'>229</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>230</span>    * A composition operation used in rendering the clipped image.
+<span class='line'>231</span>    * @const {number}
+<span class='line'>232</span>    * @private
+<span class='line'>233</span>    */</span><span class="WHIT">
+<span class='line'>234</span> </span><span class="WHIT">  </span><span class="NAME">this.composition_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">composition</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>235</span> 
+<span class='line'>236</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>237</span>    * A render object that renders this clip.
+<span class='line'>238</span>    * @const {createjs.Renderer.RenderObject}
+<span class='line'>239</span>    * @private
+<span class='line'>240</span>    */</span><span class="WHIT">
+<span class='line'>241</span> </span><span class="WHIT">  </span><span class="NAME">this.shape_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>242</span> </span><span class="WHIT">      </span><span class="PUNC">(</span><span class="NAME">method</span><span class="WHIT"> </span><span class="PUNC">></span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Mask.SCISSOR</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="NAME">shape</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>243</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>244</span> 
+<span class='line'>245</span> </span><span class="COMM">/**
+<span class='line'>246</span>  * Returns a clone of the specified box.
+<span class='line'>247</span>  * @param {createjs.BoundingBox} box
+<span class='line'>248</span>  * @return {createjs.BoundingBox}
+<span class='line'>249</span>  */</span><span class="WHIT">
+<span class='line'>250</span> </span><span class="NAME">createjs.Renderer.Clip.cloneBox</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">box</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>251</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.BoundingBox" name="box"/></span><span class="WHIT">
+<span class='line'>252</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="createjs.BoundingBox"/></span><span class="WHIT">
+<span class='line'>253</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">clone</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">createjs.BoundingBox</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>254</span> </span><span class="WHIT">  </span><span class="NAME">clone.minX</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.truncate</span><span class="PUNC">(</span><span class="NAME">box.minX</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>255</span> </span><span class="WHIT">  </span><span class="NAME">clone.minY</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.truncate</span><span class="PUNC">(</span><span class="NAME">box.minY</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>256</span> </span><span class="WHIT">  </span><span class="NAME">clone.maxX</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.truncate</span><span class="PUNC">(</span><span class="NAME">box.maxX</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>257</span> </span><span class="WHIT">  </span><span class="NAME">clone.maxY</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.truncate</span><span class="PUNC">(</span><span class="NAME">box.maxY</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>258</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">clone</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>259</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>260</span> 
+<span class='line'>261</span> </span><span class="COMM">/**
+<span class='line'>262</span>  * Returns the affine transformation.
+<span class='line'>263</span>  * @return {createjs.Transform}
+<span class='line'>264</span>  * @const
+<span class='line'>265</span>  */</span><span class="WHIT">
+<span class='line'>266</span> </span><span class="NAME">createjs.Renderer.Clip.prototype.getTransform</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>267</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="createjs.Transform"/></span><span class="WHIT">
+<span class='line'>268</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.transform_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>269</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>270</span> 
+<span class='line'>271</span> </span><span class="COMM">/**
+<span class='line'>272</span>  * Returns the clipping rectangle.
+<span class='line'>273</span>  * @return {createjs.Rectangle}
+<span class='line'>274</span>  * @const
+<span class='line'>275</span>  */</span><span class="WHIT">
+<span class='line'>276</span> </span><span class="NAME">createjs.Renderer.Clip.prototype.getRectangle</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>277</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="createjs.Rectangle"/></span><span class="WHIT">
+<span class='line'>278</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.rectangle_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>279</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>280</span> 
+<span class='line'>281</span> </span><span class="COMM">/**
+<span class='line'>282</span>  * Returns the bounding box.
+<span class='line'>283</span>  * @return {createjs.BoundingBox}
+<span class='line'>284</span>  * @const
+<span class='line'>285</span>  */</span><span class="WHIT">
+<span class='line'>286</span> </span><span class="NAME">createjs.Renderer.Clip.prototype.getBox</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>287</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="createjs.BoundingBox"/></span><span class="WHIT">
+<span class='line'>288</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.box_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>289</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>290</span> 
+<span class='line'>291</span> </span><span class="COMM">/**
+<span class='line'>292</span>  * Returns the clipping method.
+<span class='line'>293</span>  * @return {number}
+<span class='line'>294</span>  * @const
+<span class='line'>295</span>  */</span><span class="WHIT">
+<span class='line'>296</span> </span><span class="NAME">createjs.Renderer.Clip.prototype.getMethod</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>297</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>298</span> </span><span class="WHIT">  </span><span class="COMM">// Disable this clip when it is invisible to avoid a crash in rendering an</span><span class="WHIT">
+<span class='line'>299</span> </span><span class="WHIT">  </span><span class="COMM">// invisible shape. (A tween may set an empty shape to this mask.)</span><span class="WHIT">
+<span class='line'>300</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.shape_</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">this.shape_.isVisible</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>301</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>302</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>303</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.method_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>304</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>305</span> 
+<span class='line'>306</span> </span><span class="COMM">/**
+<span class='line'>307</span>  * Returns whether a renderer has to compose this clip to a render object.
+<span class='line'>308</span>  * @return {boolean}
+<span class='line'>309</span>  * @const
+<span class='line'>310</span>  */</span><span class="WHIT">
+<span class='line'>311</span> </span><span class="NAME">createjs.Renderer.Clip.prototype.isCompose</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>312</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>313</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.method_</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Mask.COMPOSE</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>314</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>315</span> 
+<span class='line'>316</span> </span><span class="COMM">/**
+<span class='line'>317</span>  * Returns whether a renderer should show a render object without applying this
+<span class='line'>318</span>  * clip.
+<span class='line'>319</span>  * @return {boolean}
+<span class='line'>320</span>  * @const
+<span class='line'>321</span>  */</span><span class="WHIT">
+<span class='line'>322</span> </span><span class="NAME">createjs.Renderer.Clip.prototype.isShow</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>323</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>324</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.method_</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Mask.SHOW</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>325</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>326</span> 
+<span class='line'>327</span> </span><span class="COMM">/**
+<span class='line'>328</span>  * Returns whether this clip can use its bounding box as a scissor box.
+<span class='line'>329</span>  * @return {number}
+<span class='line'>330</span>  * @const
+<span class='line'>331</span>  */</span><span class="WHIT">
+<span class='line'>332</span> </span><span class="NAME">createjs.Renderer.Clip.prototype.getComposition</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>333</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>334</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.composition_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>335</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>336</span> 
+<span class='line'>337</span> </span><span class="COMM">/**
+<span class='line'>338</span>  * Returns a display object used as a mask.
+<span class='line'>339</span>  * @return {createjs.Renderer.RenderObject}
+<span class='line'>340</span>  * @const
+<span class='line'>341</span>  */</span><span class="WHIT">
+<span class='line'>342</span> </span><span class="NAME">createjs.Renderer.Clip.prototype.getShape</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>343</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="createjs.Renderer.RenderObject"/></span><span class="WHIT">
+<span class='line'>344</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.shape_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>345</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>346</span> 
+<span class='line'>347</span> </span><span class="COMM">/**
+<span class='line'>348</span>  * An interface used by a renderer object to draw objects registered with the
+<span class='line'>349</span>  * paintObject() method.
+<span class='line'>350</span>  * @interface
+<span class='line'>351</span>  */</span><span class="WHIT">
+<span class='line'>352</span> </span><span class="NAME">createjs.Renderer.RenderObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>353</span> 
+<span class='line'>354</span> </span><span class="COMM">/**
+<span class='line'>355</span>  * Returns whether this object needs a redraw.
+<span class='line'>356</span>  * @param {createjs.BoundingBox} box
+<span class='line'>357</span>  * @return {boolean}
+<span class='line'>358</span>  */</span><span class="WHIT">
+<span class='line'>359</span> </span><span class="NAME">createjs.Renderer.RenderObject.prototype.isDirtyObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">box</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>360</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="createjs.BoundingBox"/></span><span class="WHIT">
+<span class='line'>361</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>362</span> 
+<span class='line'>363</span> </span><span class="COMM">/**
+<span class='line'>364</span>  * Returns the bounding box of this object in the global coordinate system.
+<span class='line'>365</span>  * @return {createjs.BoundingBox}
+<span class='line'>366</span>  */</span><span class="WHIT">
+<span class='line'>367</span> </span><span class="NAME">createjs.Renderer.RenderObject.prototype.getRenderBox</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>368</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="createjs.BoundingBox"/></span><span class="WHIT">
+<span class='line'>369</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>370</span> 
+<span class='line'>371</span> </span><span class="COMM">/**
+<span class='line'>372</span>  * Returns a createjs.Renderer.Clip object associated with this object.
+<span class='line'>373</span>  * @return {createjs.Renderer.Clip}
+<span class='line'>374</span>  */</span><span class="WHIT">
+<span class='line'>375</span> </span><span class="NAME">createjs.Renderer.RenderObject.prototype.getClip</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>376</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="createjs.Renderer.Clip"/></span><span class="WHIT">
+<span class='line'>377</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>378</span> 
+<span class='line'>379</span> </span><span class="COMM">/**
+<span class='line'>380</span>  * Starts painting this object.
+<span class='line'>381</span>  * @param {createjs.Renderer} renderer
+<span class='line'>382</span>  */</span><span class="WHIT">
+<span class='line'>383</span> </span><span class="NAME">createjs.Renderer.RenderObject.prototype.beginPaintObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>384</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">renderer</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>385</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.Renderer" name="renderer"/></span><span class="WHIT">
+<span class='line'>386</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>387</span> 
+<span class='line'>388</span> </span><span class="COMM">/**
+<span class='line'>389</span>  * Paints an object.
+<span class='line'>390</span>  * @param {createjs.Renderer} renderer
+<span class='line'>391</span>  */</span><span class="WHIT">
+<span class='line'>392</span> </span><span class="NAME">createjs.Renderer.RenderObject.prototype.paintObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">renderer</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>393</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.Renderer" name="renderer"/></span><span class="WHIT">
+<span class='line'>394</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>395</span> 
+<span class='line'>396</span> </span><span class="COMM">/**
+<span class='line'>397</span>  * Calculates the ratio of a point in this renderer to one of CSS. When this
+<span class='line'>398</span>  * renderer has its &lt;canvas> element applied CSS transforms, this ratio does not
+<span class='line'>399</span>  * become (1, 1) to (1, 1). This method retrieves the computed rectangle from a
+<span class='line'>400</span>  * browser and calculates it.
+<span class='line'>401</span>  * @private
+<span class='line'>402</span>  */</span><span class="WHIT">
+<span class='line'>403</span> </span><span class="NAME">createjs.Renderer.prototype.calculateRatio_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>404</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">canvas</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.getCanvas</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>405</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">bounds</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">canvas.getBoundingClientRect</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>406</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">zoom</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">window.getComputedStyle</span><span class="PUNC">(</span><span class="NAME">canvas</span><span class="PUNC">)</span><span class="PUNC">.</span><span class="NAME">zoom</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>407</span> </span><span class="WHIT">  </span><span class="NAME">this.cssRatio_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">createjs.Point</span><span class="PUNC">(</span><span class="WHIT">
+<span class='line'>408</span> </span><span class="WHIT">      </span><span class="NAME">bounds.width</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NAME">zoom</span><span class="WHIT"> </span><span class="PUNC">/</span><span class="WHIT"> </span><span class="NAME">this.width_</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">bounds.height</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NAME">zoom</span><span class="WHIT"> </span><span class="PUNC">/</span><span class="WHIT"> </span><span class="NAME">this.height_</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>409</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>410</span> 
+<span class='line'>411</span> </span><span class="COMM">/**
+<span class='line'>412</span>  * Synchronizes the width property of this renderer with the specified one.
+<span class='line'>413</span>  * @param {number} width
+<span class='line'>414</span>  * @protected
+<span class='line'>415</span>  * @const
+<span class='line'>416</span>  */</span><span class="WHIT">
+<span class='line'>417</span> </span><span class="NAME">createjs.Renderer.prototype.setWidth</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">width</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>418</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'>419</span> </span><span class="WHIT">  </span><span class="NAME">this.width_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>420</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>421</span> 
+<span class='line'>422</span> </span><span class="COMM">/**
+<span class='line'>423</span>  * Synchronizes the height properties of this renderer with the specified one.
+<span class='line'>424</span>  * @param {number} height
+<span class='line'>425</span>  * @protected
+<span class='line'>426</span>  * @const
+<span class='line'>427</span>  */</span><span class="WHIT">
+<span class='line'>428</span> </span><span class="NAME">createjs.Renderer.prototype.setHeight</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">height</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>429</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'>430</span> </span><span class="WHIT">  </span><span class="NAME">this.height_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>431</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>432</span> 
+<span class='line'>433</span> </span><span class="COMM">/**
+<span class='line'>434</span>  * Resets the HTMLCanvasElement object attached to this renderer.
+<span class='line'>435</span>  * @protected
+<span class='line'>436</span>  * @const
+<span class='line'>437</span>  */</span><span class="WHIT">
+<span class='line'>438</span> </span><span class="NAME">createjs.Renderer.prototype.resetCanvas</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>439</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.canvas_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>440</span> </span><span class="WHIT">    </span><span class="NAME">this.canvas_.width</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>441</span> </span><span class="WHIT">    </span><span class="NAME">this.canvas_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>442</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>443</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>444</span> 
+<span class='line'>445</span> </span><span class="COMM">/**
+<span class='line'>446</span>  * Updates the layout of the HTMLCanvasElement object attached to this renderer.
+<span class='line'>447</span>  * @param {string} context
+<span class='line'>448</span>  * @suppress {uselessCode}
+<span class='line'>449</span>  * @protected
+<span class='line'>450</span>  * @const
+<span class='line'>451</span>  */</span><span class="WHIT">
+<span class='line'>452</span> </span><span class="NAME">createjs.Renderer.prototype.updateCanvas</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">context</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>453</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="string" name="context"/></span><span class="WHIT">
+<span class='line'>454</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.useAndroidWorkarounds_</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>455</span> </span><span class="WHIT">    </span><span class="NAME">this.useAndroidWorkarounds_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>456</span> </span><span class="WHIT">        </span><span class="NAME">createjs.Config.useAndroidWorkarounds</span><span class="PUNC">(</span><span class="NAME">context</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>457</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>458</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">canvas</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.getCanvas</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>459</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.useAndroidWorkarounds_</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>460</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">display</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">canvas.style.display</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>461</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">display</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="STRN">'none'</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>462</span> </span><span class="WHIT">      </span><span class="NAME">canvas.style.display</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">'none'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>463</span> </span><span class="WHIT">      </span><span class="NAME">canvas.offsetHeight</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>464</span> </span><span class="WHIT">      </span><span class="NAME">canvas.style.display</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">display</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>465</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>466</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.useAndroidWorkarounds_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>467</span> </span><span class="WHIT">    </span><span class="NAME">canvas.width</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">canvas.width</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>468</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>469</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>470</span> 
+<span class='line'>471</span> </span><span class="COMM">/**
+<span class='line'>472</span>  * Destroys the resources attached to this renderer.
+<span class='line'>473</span>  */</span><span class="WHIT">
+<span class='line'>474</span> </span><span class="NAME">createjs.Renderer.prototype.destroy</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>475</span> </span><span class="WHIT">  </span><span class="NAME">createjs.notReached</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>476</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>477</span> 
+<span class='line'>478</span> </span><span class="COMM">/**
+<span class='line'>479</span>  * Returns the HTMLCanvasElement object attached to this renderer.
+<span class='line'>480</span>  * @return {HTMLCanvasElement}
+<span class='line'>481</span>  * @const
+<span class='line'>482</span>  */</span><span class="WHIT">
+<span class='line'>483</span> </span><span class="NAME">createjs.Renderer.prototype.getCanvas</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>484</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="HTMLCanvasElement"/></span><span class="WHIT">
+<span class='line'>485</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.canvas_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>486</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>487</span> 
+<span class='line'>488</span> </span><span class="COMM">/**
+<span class='line'>489</span>  * Returns the width.
+<span class='line'>490</span>  * @return {number}
+<span class='line'>491</span>  * @const
+<span class='line'>492</span>  */</span><span class="WHIT">
+<span class='line'>493</span> </span><span class="NAME">createjs.Renderer.prototype.getWidth</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>494</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>495</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.width_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>496</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>497</span> 
+<span class='line'>498</span> </span><span class="COMM">/**
+<span class='line'>499</span>  * Returns the height.
+<span class='line'>500</span>  * @return {number}
+<span class='line'>501</span>  * @const
+<span class='line'>502</span>  */</span><span class="WHIT">
+<span class='line'>503</span> </span><span class="NAME">createjs.Renderer.prototype.getHeight</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>504</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>505</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.height_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>506</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>507</span> 
+<span class='line'>508</span> </span><span class="COMM">/**
+<span class='line'>509</span>  * Returns the ratio of a point in this renderer to one of CSS.
+<span class='line'>510</span>  * @return {createjs.Point}
+<span class='line'>511</span>  * @const
+<span class='line'>512</span>  */</span><span class="WHIT">
+<span class='line'>513</span> </span><span class="NAME">createjs.Renderer.prototype.getCSSRatio</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>514</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="createjs.Point"/></span><span class="WHIT">
+<span class='line'>515</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">this.cssRatio_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>516</span> </span><span class="WHIT">    </span><span class="NAME">this.calculateRatio_</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>517</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>518</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.cssRatio_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>519</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>520</span> 
+<span class='line'>521</span> </span><span class="COMM">/**
+<span class='line'>522</span>  * Sets an affine transformation.
+<span class='line'>523</span>  * @param {number} a
+<span class='line'>524</span>  * @param {number} b
+<span class='line'>525</span>  * @param {number} c
+<span class='line'>526</span>  * @param {number} d
+<span class='line'>527</span>  * @param {number} tx
+<span class='line'>528</span>  * @param {number} ty
+<span class='line'>529</span>  */</span><span class="WHIT">
+<span class='line'>530</span> </span><span class="NAME">createjs.Renderer.prototype.setTransformation</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">a</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">b</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">c</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">d</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">tx</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">ty</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>531</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="a"/></span><span class="WHIT">
+<span class='line'>532</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="b"/></span><span class="WHIT">
+<span class='line'>533</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="c"/></span><span class="WHIT">
+<span class='line'>534</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="d"/></span><span class="WHIT">
+<span class='line'>535</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="tx"/></span><span class="WHIT">
+<span class='line'>536</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="ty"/></span><span class="WHIT">
+<span class='line'>537</span> </span><span class="WHIT">  </span><span class="NAME">createjs.notReached</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>538</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>539</span> 
+<span class='line'>540</span> </span><span class="COMM">/**
+<span class='line'>541</span>  * Sets the alpha value.
+<span class='line'>542</span>  * @param {number} alpha
+<span class='line'>543</span>  */</span><span class="WHIT">
+<span class='line'>544</span> </span><span class="NAME">createjs.Renderer.prototype.setAlpha</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">alpha</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>545</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="alpha"/></span><span class="WHIT">
+<span class='line'>546</span> </span><span class="WHIT">  </span><span class="NAME">createjs.notReached</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>547</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>548</span> 
+<span class='line'>549</span> </span><span class="COMM">/**
+<span class='line'>550</span>  * Sets the color matrix.
+<span class='line'>551</span>  * @param {Array.&lt;number>} matrix
+<span class='line'>552</span>  */</span><span class="WHIT">
+<span class='line'>553</span> </span><span class="NAME">createjs.Renderer.prototype.setColorMatrix</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">matrix</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>554</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="Array" elementType="number" name="matrix"/></span><span class="WHIT">
+<span class='line'>555</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>556</span> 
+<span class='line'>557</span> </span><span class="COMM">/**
+<span class='line'>558</span>  * Sets the color-composition operation.
+<span class='line'>559</span>  * @param {number} operation
+<span class='line'>560</span>  */</span><span class="WHIT">
+<span class='line'>561</span> </span><span class="NAME">createjs.Renderer.prototype.setComposition</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">operation</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>562</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="operation"/></span><span class="WHIT">
+<span class='line'>563</span> </span><span class="WHIT">  </span><span class="NAME">createjs.notReached</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>564</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>565</span> 
+<span class='line'>566</span> </span><span class="COMM">/**
+<span class='line'>567</span>  * Draws an HTMLCanvasElement object to the specified rectangle.
+<span class='line'>568</span>  * @param {HTMLCanvasElement} canvas
+<span class='line'>569</span>  * @param {number} x
+<span class='line'>570</span>  * @param {number} y
+<span class='line'>571</span>  * @param {number} width
+<span class='line'>572</span>  * @param {number} height
+<span class='line'>573</span>  */</span><span class="WHIT">
+<span class='line'>574</span> </span><span class="NAME">createjs.Renderer.prototype.drawCanvas</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">canvas</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">x</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">y</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>575</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="HTMLCanvasElement" name="canvas"/></span><span class="WHIT">
+<span class='line'>576</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="x"/></span><span class="WHIT">
+<span class='line'>577</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="y"/></span><span class="WHIT">
+<span class='line'>578</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'>579</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'>580</span> </span><span class="WHIT">  </span><span class="NAME">createjs.notReached</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>581</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>582</span> 
+<span class='line'>583</span> </span><span class="COMM">/**
+<span class='line'>584</span>  * Returns a bit-mask representing the extensions supported by this renderer.
+<span class='line'>585</span>  * @return {number}
+<span class='line'>586</span>  */</span><span class="WHIT">
+<span class='line'>587</span> </span><span class="NAME">createjs.Renderer.prototype.getExtensions</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>588</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>589</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer.Extension.VIDEO</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>590</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>591</span> 
+<span class='line'>592</span> </span><span class="COMM">/**
+<span class='line'>593</span>  * Draws an HTMLVideoElement object to the specified rectangle.
+<span class='line'>594</span>  * @param {HTMLVideoElement} video
+<span class='line'>595</span>  * @param {number} x
+<span class='line'>596</span>  * @param {number} y
+<span class='line'>597</span>  * @param {number} width
+<span class='line'>598</span>  * @param {number} height
+<span class='line'>599</span>  */</span><span class="WHIT">
+<span class='line'>600</span> </span><span class="NAME">createjs.Renderer.prototype.drawVideo</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">video</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">x</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">y</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>601</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="HTMLVideoElement" name="video"/></span><span class="WHIT">
+<span class='line'>602</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="x"/></span><span class="WHIT">
+<span class='line'>603</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="y"/></span><span class="WHIT">
+<span class='line'>604</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'>605</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'>606</span> </span><span class="WHIT">  </span><span class="NAME">createjs.notReached</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>607</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>608</span> 
+<span class='line'>609</span> </span><span class="COMM">/**
+<span class='line'>610</span>  * Draws a part of an HTMLImageElement object to the specified rectangle.
+<span class='line'>611</span>  * @param {HTMLImageElement} image
+<span class='line'>612</span>  * @param {number} srcX
+<span class='line'>613</span>  * @param {number} srcY
+<span class='line'>614</span>  * @param {number} srcWidth
+<span class='line'>615</span>  * @param {number} srcHeight
+<span class='line'>616</span>  * @param {number} x
+<span class='line'>617</span>  * @param {number} y
+<span class='line'>618</span>  * @param {number} width
+<span class='line'>619</span>  * @param {number} height
+<span class='line'>620</span>  */</span><span class="WHIT">
+<span class='line'>621</span> </span><span class="NAME">createjs.Renderer.prototype.drawPartial</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>622</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">image</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">srcX</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">srcY</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">srcWidth</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">srcHeight</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">x</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">y</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>623</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="HTMLImageElement" name="image"/></span><span class="WHIT">
+<span class='line'>624</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="srcX"/></span><span class="WHIT">
+<span class='line'>625</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="srcY"/></span><span class="WHIT">
+<span class='line'>626</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="srcWidth"/></span><span class="WHIT">
+<span class='line'>627</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="srcHeight"/></span><span class="WHIT">
+<span class='line'>628</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="x"/></span><span class="WHIT">
+<span class='line'>629</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="y"/></span><span class="WHIT">
+<span class='line'>630</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'>631</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'>632</span> </span><span class="WHIT">  </span><span class="NAME">createjs.notReached</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>633</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>634</span> 
+<span class='line'>635</span> </span><span class="COMM">/**
+<span class='line'>636</span>  * Adds an object to the rendering queue.
+<span class='line'>637</span>  * @param {createjs.Renderer.RenderObject} object
+<span class='line'>638</span>  */</span><span class="WHIT">
+<span class='line'>639</span> </span><span class="NAME">createjs.Renderer.prototype.addObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">object</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>640</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.Renderer.RenderObject" name="object"/></span><span class="WHIT">
+<span class='line'>641</span> </span><span class="WHIT">  </span><span class="COMM">// This method is used for calculating clipping rectangles, i.e. this method</span><span class="WHIT">
+<span class='line'>642</span> </span><span class="WHIT">  </span><span class="COMM">// should not call createjs.notReached().</span><span class="WHIT">
+<span class='line'>643</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>644</span> 
+<span class='line'>645</span> </span><span class="COMM">/**
+<span class='line'>646</span>  * Deletes the cache for the specified image.
+<span class='line'>647</span>  * @param {HTMLCanvasElement|HTMLImageElement|HTMLVideoElement} image
+<span class='line'>648</span>  */</span><span class="WHIT">
+<span class='line'>649</span> </span><span class="NAME">createjs.Renderer.prototype.uncache</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">image</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>650</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>651</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="HTMLImageElement" name="image"/></span><span class="WHIT">
+<span class='line'>652</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>653</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>654</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="HTMLCanvasElement" name="canvas"/></span><span class="WHIT">
+<span class='line'>655</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>656</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>657</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="HTMLVideoElement" name="video"/></span><span class="WHIT">
+<span class='line'>658</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>659</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>660</span> 
+<span class='line'>661</span> </span><span class="COMM">/**
+<span class='line'>662</span>  * Starts paints objects.
+<span class='line'>663</span>  */</span><span class="WHIT">
+<span class='line'>664</span> </span><span class="NAME">createjs.Renderer.prototype.begin</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>665</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>666</span> 
+<span class='line'>667</span> </span><span class="COMM">/**
+<span class='line'>668</span>  * Paints objects added to this renderer. This method returns true if this
+<span class='line'>669</span>  * renderer actually draws objects.
+<span class='line'>670</span>  * @param {number} time
+<span class='line'>671</span>  */</span><span class="WHIT">
+<span class='line'>672</span> </span><span class="NAME">createjs.Renderer.prototype.paint</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">time</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>673</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="time"/></span><span class="WHIT">
+<span class='line'>674</span> </span><span class="WHIT">  </span><span class="NAME">createjs.notReached</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>675</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>676</span> 
+<span class='line'>677</span> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>678</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>679</span>    * Adds a dirty object to another renderer.
+<span class='line'>680</span>    * @param {createjs.Renderer.RenderObject} object
+<span class='line'>681</span>    */</span><span class="WHIT">
+<span class='line'>682</span> </span><span class="WHIT">  </span><span class="NAME">createjs.Renderer.prototype.addDirtyObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">object</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>683</span> </span><span class="WHIT">    </span><span class="COMM">/// &lt;param type="createjs.Renderer.RenderObject" name="object"/></span><span class="WHIT">
+<span class='line'>684</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>685</span> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>686</span> </span></pre></body></html>

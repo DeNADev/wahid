@@ -1,0 +1,102 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	.KEYW {color: #933;}
+	.COMM {color: #bbb; font-style: italic;}
+	.NUMB {color: #393;}
+	.STRN {color: #393;}
+	.REGX {color: #339;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="COMM">/**
+<span class='line'>  2</span>  * The MIT License (MIT)
+<span class='line'>  3</span>  *
+<span class='line'>  4</span>  * Copyright (c) 2016 DeNA Co., Ltd.
+<span class='line'>  5</span>  *
+<span class='line'>  6</span>  * Permission is hereby granted, free of charge, to any person obtaining a copy
+<span class='line'>  7</span>  * of this software and associated documentation files (the "Software"), to deal
+<span class='line'>  8</span>  * in the Software without restriction, including without limitation the rights
+<span class='line'>  9</span>  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+<span class='line'> 10</span>  * copies of the Software, and to permit persons to whom the Software is
+<span class='line'> 11</span>  * furnished to do so, subject to the following conditions:
+<span class='line'> 12</span>  *
+<span class='line'> 13</span>  * The above copyright notice and this permission notice shall be included in
+<span class='line'> 14</span>  * all copies or substantial portions of the Software.
+<span class='line'> 15</span>  *
+<span class='line'> 16</span>  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+<span class='line'> 17</span>  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+<span class='line'> 18</span>  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+<span class='line'> 19</span>  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+<span class='line'> 20</span>  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+<span class='line'> 21</span>  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+<span class='line'> 22</span>  * SOFTWARE.
+<span class='line'> 23</span>  */</span><span class="WHIT">
+<span class='line'> 24</span> 
+<span class='line'> 25</span> </span><span class="COMM">/// &lt;reference path="base.js"/></span><span class="WHIT">
+<span class='line'> 26</span> </span><span class="COMM">/// &lt;reference path="alpha_map_filter.js"/></span><span class="WHIT">
+<span class='line'> 27</span> </span><span class="COMM">/// &lt;reference path="bitmap.js"/></span><span class="WHIT">
+<span class='line'> 28</span> </span><span class="COMM">/// &lt;reference path="button_helper.js"/></span><span class="WHIT">
+<span class='line'> 29</span> </span><span class="COMM">/// &lt;reference path="color_filter.js"/></span><span class="WHIT">
+<span class='line'> 30</span> </span><span class="COMM">/// &lt;reference path="config.js"/></span><span class="WHIT">
+<span class='line'> 31</span> </span><span class="COMM">/// &lt;reference path="container.js"/></span><span class="WHIT">
+<span class='line'> 32</span> </span><span class="COMM">/// &lt;reference path="display_object.js"/></span><span class="WHIT">
+<span class='line'> 33</span> </span><span class="COMM">/// &lt;reference path="dom_element.js"/></span><span class="WHIT">
+<span class='line'> 34</span> </span><span class="COMM">/// &lt;reference path="ease.js"/></span><span class="WHIT">
+<span class='line'> 35</span> </span><span class="COMM">/// &lt;reference path="event_dispatcher.js"/></span><span class="WHIT">
+<span class='line'> 36</span> </span><span class="COMM">/// &lt;reference path="filter.js"/></span><span class="WHIT">
+<span class='line'> 37</span> </span><span class="COMM">/// &lt;reference path="graphics.js"/></span><span class="WHIT">
+<span class='line'> 38</span> </span><span class="COMM">/// &lt;reference path="load_queue.js"/></span><span class="WHIT">
+<span class='line'> 39</span> </span><span class="COMM">/// &lt;reference path="movie_clip.js"/></span><span class="WHIT">
+<span class='line'> 40</span> </span><span class="COMM">/// &lt;reference path="mouse_event.js"/></span><span class="WHIT">
+<span class='line'> 41</span> </span><span class="COMM">/// &lt;reference path="rectangle.js"/></span><span class="WHIT">
+<span class='line'> 42</span> </span><span class="COMM">/// &lt;reference path="shadow.js"/></span><span class="WHIT">
+<span class='line'> 43</span> </span><span class="COMM">/// &lt;reference path="shape.js"/></span><span class="WHIT">
+<span class='line'> 44</span> </span><span class="COMM">/// &lt;reference path="sound.js"/></span><span class="WHIT">
+<span class='line'> 45</span> </span><span class="COMM">/// &lt;reference path="sprite.js"/></span><span class="WHIT">
+<span class='line'> 46</span> </span><span class="COMM">/// &lt;reference path="sprite_sheet.js"/></span><span class="WHIT">
+<span class='line'> 47</span> </span><span class="COMM">/// &lt;reference path="stage.js"/></span><span class="WHIT">
+<span class='line'> 48</span> </span><span class="COMM">/// &lt;reference path="text.js"/></span><span class="WHIT">
+<span class='line'> 49</span> </span><span class="COMM">/// &lt;reference path="ticker.js"/></span><span class="WHIT">
+<span class='line'> 50</span> </span><span class="COMM">/// &lt;reference path="timeline.js"/></span><span class="WHIT">
+<span class='line'> 51</span> </span><span class="COMM">/// &lt;reference path="touch.js"/></span><span class="WHIT">
+<span class='line'> 52</span> </span><span class="COMM">/// &lt;reference path="tween.js"/></span><span class="WHIT">
+<span class='line'> 53</span> </span><span class="COMM">/// &lt;reference path="video.js"/></span><span class="WHIT">
+<span class='line'> 54</span> 
+<span class='line'> 55</span> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.SUPPORT_AMD</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 56</span> </span><span class="WHIT">  </span><span class="COMM">// Exports symbols to an AMD loader.</span><span class="WHIT">
+<span class='line'> 57</span> </span><span class="WHIT">  </span><span class="NAME">define</span><span class="PUNC">(</span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 58</span> </span><span class="WHIT">    </span><span class="STRN">'AlphaMapFilter'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.AlphaMapFilter</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 59</span> </span><span class="WHIT">    </span><span class="STRN">'Bitmap'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Bitmap</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 60</span> </span><span class="WHIT">    </span><span class="STRN">'ButtonHelper'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.ButtonHelper</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 61</span> </span><span class="WHIT">    </span><span class="STRN">'ColorFilter'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.ColorFilter</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 62</span> </span><span class="WHIT">    </span><span class="STRN">'Config'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Config.exports</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 63</span> </span><span class="WHIT">    </span><span class="STRN">'Container'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Container</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 64</span> </span><span class="WHIT">    </span><span class="STRN">'DisplayObject'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.DisplayObject</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 65</span> </span><span class="WHIT">    </span><span class="STRN">'DOMElement'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.DOMElement</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 66</span> </span><span class="WHIT">    </span><span class="STRN">'EventDispatcher'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 67</span> </span><span class="WHIT">    </span><span class="STRN">'Ease'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Ease.exports</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 68</span> </span><span class="WHIT">    </span><span class="STRN">'Filter'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Filter</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 69</span> </span><span class="WHIT">    </span><span class="STRN">'Graphics'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Graphics</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 70</span> </span><span class="WHIT">    </span><span class="STRN">'HTMLAudioPlugin'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.HTMLAudioPlugin</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 71</span> </span><span class="WHIT">    </span><span class="STRN">'LoadQueue'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.LoadQueue</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 72</span> </span><span class="WHIT">    </span><span class="STRN">'MotionGuidePlugin'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.MotionGuidePlugin</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 73</span> </span><span class="WHIT">    </span><span class="STRN">'MouseEvent'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.MouseEvent</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 74</span> </span><span class="WHIT">    </span><span class="STRN">'MovieClip'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.MovieClip</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 75</span> </span><span class="WHIT">    </span><span class="STRN">'Rectangle'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Rectangle</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 76</span> </span><span class="WHIT">    </span><span class="STRN">'Shadow'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Shadow</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 77</span> </span><span class="WHIT">    </span><span class="STRN">'Shape'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Shape</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 78</span> </span><span class="WHIT">    </span><span class="STRN">'Sound'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Sound.exports</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 79</span> </span><span class="WHIT">    </span><span class="STRN">'Sprite'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Sprite</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 80</span> </span><span class="WHIT">    </span><span class="STRN">'SpriteSheet'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.SpriteSheet</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 81</span> </span><span class="WHIT">    </span><span class="STRN">'Stage'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Stage</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 82</span> </span><span class="WHIT">    </span><span class="STRN">'Text'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Text</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 83</span> </span><span class="WHIT">    </span><span class="STRN">'Ticker'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Ticker.exports</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 84</span> </span><span class="WHIT">    </span><span class="STRN">'Timeline'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Timeline</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 85</span> </span><span class="WHIT">    </span><span class="STRN">'Touch'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Touch.exports</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 86</span> </span><span class="WHIT">    </span><span class="STRN">'Tween'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Tween</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 87</span> </span><span class="WHIT">    </span><span class="STRN">'Video'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.Video</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 88</span> </span><span class="WHIT">    </span><span class="STRN">'WebAudioPlugin'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.WebAudioPlugin</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 89</span> </span><span class="WHIT">    </span><span class="STRN">'version'</span><span class="PUNC">:</span><span class="WHIT">
+<span class='line'> 90</span> </span><span class="WHIT">        </span><span class="STRN">'0.'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">createjs.MAJOR_VERSION</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'.'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">createjs.MINOR_VERSION</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 91</span> </span><span class="WHIT">    </span><span class="STRN">'denaVersion'</span><span class="PUNC">:</span><span class="WHIT">
+<span class='line'> 92</span> </span><span class="WHIT">        </span><span class="PUNC">(</span><span class="NAME">createjs.DENA_MAJOR_VERSION</span><span class="WHIT"> </span><span class="PUNC">&lt;&lt;</span><span class="WHIT"> </span><span class="NUMB">16</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">createjs.DENA_MINOR_VERSION</span><span class="WHIT">
+<span class='line'> 93</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 94</span> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 95</span> </span></pre></body></html>

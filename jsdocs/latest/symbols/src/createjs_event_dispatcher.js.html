@@ -1,0 +1,651 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	.KEYW {color: #933;}
+	.COMM {color: #bbb; font-style: italic;}
+	.NUMB {color: #393;}
+	.STRN {color: #393;}
+	.REGX {color: #339;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="COMM">/**
+<span class='line'>  2</span>  * The MIT License (MIT)
+<span class='line'>  3</span>  *
+<span class='line'>  4</span>  * Copyright (c) 2016 DeNA Co., Ltd.
+<span class='line'>  5</span>  *
+<span class='line'>  6</span>  * Permission is hereby granted, free of charge, to any person obtaining a copy
+<span class='line'>  7</span>  * of this software and associated documentation files (the "Software"), to deal
+<span class='line'>  8</span>  * in the Software without restriction, including without limitation the rights
+<span class='line'>  9</span>  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+<span class='line'> 10</span>  * copies of the Software, and to permit persons to whom the Software is
+<span class='line'> 11</span>  * furnished to do so, subject to the following conditions:
+<span class='line'> 12</span>  *
+<span class='line'> 13</span>  * The above copyright notice and this permission notice shall be included in
+<span class='line'> 14</span>  * all copies or substantial portions of the Software.
+<span class='line'> 15</span>  *
+<span class='line'> 16</span>  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+<span class='line'> 17</span>  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+<span class='line'> 18</span>  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+<span class='line'> 19</span>  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+<span class='line'> 20</span>  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+<span class='line'> 21</span>  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+<span class='line'> 22</span>  * SOFTWARE.
+<span class='line'> 23</span>  */</span><span class="WHIT">
+<span class='line'> 24</span> 
+<span class='line'> 25</span> </span><span class="COMM">/// &lt;reference path="base.js"/></span><span class="WHIT">
+<span class='line'> 26</span> </span><span class="COMM">/// &lt;reference path="object.js"/></span><span class="WHIT">
+<span class='line'> 27</span> </span><span class="COMM">/// &lt;reference path="object_list.js"/></span><span class="WHIT">
+<span class='line'> 28</span> </span><span class="COMM">/// &lt;reference path="event.js"/></span><span class="WHIT">
+<span class='line'> 29</span> 
+<span class='line'> 30</span> </span><span class="COMM">/**
+<span class='line'> 31</span>  * A class that can receive events and dispatch events. This class can dispatch
+<span class='line'> 32</span>  * CreateJS events only to their target CreateJS objects. (This class cannot
+<span class='line'> 33</span>  * dispatch capture events.)
+<span class='line'> 34</span>  * @extends {createjs.Object}
+<span class='line'> 35</span>  * @implements {createjs.Event.Target}
+<span class='line'> 36</span>  * @constructor
+<span class='line'> 37</span>  */</span><span class="WHIT">
+<span class='line'> 38</span> </span><span class="NAME">createjs.EventDispatcher</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 39</span> </span><span class="WHIT">  </span><span class="NAME">createjs.Object.call</span><span class="PUNC">(</span><span class="KEYW">this</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 40</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 41</span> </span><span class="NAME">createjs.inherits</span><span class="PUNC">(</span><span class="STRN">'EventDispatcher'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">createjs.Object</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 42</span> 
+<span class='line'> 43</span> </span><span class="COMM">/**
+<span class='line'> 44</span>  * Representing this dispatcher is in the capture phase.
+<span class='line'> 45</span>  * @const {number}
+<span class='line'> 46</span>  */</span><span class="WHIT">
+<span class='line'> 47</span> </span><span class="NAME">createjs.EventDispatcher.CAPTURE_PHASE</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 48</span> 
+<span class='line'> 49</span> </span><span class="COMM">/**
+<span class='line'> 50</span>  * Representing this dispatcher is in the target phase.
+<span class='line'> 51</span>  * @const {number}
+<span class='line'> 52</span>  */</span><span class="WHIT">
+<span class='line'> 53</span> </span><span class="NAME">createjs.EventDispatcher.AT_TARGET</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">2</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 54</span> 
+<span class='line'> 55</span> </span><span class="COMM">/**
+<span class='line'> 56</span>  * Representing this dispatcher is in the bubbling phase.
+<span class='line'> 57</span>  * @const {number}
+<span class='line'> 58</span>  */</span><span class="WHIT">
+<span class='line'> 59</span> </span><span class="NAME">createjs.EventDispatcher.BUBBLING_PHASE</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">3</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 60</span> 
+<span class='line'> 61</span> </span><span class="COMM">/**
+<span class='line'> 62</span>  * The event ID of the 'click' event.
+<span class='line'> 63</span>  * @const {number}
+<span class='line'> 64</span>  */</span><span class="WHIT">
+<span class='line'> 65</span> </span><span class="NAME">createjs.EventDispatcher.CLICK</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">&lt;&lt;</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 66</span> 
+<span class='line'> 67</span> </span><span class="COMM">/**
+<span class='line'> 68</span>  * The event ID of the 'mousedown' event.
+<span class='line'> 69</span>  * @const {number}
+<span class='line'> 70</span>  */</span><span class="WHIT">
+<span class='line'> 71</span> </span><span class="NAME">createjs.EventDispatcher.MOUSE_DOWN</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">&lt;&lt;</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 72</span> 
+<span class='line'> 73</span> </span><span class="COMM">/**
+<span class='line'> 74</span>  * The event ID of the 'pressmove' event.
+<span class='line'> 75</span>  * @const {number}
+<span class='line'> 76</span>  */</span><span class="WHIT">
+<span class='line'> 77</span> </span><span class="NAME">createjs.EventDispatcher.PRESS_MOVE</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">&lt;&lt;</span><span class="WHIT"> </span><span class="NUMB">2</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 78</span> 
+<span class='line'> 79</span> </span><span class="COMM">/**
+<span class='line'> 80</span>  * The event ID of the 'pressup' event.
+<span class='line'> 81</span>  * @const {number}
+<span class='line'> 82</span>  */</span><span class="WHIT">
+<span class='line'> 83</span> </span><span class="NAME">createjs.EventDispatcher.PRESS_UP</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">&lt;&lt;</span><span class="WHIT"> </span><span class="NUMB">3</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 84</span> 
+<span class='line'> 85</span> </span><span class="COMM">/**
+<span class='line'> 86</span>  * Returns the event ID.
+<span class='line'> 87</span>  * @param {string} type
+<span class='line'> 88</span>  * @return {number}
+<span class='line'> 89</span>  * @private
+<span class='line'> 90</span>  */</span><span class="WHIT">
+<span class='line'> 91</span> </span><span class="NAME">createjs.EventDispatcher.getEventId_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 92</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'> 93</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'> 94</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">EVENTS</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 95</span> </span><span class="WHIT">    </span><span class="STRN">'click'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.CLICK</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 96</span> </span><span class="WHIT">    </span><span class="STRN">'mousedown'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.MOUSE_DOWN</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 97</span> </span><span class="WHIT">    </span><span class="STRN">'pressmove'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.PRESS_MOVE</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 98</span> </span><span class="WHIT">    </span><span class="STRN">'pressup'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.PRESS_UP</span><span class="WHIT">
+<span class='line'> 99</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>100</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">EVENTS</span><span class="PUNC">[</span><span class="NAME">type</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>101</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>102</span> 
+<span class='line'>103</span> </span><span class="COMM">/**
+<span class='line'>104</span>  * Adds EventDispatcher methods into a target object.
+<span class='line'>105</span>  * @param {Object} target
+<span class='line'>106</span>  * @const
+<span class='line'>107</span>  */</span><span class="WHIT">
+<span class='line'>108</span> </span><span class="NAME">createjs.EventDispatcher.initialize</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">target</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>109</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="Object" name="target"/></span><span class="WHIT">
+<span class='line'>110</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">prototype</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.prototype</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>111</span> </span><span class="WHIT">  </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">key</span><span class="WHIT"> </span><span class="KEYW">in</span><span class="WHIT"> </span><span class="NAME">prototype</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>112</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">target</span><span class="PUNC">[</span><span class="NAME">key</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>113</span> </span><span class="WHIT">      </span><span class="NAME">target</span><span class="PUNC">[</span><span class="NAME">key</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">prototype</span><span class="PUNC">[</span><span class="NAME">key</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>114</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>115</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>116</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>117</span> 
+<span class='line'>118</span> </span><span class="COMM">/**
+<span class='line'>119</span>  * An inner class that represents the context of an event listener. This class
+<span class='line'>120</span>  * is used by the createjs.EventDispatcher class to execute an event listener.
+<span class='line'>121</span>  * event listener.
+<span class='line'>122</span>  * @param {Function|Object} listener
+<span class='line'>123</span>  * @param {Object} scope
+<span class='line'>124</span>  * @param {boolean} once
+<span class='line'>125</span>  * @param {*} data
+<span class='line'>126</span>  * @constructor
+<span class='line'>127</span>  */</span><span class="WHIT">
+<span class='line'>128</span> </span><span class="NAME">createjs.EventDispatcher.Context</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">listener</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">scope</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">once</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">data</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>129</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>130</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Function" name="callback"/></span><span class="WHIT">
+<span class='line'>131</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" name="scope"/></span><span class="WHIT">
+<span class='line'>132</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" name="once"/></span><span class="WHIT">
+<span class='line'>133</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param name="data"/></span><span class="WHIT">
+<span class='line'>134</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>135</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>136</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" name="listener"/></span><span class="WHIT">
+<span class='line'>137</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" name="scope"/></span><span class="WHIT">
+<span class='line'>138</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" name="once"/></span><span class="WHIT">
+<span class='line'>139</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param name="data"/></span><span class="WHIT">
+<span class='line'>140</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>141</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>142</span>    * The function to be executed when an event dispatcher dispatches an event to
+<span class='line'>143</span>    * this object.
+<span class='line'>144</span>    * @type {Function}
+<span class='line'>145</span>    * @private
+<span class='line'>146</span>    */</span><span class="WHIT">
+<span class='line'>147</span> </span><span class="WHIT">  </span><span class="NAME">this.handleEvent_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">[</span><span class="STRN">'handleEvent'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>148</span> 
+<span class='line'>149</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>150</span>    * The context used in executing this event handler.
+<span class='line'>151</span>    * @type {Object}
+<span class='line'>152</span>    * @private
+<span class='line'>153</span>    */</span><span class="WHIT">
+<span class='line'>154</span> </span><span class="WHIT">  </span><span class="NAME">this.scope_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">[</span><span class="STRN">'handleEvent'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">scope</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>155</span> 
+<span class='line'>156</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>157</span>    * Whether this object should be removed after dispatching an event to it.
+<span class='line'>158</span>    * @type {boolean}
+<span class='line'>159</span>    * @private
+<span class='line'>160</span>    */</span><span class="WHIT">
+<span class='line'>161</span> </span><span class="WHIT">  </span><span class="NAME">this.once_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">once</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>162</span> 
+<span class='line'>163</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>164</span>    * Application-specific data provided in adding an event listener.
+<span class='line'>165</span>    * @type {*}
+<span class='line'>166</span>    * @private
+<span class='line'>167</span>    */</span><span class="WHIT">
+<span class='line'>168</span> </span><span class="WHIT">  </span><span class="NAME">this.data_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">data</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>169</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>170</span> 
+<span class='line'>171</span> </span><span class="COMM">/**
+<span class='line'>172</span>  * Returns whether this listener is equal to the specified listener.
+<span class='line'>173</span>  * @param {Function|Object} listener
+<span class='line'>174</span>  * @return {boolean}
+<span class='line'>175</span>  */</span><span class="WHIT">
+<span class='line'>176</span> </span><span class="NAME">createjs.EventDispatcher.Context.prototype.isEqual</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">listener</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>177</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>178</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Function" name="callback"/></span><span class="WHIT">
+<span class='line'>179</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>180</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>181</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>182</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" name="listener"/></span><span class="WHIT">
+<span class='line'>183</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>184</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>185</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">listener</span><span class="PUNC">[</span><span class="STRN">'handleEvent'</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>186</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.scope_</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>187</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>188</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.handleEvent_</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>189</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>190</span> 
+<span class='line'>191</span> </span><span class="COMM">/**
+<span class='line'>192</span>  * Dispatches an event to this listener.
+<span class='line'>193</span>  * @param {createjs.Event} event
+<span class='line'>194</span>  * @return {boolean}
+<span class='line'>195</span>  */</span><span class="WHIT">
+<span class='line'>196</span> </span><span class="NAME">createjs.EventDispatcher.Context.prototype.dispatch</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">event</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>197</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.Event" name="event"/></span><span class="WHIT">
+<span class='line'>198</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>199</span> </span><span class="WHIT">  </span><span class="NAME">this.handleEvent_.call</span><span class="PUNC">(</span><span class="NAME">this.scope_</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">event</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">this.data_</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>200</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">event.removed</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">this.once_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>201</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>202</span> 
+<span class='line'>203</span> </span><span class="COMM">/**
+<span class='line'>204</span>  * A class that encapsulates an array that allows applications to add objects to
+<span class='line'>205</span>  * the list or to remove ones from it while they are iterating it.
+<span class='line'>206</span>  * @extends {createjs.ObjectList}
+<span class='line'>207</span>  * @constructor
+<span class='line'>208</span>  */</span><span class="WHIT">
+<span class='line'>209</span> </span><span class="NAME">createjs.EventDispatcher.ObjectList</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>210</span> </span><span class="WHIT">  </span><span class="NAME">createjs.ObjectList.call</span><span class="PUNC">(</span><span class="KEYW">this</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>211</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>212</span> </span><span class="NAME">createjs.inherits</span><span class="PUNC">(</span><span class="STRN">'EventDispatcher.ObjectList'</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>213</span> </span><span class="WHIT">                  </span><span class="NAME">createjs.EventDispatcher.ObjectList</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>214</span> </span><span class="WHIT">                  </span><span class="NAME">createjs.ObjectList</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>215</span> 
+<span class='line'>216</span> </span><span class="COMM">/**
+<span class='line'>217</span>  * Removes an event listener from the context list.
+<span class='line'>218</span>  * @param {Function|Object} listener
+<span class='line'>219</span>  * @private
+<span class='line'>220</span>  */</span><span class="WHIT">
+<span class='line'>221</span> </span><span class="NAME">createjs.EventDispatcher.ObjectList.prototype.removeListener_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>222</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">listener</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>223</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>224</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Function" name="callback"/></span><span class="WHIT">
+<span class='line'>225</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>226</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>227</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" name="listener"/></span><span class="WHIT">
+<span class='line'>228</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>229</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">list</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.getItems</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>230</span> </span><span class="WHIT">  </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">list.length</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">++</span><span class="NAME">i</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>231</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">item</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="COMM">/** @type {createjs.EventDispatcher.Context} */</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">list</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>232</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">item.isEqual</span><span class="PUNC">(</span><span class="NAME">listener</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>233</span> </span><span class="WHIT">      </span><span class="NAME">list.splice</span><span class="PUNC">(</span><span class="NAME">i</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>234</span> </span><span class="WHIT">      </span><span class="KEYW">return</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>235</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>236</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>237</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>238</span> 
+<span class='line'>239</span> </span><span class="COMM">/**
+<span class='line'>240</span>  * The parent object.
+<span class='line'>241</span>  * @type {createjs.EventDispatcher}
+<span class='line'>242</span>  * @protected
+<span class='line'>243</span>  */</span><span class="WHIT">
+<span class='line'>244</span> </span><span class="NAME">createjs.EventDispatcher.prototype</span><span class="PUNC">[</span><span class="STRN">'parent'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>245</span> 
+<span class='line'>246</span> </span><span class="COMM">/**
+<span class='line'>247</span>  * Event listeners for bubbling events and at-target ones.
+<span class='line'>248</span>  * @type {Object.&lt;string,createjs.EventDispatcher.ObjectList>}
+<span class='line'>249</span>  * @private
+<span class='line'>250</span>  */</span><span class="WHIT">
+<span class='line'>251</span> </span><span class="NAME">createjs.EventDispatcher.prototype.listeners_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>252</span> 
+<span class='line'>253</span> </span><span class="COMM">/**
+<span class='line'>254</span>  * A bit-mask representing event types that have event listeners attached to
+<span class='line'>255</span>  * this object.
+<span class='line'>256</span>  * @type {number}
+<span class='line'>257</span>  * @private
+<span class='line'>258</span>  */</span><span class="WHIT">
+<span class='line'>259</span> </span><span class="NAME">createjs.EventDispatcher.prototype.eventTypes_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>260</span> 
+<span class='line'>261</span> </span><span class="COMM">/**
+<span class='line'>262</span>  * Whether this object is dispatching events.
+<span class='line'>263</span>  * @type {boolean}
+<span class='line'>264</span>  * @private
+<span class='line'>265</span>  */</span><span class="WHIT">
+<span class='line'>266</span> </span><span class="NAME">createjs.EventDispatcher.prototype.dispatching_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>267</span> 
+<span class='line'>268</span> </span><span class="COMM">/**
+<span class='line'>269</span>  * Events to be sent after this object finishes dispatching an event.
+<span class='line'>270</span>  * @type {Array.&lt;createjs.Event>}
+<span class='line'>271</span>  * @private
+<span class='line'>272</span>  */</span><span class="WHIT">
+<span class='line'>273</span> </span><span class="NAME">createjs.EventDispatcher.prototype.events_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>274</span> 
+<span class='line'>275</span> </span><span class="COMM">/**
+<span class='line'>276</span>  * Returns a mapping table of event listeners.
+<span class='line'>277</span>  * @return {Object.&lt;string,createjs.EventDispatcher.ObjectList>}
+<span class='line'>278</span>  * @private
+<span class='line'>279</span>  */</span><span class="WHIT">
+<span class='line'>280</span> </span><span class="NAME">createjs.EventDispatcher.prototype.getListeners_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>281</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="boolean" name="capture"/></span><span class="WHIT">
+<span class='line'>282</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="Object"/></span><span class="WHIT">
+<span class='line'>283</span> </span><span class="WHIT">  </span><span class="NAME">this.listeners_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.listeners_</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>284</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.listeners_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>285</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>286</span> 
+<span class='line'>287</span> </span><span class="COMM">/**
+<span class='line'>288</span>  * Dispatches a createjs.Event object to listeners attached to this object.
+<span class='line'>289</span>  * @param {createjs.Event} event
+<span class='line'>290</span>  * @param {number} phase
+<span class='line'>291</span>  * @private
+<span class='line'>292</span>  */</span><span class="WHIT">
+<span class='line'>293</span> </span><span class="NAME">createjs.EventDispatcher.prototype.dispatchEvent_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">event</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">phase</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>294</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.Event" name="event"/></span><span class="WHIT">
+<span class='line'>295</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="phase"/></span><span class="WHIT">
+<span class='line'>296</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;var type="createjs.EventDispatcher.ObjectList" name="list"/></span><span class="WHIT">
+<span class='line'>297</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">listeners</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.getListeners_</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>298</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">list</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">listeners</span><span class="PUNC">[</span><span class="NAME">event.type</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>299</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">list</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">list.getLength</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>300</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>301</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>302</span> </span><span class="WHIT">  </span><span class="NAME">event.setProperties</span><span class="PUNC">(</span><span class="KEYW">this</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">phase</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>303</span> 
+<span class='line'>304</span> </span><span class="WHIT">  </span><span class="COMM">// When an event listener attached to this object dispatches another event to</span><span class="WHIT">
+<span class='line'>305</span> </span><span class="WHIT">  </span><span class="COMM">// this object, save the given event to an array to send it when this object</span><span class="WHIT">
+<span class='line'>306</span> </span><span class="WHIT">  </span><span class="COMM">// finishes dispatching the event.</span><span class="WHIT">
+<span class='line'>307</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.dispatching_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>308</span> </span><span class="WHIT">    </span><span class="NAME">this.events_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.events_</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>309</span> </span><span class="WHIT">    </span><span class="NAME">this.events_.push</span><span class="PUNC">(</span><span class="NAME">event</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>310</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>311</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>312</span> 
+<span class='line'>313</span> </span><span class="WHIT">  </span><span class="COMM">// Lock the context array and dispatch this event. Event handlers may add or</span><span class="WHIT">
+<span class='line'>314</span> </span><span class="WHIT">  </span><span class="COMM">// remove event listeners while this object calls them and it causes some</span><span class="WHIT">
+<span class='line'>315</span> </span><span class="WHIT">  </span><span class="COMM">// consistency problems, e.g. reading the object of an non-existent index.</span><span class="WHIT">
+<span class='line'>316</span> </span><span class="WHIT">  </span><span class="COMM">// To avoid such consistency problems, this loop locks the createjs.ObjectList</span><span class="WHIT">
+<span class='line'>317</span> </span><span class="WHIT">  </span><span class="COMM">// object so event dispatchers can change its clone, not the original array.</span><span class="WHIT">
+<span class='line'>318</span> </span><span class="WHIT">  </span><span class="COMM">// Cloning an array is not so fast on old devices and it is better to clone an</span><span class="WHIT">
+<span class='line'>319</span> </span><span class="WHIT">  </span><span class="COMM">// array only when an event listener adds a listener or removes one.</span><span class="WHIT">
+<span class='line'>320</span> </span><span class="WHIT">  </span><span class="NAME">this.dispatching_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>321</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">contexts</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">list.lock</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>322</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">length</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">contexts.length</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>323</span> </span><span class="WHIT">  </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">length</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">event.immediatePropagationStopped</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">++</span><span class="NAME">i</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>324</span> </span><span class="WHIT">    </span><span class="NAME">event.removed</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>325</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">context</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">contexts</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>326</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">remove</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">context.dispatch</span><span class="PUNC">(</span><span class="NAME">event</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>327</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">remove</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>328</span> </span><span class="WHIT">      </span><span class="NAME">list.removeItem</span><span class="PUNC">(</span><span class="NAME">context</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>329</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>330</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>331</span> </span><span class="WHIT">  </span><span class="NAME">list.unlock</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>332</span> </span><span class="WHIT">  </span><span class="NAME">this.dispatching_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>333</span> 
+<span class='line'>334</span> </span><span class="WHIT">  </span><span class="COMM">// Dispatch the events having queued to this object. Event listeners for these</span><span class="WHIT">
+<span class='line'>335</span> </span><span class="WHIT">  </span><span class="COMM">// defer-sending events may dispatch more events and this code should keep</span><span class="WHIT">
+<span class='line'>336</span> </span><span class="WHIT">  </span><span class="COMM">// dispatching defer-sending events until there are not any more events.</span><span class="WHIT">
+<span class='line'>337</span> </span><span class="WHIT">  </span><span class="KEYW">while</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.events_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>338</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">events</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.events_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>339</span> </span><span class="WHIT">    </span><span class="NAME">this.events_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>340</span> </span><span class="WHIT">    </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">events.length</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">++</span><span class="NAME">i</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>341</span> </span><span class="WHIT">      </span><span class="NAME">this.dispatchEvent_</span><span class="PUNC">(</span><span class="NAME">events</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">events</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">eventPhase</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>342</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>343</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>344</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>345</span> 
+<span class='line'>346</span> </span><span class="COMM">/**
+<span class='line'>347</span>  * Dispatches a createjs.Event object to listeners attached to this object and
+<span class='line'>348</span>  * listeners attached to its ancestors. NOTE: this method does not implement the
+<span class='line'>349</span>  * capture phase, dispatching an event from the stage to this target. Games do
+<span class='line'>350</span>  * not use capture events so often that this method removes its implementation.
+<span class='line'>351</span>  * (For games consisting of thousands of CreateJS objects, it takes long time to
+<span class='line'>352</span>  * dispatch an event from the stage object to this target on Android browsers.)
+<span class='line'>353</span>  * @param {createjs.Event} event
+<span class='line'>354</span>  * @return {boolean}
+<span class='line'>355</span>  * @protected
+<span class='line'>356</span>  */</span><span class="WHIT">
+<span class='line'>357</span> </span><span class="NAME">createjs.EventDispatcher.prototype.dispatchRawEvent</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">event</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>358</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.Event" name="event"/></span><span class="WHIT">
+<span class='line'>359</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>360</span> </span><span class="WHIT">  </span><span class="COMM">// Dispatch this event to the target.</span><span class="WHIT">
+<span class='line'>361</span> </span><span class="WHIT">  </span><span class="NAME">this.dispatchEvent_</span><span class="PUNC">(</span><span class="NAME">event</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.AT_TARGET</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>362</span> 
+<span class='line'>363</span> </span><span class="WHIT">  </span><span class="COMM">// Dispatch this event to the ancestors of this target.</span><span class="WHIT">
+<span class='line'>364</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">event.bubbles</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'parent'</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>365</span> </span><span class="WHIT">    </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">node</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'parent'</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">node</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">event.propagationStopped</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>366</span> </span><span class="WHIT">         </span><span class="NAME">node</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">node</span><span class="PUNC">[</span><span class="STRN">'parent'</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>367</span> </span><span class="WHIT">      </span><span class="NAME">node.dispatchEvent_</span><span class="PUNC">(</span><span class="NAME">event</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.BUBBLING_PHASE</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>368</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>369</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>370</span> </span><span class="WHIT">  </span><span class="NAME">event.resetProperties</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>371</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">event.defaultPrevented</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>372</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>373</span> 
+<span class='line'>374</span> </span><span class="COMM">/**
+<span class='line'>375</span>  * Dispatches a notification event, which consists only of a type name.
+<span class='line'>376</span>  * @param {string} type
+<span class='line'>377</span>  * @return {boolean}
+<span class='line'>378</span>  * @protected
+<span class='line'>379</span>  */</span><span class="WHIT">
+<span class='line'>380</span> </span><span class="NAME">createjs.EventDispatcher.prototype.dispatchNotification</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>381</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>382</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>383</span> </span><span class="WHIT">  </span><span class="COMM">// Dispatch this notification event only if this target has listeners for the</span><span class="WHIT">
+<span class='line'>384</span> </span><span class="WHIT">  </span><span class="COMM">// event. (A notification event is an at-target event.)</span><span class="WHIT">
+<span class='line'>385</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">listeners</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.listeners_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>386</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">listeners</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">listeners</span><span class="PUNC">[</span><span class="NAME">type</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>387</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>388</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>389</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.dispatchRawEvent</span><span class="PUNC">(</span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">createjs.Event</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>390</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>391</span> 
+<span class='line'>392</span> </span><span class="COMM">/**
+<span class='line'>393</span>  * Returns event types that have event listeners.
+<span class='line'>394</span>  * @return {number}
+<span class='line'>395</span>  * @protected
+<span class='line'>396</span>  */</span><span class="WHIT">
+<span class='line'>397</span> </span><span class="NAME">createjs.EventDispatcher.prototype.getEventTypes</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>398</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>399</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.eventTypes_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>400</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>401</span> 
+<span class='line'>402</span> </span><span class="COMM">/**
+<span class='line'>403</span>  * Adds the specified event listener. Note that adding multiple listeners to the
+<span class='line'>404</span>  * same function will result in multiple callbacks getting fired.
+<span class='line'>405</span>  *
+<span class='line'>406</span>  * Example
+<span class='line'>407</span>  *   function handleClick(event) {
+<span class='line'>408</span>  *      // Click happened.
+<span class='line'>409</span>  *   }
+<span class='line'>410</span>  *   displayObject.addEventListener("click", handleClick);
+<span class='line'>411</span>  *
+<span class='line'>412</span>  * @param {string} type
+<span class='line'>413</span>  * @param {Function|Object} listener
+<span class='line'>414</span>  * @param {boolean=} opt_useCapture
+<span class='line'>415</span>  * @return {Function|Object}
+<span class='line'>416</span>  */</span><span class="WHIT">
+<span class='line'>417</span> </span><span class="NAME">createjs.EventDispatcher.prototype.addListener</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>418</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opt_useCapture</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>419</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>420</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>421</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Function" name="callback"/></span><span class="WHIT">
+<span class='line'>422</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" optional="true" name="opt_useCapture"/></span><span class="WHIT">
+<span class='line'>423</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="Function"/></span><span class="WHIT">
+<span class='line'>424</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>425</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>426</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>427</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" name="listener"/></span><span class="WHIT">
+<span class='line'>428</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" optional="true" name="opt_useCapture"/></span><span class="WHIT">
+<span class='line'>429</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="Object"/></span><span class="WHIT">
+<span class='line'>430</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>431</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.on</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">createjs.global</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opt_useCapture</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>432</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>433</span> </span><span class="WHIT">  
+<span class='line'>434</span> </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>435</span> </span><span class="NAME">createjs.EventDispatcher.prototype.on</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>436</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opt_scope</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opt_once</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opt_data</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opt_useCapture</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>437</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>438</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>439</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Function" name="callback"/></span><span class="WHIT">
+<span class='line'>440</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" optional="true" name="opt_scope"/></span><span class="WHIT">
+<span class='line'>441</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" optional="true" name="opt_once"/></span><span class="WHIT">
+<span class='line'>442</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param optional="true" name="opt_data"/></span><span class="WHIT">
+<span class='line'>443</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" optional="true" name="opt_useCapture"/></span><span class="WHIT">
+<span class='line'>444</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="Function"/></span><span class="WHIT">
+<span class='line'>445</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>446</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>447</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>448</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" name="listener"/></span><span class="WHIT">
+<span class='line'>449</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" optional="true" name="opt_scope"/></span><span class="WHIT">
+<span class='line'>450</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" optional="true" name="opt_once"/></span><span class="WHIT">
+<span class='line'>451</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param optional="true" name="opt_data"/></span><span class="WHIT">
+<span class='line'>452</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" optional="true" name="opt_useCapture"/></span><span class="WHIT">
+<span class='line'>453</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="Object"/></span><span class="WHIT">
+<span class='line'>454</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>455</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">listener</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">opt_useCapture</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>456</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>457</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>458</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">scope</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">opt_scope</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="KEYW">this</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>459</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">once</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">opt_once</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>460</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">data</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">opt_data</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>461</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">listeners</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.getListeners_</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>462</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">listeners</span><span class="PUNC">[</span><span class="NAME">type</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>463</span> </span><span class="WHIT">    </span><span class="NAME">listeners</span><span class="PUNC">[</span><span class="NAME">type</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.ObjectList</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>464</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>465</span> </span><span class="WHIT">  </span><span class="NAME">listeners</span><span class="PUNC">[</span><span class="NAME">type</span><span class="PUNC">]</span><span class="PUNC">.</span><span class="NAME">pushItem</span><span class="PUNC">(</span><span class="WHIT">
+<span class='line'>466</span> </span><span class="WHIT">      </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.Context</span><span class="PUNC">(</span><span class="NAME">listener</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">scope</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">once</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">data</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>467</span> </span><span class="WHIT">  </span><span class="COMM">// Update the bit-mask of event types to avoid hit-testing with display</span><span class="WHIT">
+<span class='line'>468</span> </span><span class="WHIT">  </span><span class="COMM">// objects that do not have event listeners.</span><span class="WHIT">
+<span class='line'>469</span> </span><span class="WHIT">  </span><span class="NAME">this.eventTypes_</span><span class="WHIT"> </span><span class="PUNC">|</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.getEventId_</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>470</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>471</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>472</span> 
+<span class='line'>473</span> </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>474</span> </span><span class="NAME">createjs.EventDispatcher.prototype.off</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>475</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">listener</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opt_useCapture</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>476</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>477</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>478</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Function" name="callback"/></span><span class="WHIT">
+<span class='line'>479</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" optional="true" name="opt_useCapture"/></span><span class="WHIT">
+<span class='line'>480</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="Function"/></span><span class="WHIT">
+<span class='line'>481</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>482</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>483</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>484</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" name="listener"/></span><span class="WHIT">
+<span class='line'>485</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="boolean" optional="true" name="opt_useCapture"/></span><span class="WHIT">
+<span class='line'>486</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="Object"/></span><span class="WHIT">
+<span class='line'>487</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>488</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">listener</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">opt_useCapture</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>489</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>490</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>491</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">listeners</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.getListeners_</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>492</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">list</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">listeners</span><span class="PUNC">[</span><span class="NAME">type</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>493</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">list</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">list.getLength</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>494</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>495</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>496</span> </span><span class="WHIT">  </span><span class="NAME">list.removeListener_</span><span class="PUNC">(</span><span class="NAME">listener</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>497</span> </span><span class="WHIT">  </span><span class="COMM">// Remove the specified event from the bit-mask when this object does not have</span><span class="WHIT">
+<span class='line'>498</span> </span><span class="WHIT">  </span><span class="COMM">// listeners to stop hit-testing this object any longer.</span><span class="WHIT">
+<span class='line'>499</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">list.getLength</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>500</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">mask</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.getEventId_</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>501</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">mask</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>502</span> </span><span class="WHIT">      </span><span class="NAME">this.eventTypes_</span><span class="WHIT"> </span><span class="PUNC">&</span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">~</span><span class="NAME">mask</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>503</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>504</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>505</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>506</span> </span><span class="WHIT">  
+<span class='line'>507</span> </span><span class="COMM">/**
+<span class='line'>508</span>  * Removes all listeners for the specified type, or all listeners of all types.
+<span class='line'>509</span>  *
+<span class='line'>510</span>  * Example
+<span class='line'>511</span>  *   // Remove all listeners
+<span class='line'>512</span>  *   displayObject.removeAllEventListeners();
+<span class='line'>513</span>  *   // Remove all click listeners
+<span class='line'>514</span>  *   displayObject.removeAllEventListeners("click");
+<span class='line'>515</span>  *
+<span class='line'>516</span>  * @param {string=} opt_type
+<span class='line'>517</span>  */</span><span class="WHIT">
+<span class='line'>518</span> </span><span class="NAME">createjs.EventDispatcher.prototype.removeAllListeners</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">opt_type</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>519</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="string" optional="true" name="opt_type"/></span><span class="WHIT">
+<span class='line'>520</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">opt_type</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>521</span> </span><span class="WHIT">    </span><span class="NAME">this.listeners_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>522</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>523</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.listeners_</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="NAME">this.listeners_</span><span class="PUNC">[</span><span class="NAME">opt_type</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>524</span> </span><span class="WHIT">      </span><span class="NAME">this.listeners_</span><span class="PUNC">[</span><span class="NAME">opt_type</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>525</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>526</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>527</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>528</span> 
+<span class='line'>529</span> </span><span class="COMM">/**
+<span class='line'>530</span>  * Dispatches the specified event to all listeners.
+<span class='line'>531</span>  *
+<span class='line'>532</span>  * Example
+<span class='line'>533</span>  *      // Use a string event
+<span class='line'>534</span>  *      this.dispatchEvent("complete");
+<span class='line'>535</span>  *      // Use an Event instance
+<span class='line'>536</span>  *      var event = new createjs.Event("progress");
+<span class='line'>537</span>  *      this.dispatchEvent(event);
+<span class='line'>538</span>  *
+<span class='line'>539</span>  * @param {Object|string|Event} value
+<span class='line'>540</span>  * @param {Object=} opt_target
+<span class='line'>541</span>  * @return {boolean}
+<span class='line'>542</span>  */</span><span class="WHIT">
+<span class='line'>543</span> </span><span class="NAME">createjs.EventDispatcher.prototype.dispatch</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opt_target</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>544</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>545</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" name="object"/></span><span class="WHIT">
+<span class='line'>546</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" optional="true" name="opt_target"/></span><span class="WHIT">
+<span class='line'>547</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>548</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>549</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>550</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>551</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" optional="true" name="opt_target"/></span><span class="WHIT">
+<span class='line'>552</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>553</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>554</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;signature></span><span class="WHIT">
+<span class='line'>555</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Event" name="event"/></span><span class="WHIT">
+<span class='line'>556</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;param type="Object" optional="true" name="opt_target"/></span><span class="WHIT">
+<span class='line'>557</span> </span><span class="WHIT">  </span><span class="COMM">///   &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>558</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;/signature></span><span class="WHIT">
+<span class='line'>559</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">event</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>560</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.isString</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>561</span> </span><span class="WHIT">    </span><span class="COMM">/// &lt;var type="string" name="type"/></span><span class="WHIT">
+<span class='line'>562</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">type</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="COMM">/** @type {string} */</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>563</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.dispatchNotification</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>564</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>565</span> </span><span class="WHIT">    </span><span class="NAME">event</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">createjs.Event</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">[</span><span class="STRN">'type'</span><span class="PUNC">]</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>566</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>567</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.dispatchRawEvent</span><span class="PUNC">(</span><span class="NAME">event</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>568</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>569</span> 
+<span class='line'>570</span> </span><span class="COMM">/**
+<span class='line'>571</span>  * Indicates whether there are listeners for the specified event type.
+<span class='line'>572</span>  * @param {string} type
+<span class='line'>573</span>  * @return {boolean}
+<span class='line'>574</span>  */</span><span class="WHIT">
+<span class='line'>575</span> </span><span class="NAME">createjs.EventDispatcher.prototype.hasListener</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>576</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>577</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>578</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.listeners_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>579</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">listeners</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.listeners_</span><span class="PUNC">[</span><span class="NAME">type</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>580</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">listeners</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="NAME">listeners.getLength</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>581</span> </span><span class="WHIT">      </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>582</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>583</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>584</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>585</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>586</span> </span><span class="WHIT">  
+<span class='line'>587</span> </span><span class="COMM">/**
+<span class='line'>588</span>  * Indicates whether there are listeners for the specified event type on this
+<span class='line'>589</span>  * object or its ancestors. A return value of true indicates that if a bubbling
+<span class='line'>590</span>  * event of the specified type is dispatched from this object, it will trigger
+<span class='line'>591</span>  * at least one listener. This is similar to the
+<span class='line'>592</span>  * EventDispatcher.hasListener() method but it searches the entire event
+<span class='line'>593</span>  * flow for a listener, not just this object.
+<span class='line'>594</span>  * @param {string} type
+<span class='line'>595</span>  * @return {boolean}
+<span class='line'>596</span>  */</span><span class="WHIT">
+<span class='line'>597</span> </span><span class="NAME">createjs.EventDispatcher.prototype.willTrigger</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>598</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="string" name="type"/></span><span class="WHIT">
+<span class='line'>599</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>600</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">o</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">this</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>601</span> </span><span class="WHIT">  </span><span class="KEYW">while</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">o</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>602</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">o.hasListener</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>603</span> </span><span class="WHIT">      </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>604</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>605</span> </span><span class="WHIT">    </span><span class="NAME">o</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">o</span><span class="PUNC">[</span><span class="STRN">'parent'</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>606</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>607</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>608</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>609</span> 
+<span class='line'>610</span> </span><span class="COMM">/**
+<span class='line'>611</span>  * Returns whether the specified object is either this container or its
+<span class='line'>612</span>  * descendant.
+<span class='line'>613</span>  * @param {createjs.EventDispatcher} child
+<span class='line'>614</span>  * @return {boolean}
+<span class='line'>615</span>  */</span><span class="WHIT">
+<span class='line'>616</span> </span><span class="NAME">createjs.EventDispatcher.prototype.contains</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">child</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>617</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.EventDispatcher" name="child"/></span><span class="WHIT">
+<span class='line'>618</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>619</span> </span><span class="WHIT">  </span><span class="KEYW">while</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">child</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>620</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">child</span><span class="WHIT"> </span><span class="PUNC">===</span><span class="WHIT"> </span><span class="KEYW">this</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>621</span> </span><span class="WHIT">      </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>622</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>623</span> </span><span class="WHIT">    </span><span class="NAME">child</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">child</span><span class="PUNC">[</span><span class="STRN">'parent'</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>624</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>625</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>626</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>627</span> 
+<span class='line'>628</span> </span><span class="COMM">// Export the createjs.EventDispatcher object to the global namespace.</span><span class="WHIT">
+<span class='line'>629</span> </span><span class="NAME">createjs.exportObject</span><span class="PUNC">(</span><span class="STRN">'createjs.EventDispatcher'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>630</span> </span><span class="WHIT">  </span><span class="COMM">// createjs.EventDispatcher methods</span><span class="WHIT">
+<span class='line'>631</span> </span><span class="WHIT">  </span><span class="STRN">'addEventListener'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.prototype.addListener</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>632</span> </span><span class="WHIT">  </span><span class="STRN">'on'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.prototype.on</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>633</span> </span><span class="WHIT">  </span><span class="STRN">'removeEventListener'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.prototype.off</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>634</span> </span><span class="WHIT">  </span><span class="STRN">'off'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.prototype.off</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>635</span> </span><span class="WHIT">  </span><span class="STRN">'removeAllEventListeners'</span><span class="PUNC">:</span><span class="WHIT">
+<span class='line'>636</span> </span><span class="WHIT">      </span><span class="NAME">createjs.EventDispatcher.prototype.removeAllListeners</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>637</span> </span><span class="WHIT">  </span><span class="STRN">'dispatchEvent'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.prototype.dispatch</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>638</span> </span><span class="WHIT">  </span><span class="STRN">'hasEventListener'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.prototype.hasListener</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>639</span> </span><span class="WHIT">  </span><span class="STRN">'willTrigger'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.prototype.willTrigger</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>640</span> </span><span class="WHIT">  </span><span class="STRN">'contains'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.prototype.contains</span><span class="WHIT">
+<span class='line'>641</span> </span><span class="PUNC">}</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>642</span> </span><span class="WHIT">  </span><span class="STRN">'initialize'</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.EventDispatcher.initialize</span><span class="WHIT">
+<span class='line'>643</span> </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>644</span> </span></pre></body></html>

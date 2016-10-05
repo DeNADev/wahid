@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Wahid by DeNA - {{page.title}}</title>
+
+    <link rel="stylesheet" type="text/css" media="screen" href="./stylesheets/stylesheet.css">
+    <script src="./javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <script>
+      var validateLanguage = function(lang) {
+        var defaultLanguage = 'en';
+        if (!lang) {
+          return defaultLanguage;
+        }
+
+        var valids = ['ja', 'en'];
+        if (valids.indexOf(lang) < 0) {
+          return defaultLanguage;
+        }
+        return lang;
+      }
+
+      var setCurrentLanguage = function(lang) {
+        if (window.localStorage) {
+          var id = "com.github.denadev.wahid.language";
+          lang = validateLanguage(lang);
+          window.localStorage.setItem(id, lang);
+        }
+        return lang;
+      }
+
+      var getCurrentLanguage = function() {
+        if (!window.localStorage) {
+          return 'en';
+        }
+        var id = "com.github.denadev.wahid.language";
+        var lang = window.localStorage.getItem(id);
+        return validateLanguage(lang);
+      }
+
+      var switchLanguage = function(lang) {
+        var elements = document.getElementsByName('i18n');
+        if (elements) {
+          for(var i=0; i<elements.length; ++i) {
+            var element = elements[i];
+            if (element.lang == lang) {
+              if (element.style.display == 'none') {
+                element.style.display = '';
+              }
+            } else {
+              element.original_display = element.style.display;
+              element.style.display = 'none';
+            }
+          }
+        }
+      }
+
+      var switchTo = function(lang) {
+        lang = setCurrentLanguage(lang);
+        switchLanguage(lang);
+      }
+    </script>
+  </head>
+  <body onload="switchLanguage(getCurrentLanguage());">
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+      <header class="inner">
+        <a id="forkme_banner" href="https://github.com/DeNADev/wahid">View on GitHub</a>
+        <div id="language_selector">Languages:<br/>
+          <div id="lang_ja" class="language_item" onclick="javascript:switchTo('ja')">Japanese</div>
+          <div id="lang_en" class="language_item" onclick="javascript:switchTo('en')">English</div>
+        </div>
+        <h1 id="project_title"><a href="./index.html" class="project_header">Wahid</a></h1>
+        <h2 id="project_tagline">A CreateJS-compatible library for games.</h2>
+        <div class="menu_bar">
+            <ul>
+              <li>
+                <a href="./index.html">Home</a>
+              </li>
+              <li>
+                <a href="./apidocs.html">Reference</a>
+              </li>
+              <li>
+                <a href="./tutorials.html">Tutorial</a>
+              </li>
+              <li>
+                <a href="./samples.html">Sample</a>
+              </li>
+              <li>
+                <a href="./faqs.html">FAQ</a>
+              </li>
+              <li>
+                <a href="https://github.com/DeNADev/wahid">Dev</a>
+              </li>
+            </ul>
+        </div>
+      </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        {{content}}
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">{{site.project.name}} maintained by <a href="https://dena.com/">DeNA Co., Ltd.</a></p>
+        <p>Hosted on <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+
+  </body>
+</html>

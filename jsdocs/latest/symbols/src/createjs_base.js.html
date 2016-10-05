@@ -1,0 +1,850 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	.KEYW {color: #933;}
+	.COMM {color: #bbb; font-style: italic;}
+	.NUMB {color: #393;}
+	.STRN {color: #393;}
+	.REGX {color: #339;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="COMM">/**
+<span class='line'>  2</span>  * The MIT License (MIT)
+<span class='line'>  3</span>  *
+<span class='line'>  4</span>  * Copyright (c) 2016 DeNA Co., Ltd.
+<span class='line'>  5</span>  *
+<span class='line'>  6</span>  * Permission is hereby granted, free of charge, to any person obtaining a copy
+<span class='line'>  7</span>  * of this software and associated documentation files (the "Software"), to deal
+<span class='line'>  8</span>  * in the Software without restriction, including without limitation the rights
+<span class='line'>  9</span>  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+<span class='line'> 10</span>  * copies of the Software, and to permit persons to whom the Software is
+<span class='line'> 11</span>  * furnished to do so, subject to the following conditions:
+<span class='line'> 12</span>  *
+<span class='line'> 13</span>  * The above copyright notice and this permission notice shall be included in
+<span class='line'> 14</span>  * all copies or substantial portions of the Software.
+<span class='line'> 15</span>  *
+<span class='line'> 16</span>  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+<span class='line'> 17</span>  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+<span class='line'> 18</span>  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+<span class='line'> 19</span>  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+<span class='line'> 20</span>  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+<span class='line'> 21</span>  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+<span class='line'> 22</span>  * SOFTWARE.
+<span class='line'> 23</span>  */</span><span class="WHIT">
+<span class='line'> 24</span> 
+<span class='line'> 25</span> </span><span class="COMM">/**
+<span class='line'> 26</span>  * The top-level namespace of this library. All objects in this library must be
+<span class='line'> 27</span>  * defined under this namespace to prevent exporting them to the global
+<span class='line'> 28</span>  * namespace.
+<span class='line'> 29</span>  * @namespace createjs
+<span class='line'> 30</span>  */</span><span class="WHIT">
+<span class='line'> 31</span> </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">createjs</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 32</span> 
+<span class='line'> 33</span> </span><span class="COMM">/**
+<span class='line'> 34</span>  * Represents the major version of the original CreateJS library.
+<span class='line'> 35</span>  * @define {number}
+<span class='line'> 36</span>  */</span><span class="WHIT">
+<span class='line'> 37</span> </span><span class="NAME">createjs.MAJOR_VERSION</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">7</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 38</span> 
+<span class='line'> 39</span> </span><span class="COMM">/**
+<span class='line'> 40</span>  * Represents the minor version of the original CreateJS library.
+<span class='line'> 41</span>  * @define {number}
+<span class='line'> 42</span>  */</span><span class="WHIT">
+<span class='line'> 43</span> </span><span class="NAME">createjs.MINOR_VERSION</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 44</span> 
+<span class='line'> 45</span> </span><span class="COMM">/**
+<span class='line'> 46</span>  * Represents the major version of this library.
+<span class='line'> 47</span>  * @define {number}
+<span class='line'> 48</span>  */</span><span class="WHIT">
+<span class='line'> 49</span> </span><span class="NAME">createjs.DENA_MAJOR_VERSION</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 50</span> 
+<span class='line'> 51</span> </span><span class="COMM">/**
+<span class='line'> 52</span>  * Represents the minor version of this library.
+<span class='line'> 53</span>  * @define {number}
+<span class='line'> 54</span>  */</span><span class="WHIT">
+<span class='line'> 55</span> </span><span class="NAME">createjs.DENA_MINOR_VERSION</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">7</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 56</span> 
+<span class='line'> 57</span> </span><span class="COMM">/**
+<span class='line'> 58</span>  * Represents the build number of this library. (This define is a placeholder
+<span class='line'> 59</span>  * and overridden by make.)
+<span class='line'> 60</span>  * @define {number}
+<span class='line'> 61</span>  */</span><span class="WHIT">
+<span class='line'> 62</span> </span><span class="NAME">createjs.DENA_BUILD_NUMBER</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 63</span> 
+<span class='line'> 64</span> </span><span class="COMM">/**
+<span class='line'> 65</span>  * Represents the patch level of this library. (This define is a placeholder and
+<span class='line'> 66</span>  * overridden by make.)
+<span class='line'> 67</span>  * @define {number}
+<span class='line'> 68</span>  */</span><span class="WHIT">
+<span class='line'> 69</span> </span><span class="NAME">createjs.DENA_PATCH_LEVEL</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 70</span> 
+<span class='line'> 71</span> </span><span class="COMM">/**
+<span class='line'> 72</span>  * Represents whether this library is compiled with the Closure compiler.
+<span class='line'> 73</span>  * @define {boolean}
+<span class='line'> 74</span>  */</span><span class="WHIT">
+<span class='line'> 75</span> </span><span class="NAME">createjs.COMPILED</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 76</span> 
+<span class='line'> 77</span> </span><span class="COMM">/**
+<span class='line'> 78</span>  * Represents whether to enable debugging features.
+<span class='line'> 79</span>  * @define {boolean}
+<span class='line'> 80</span>  */</span><span class="WHIT">
+<span class='line'> 81</span> </span><span class="NAME">createjs.DEBUG</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 82</span> 
+<span class='line'> 83</span> </span><span class="COMM">/**
+<span class='line'> 84</span>  * An alias of true. (This define is used only for commenting out unused code.)
+<span class='line'> 85</span>  * @define {boolean}
+<span class='line'> 86</span>  */</span><span class="WHIT">
+<span class='line'> 87</span> </span><span class="NAME">createjs.TRUE</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 88</span> 
+<span class='line'> 89</span> </span><span class="COMM">/**
+<span class='line'> 90</span>  * An alias of false. (This define is used only for commenting out unused code.)
+<span class='line'> 91</span>  * @define {boolean}
+<span class='line'> 92</span>  */</span><span class="WHIT">
+<span class='line'> 93</span> </span><span class="NAME">createjs.FALSE</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 94</span> 
+<span class='line'> 95</span> </span><span class="COMM">/**
+<span class='line'> 96</span>  * Represents whether this library uses a network cache.
+<span class='line'> 97</span>  * @define {boolean}
+<span class='line'> 98</span>  */</span><span class="WHIT">
+<span class='line'> 99</span> </span><span class="NAME">createjs.USE_CACHE</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>100</span> 
+<span class='line'>101</span> </span><span class="COMM">/**
+<span class='line'>102</span>  * Represents the database name used by our network cache.
+<span class='line'>103</span>  * @define {string}
+<span class='line'>104</span>  */</span><span class="WHIT">
+<span class='line'>105</span> </span><span class="NAME">createjs.CACHE_DATABASE</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">'DeNA'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>106</span> 
+<span class='line'>107</span> </span><span class="COMM">/**
+<span class='line'>108</span>  * Represents the table name used by our network cache.
+<span class='line'>109</span>  * @define {string}
+<span class='line'>110</span>  */</span><span class="WHIT">
+<span class='line'>111</span> </span><span class="NAME">createjs.CACHE_TABLE</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">'CreateJS'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>112</span> 
+<span class='line'>113</span> </span><span class="COMM">/**
+<span class='line'>114</span>  * Represents the default texture format. This value is used in creating WebGL
+<span class='line'>115</span>  * textures from HTML elements (i.e. &lt;img> elements, &lt;canvas> elements, and
+<span class='line'>116</span>  * &lt;video> elements) that do not specify their texture types.
+<span class='line'>117</span>  *   +-------+------------------------+
+<span class='line'>118</span>  *   | value | texture format         |
+<span class='line'>119</span>  *   +-------+------------------------+
+<span class='line'>120</span>  *   | 0     | UNSIGNED_BYTE          |
+<span class='line'>121</span>  *   | 1     | UNSIGNED_SHORT_4_4_4_4 |
+<span class='line'>122</span>  *   | 2     | UNSIGNED_SHORT_5_5_5_1 |
+<span class='line'>123</span>  *   | 3     | UNSIGNED_SHORT_5_6_5   |
+<span class='line'>124</span>  *   +-------+------------------------+
+<span class='line'>125</span>  * @define {number}
+<span class='line'>126</span>  */</span><span class="WHIT">
+<span class='line'>127</span> </span><span class="NAME">createjs.DEFAULT_TEXTURE</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>128</span> 
+<span class='line'>129</span> </span><span class="COMM">/**
+<span class='line'>130</span>  * Represents whether to create a module compliant with AMD (Asynchronous Module
+<span class='line'>131</span>  * Definition).
+<span class='line'>132</span>  * @define {boolean}
+<span class='line'>133</span>  */</span><span class="WHIT">
+<span class='line'>134</span> </span><span class="NAME">createjs.SUPPORT_AMD</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>135</span> 
+<span class='line'>136</span> </span><span class="COMM">/**
+<span class='line'>137</span>  * Represents whether the createjs.Sound class uses an &lt;iframe> element to play
+<span class='line'>138</span>  * sounds. (This is a workaround for Chrome for Android, where it is slow to
+<span class='line'>139</span>  * decode audio.)
+<span class='line'>140</span>  * @define {boolean}
+<span class='line'>141</span>  */</span><span class="WHIT">
+<span class='line'>142</span> </span><span class="NAME">createjs.USE_FRAME</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>143</span> 
+<span class='line'>144</span> </span><span class="COMM">/**
+<span class='line'>145</span>  * Represents whether to read pixels in hit-testing.
+<span class='line'>146</span>  * @define {boolean}
+<span class='line'>147</span>  */</span><span class="WHIT">
+<span class='line'>148</span> </span><span class="NAME">createjs.USE_PIXEL_TEST</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>149</span> 
+<span class='line'>150</span> </span><span class="COMM">/**
+<span class='line'>151</span>  * A reference to the global context. (This is used as a short-cut to the global
+<span class='line'>152</span>  * Window object.)
+<span class='line'>153</span>  * @const {Window}
+<span class='line'>154</span>  */</span><span class="WHIT">
+<span class='line'>155</span> </span><span class="NAME">createjs.global</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">this</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>156</span> 
+<span class='line'>157</span> </span><span class="COMM">/**
+<span class='line'>158</span>  * The URL interface.
+<span class='line'>159</span>  * @type {URL}
+<span class='line'>160</span>  */</span><span class="WHIT">
+<span class='line'>161</span> </span><span class="NAME">createjs.URL</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>162</span> </span><span class="WHIT">    </span><span class="NAME">createjs.global</span><span class="PUNC">[</span><span class="STRN">'URL'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">createjs.global</span><span class="PUNC">[</span><span class="STRN">'webkitURL'</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>163</span> 
+<span class='line'>164</span> </span><span class="COMM">/**
+<span class='line'>165</span>  * The constructor of the BlobBuilder class.
+<span class='line'>166</span>  * @type {function(new:BlobBuilder)}
+<span class='line'>167</span>  */</span><span class="WHIT">
+<span class='line'>168</span> </span><span class="NAME">createjs.BlobBuilder</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.global</span><span class="PUNC">[</span><span class="STRN">'WebKitBlobBuilder'</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>169</span> 
+<span class='line'>170</span> </span><span class="COMM">/**
+<span class='line'>171</span>  * The constructor of the AudioContext class.
+<span class='line'>172</span>  * @const {function(new:AudioContext)}
+<span class='line'>173</span>  */</span><span class="WHIT">
+<span class='line'>174</span> </span><span class="NAME">createjs.AudioContext</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>175</span> </span><span class="WHIT">    </span><span class="NAME">createjs.global</span><span class="PUNC">[</span><span class="STRN">'webkitAudioContext'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">createjs.global</span><span class="PUNC">[</span><span class="STRN">'AudioContext'</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>176</span> 
+<span class='line'>177</span> </span><span class="COMM">/**
+<span class='line'>178</span>  * The commands used for communicating with a createjs.FramePlayer object,
+<span class='line'>179</span>  * which runs on an &lt;iframe> element.
+<span class='line'>180</span>  * @enum {number}
+<span class='line'>181</span>  */</span><span class="WHIT">
+<span class='line'>182</span> </span><span class="NAME">createjs.FrameCommand</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>183</span> </span><span class="WHIT">  </span><span class="NAME">LOAD</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>184</span> </span><span class="WHIT">  </span><span class="NAME">PLAY</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>185</span> </span><span class="WHIT">  </span><span class="NAME">STOP</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">2</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>186</span> </span><span class="WHIT">  </span><span class="NAME">SET_VOLUME</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">3</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>187</span> </span><span class="WHIT">  </span><span class="NAME">INITIALIZE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">4</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>188</span> </span><span class="WHIT">  </span><span class="NAME">TOUCH</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">5</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>189</span> </span><span class="WHIT">  </span><span class="NAME">DECODE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">6</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>190</span> </span><span class="WHIT">  </span><span class="NAME">END</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">7</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>191</span> </span><span class="WHIT">  </span><span class="NAME">CLONE</span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NUMB">8</span><span class="WHIT">
+<span class='line'>192</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>193</span> 
+<span class='line'>194</span> </span><span class="COMM">/**
+<span class='line'>195</span>  * The current origin.
+<span class='line'>196</span>  * @type {string}
+<span class='line'>197</span>  */</span><span class="WHIT">
+<span class='line'>198</span> </span><span class="NAME">createjs.origin_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">location.origin</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">location.protocol</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'//'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">location.host</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>199</span> 
+<span class='line'>200</span> </span><span class="COMM">/**
+<span class='line'>201</span>  * Writes a log message to a console.
+<span class='line'>202</span>  * @param {string} message
+<span class='line'>203</span>  */</span><span class="WHIT">
+<span class='line'>204</span> </span><span class="NAME">createjs.log</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">message</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>205</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="string" name="message"/></span><span class="WHIT">
+<span class='line'>206</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="NAME">createjs.global.console</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>207</span> </span><span class="WHIT">    </span><span class="NAME">console.log</span><span class="PUNC">(</span><span class="NAME">message</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>208</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>209</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>210</span> 
+<span class='line'>211</span> </span><span class="COMM">/**
+<span class='line'>212</span>  * Writes a log message to a console.
+<span class='line'>213</span>  * @param {string} message
+<span class='line'>214</span>  */</span><span class="WHIT">
+<span class='line'>215</span> </span><span class="NAME">createjs.debug</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">message</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>216</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="string" name="message"/></span><span class="WHIT">
+<span class='line'>217</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>218</span> </span><span class="WHIT">    </span><span class="NAME">createjs.log</span><span class="PUNC">(</span><span class="NAME">message</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>219</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>220</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>221</span> 
+<span class='line'>222</span> </span><span class="COMM">/**
+<span class='line'>223</span>  * Throws an error.
+<span class='line'>224</span>  * @param {string} message
+<span class='line'>225</span>  */</span><span class="WHIT">
+<span class='line'>226</span> </span><span class="NAME">createjs.error</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">message</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>227</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="string" name="message"/></span><span class="WHIT">
+<span class='line'>228</span> </span><span class="WHIT">  </span><span class="KEYW">throw</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">Error</span><span class="PUNC">(</span><span class="NAME">message</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>229</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>230</span> 
+<span class='line'>231</span> </span><span class="COMM">/**
+<span class='line'>232</span>  * Throws an error if the specified condition is false.
+<span class='line'>233</span>  * @param {boolean} condition
+<span class='line'>234</span>  */</span><span class="WHIT">
+<span class='line'>235</span> </span><span class="NAME">createjs.assert</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">condition</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>236</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="boolean" name="condition"/></span><span class="WHIT">
+<span class='line'>237</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">condition</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>238</span> </span><span class="WHIT">    </span><span class="NAME">createjs.error</span><span class="PUNC">(</span><span class="STRN">'assertion failed'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>239</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>240</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>241</span> 
+<span class='line'>242</span> </span><span class="COMM">/**
+<span class='line'>243</span>  * Writes a 'NOT IMPLEMENTED' error to the debug console.
+<span class='line'>244</span>  */</span><span class="WHIT">
+<span class='line'>245</span> </span><span class="NAME">createjs.notImplemented</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>246</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>247</span> </span><span class="WHIT">    </span><span class="NAME">createjs.debug</span><span class="PUNC">(</span><span class="STRN">'NOT IMPLEMENTED'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>248</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>249</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>250</span> 
+<span class='line'>251</span> </span><span class="COMM">/**
+<span class='line'>252</span>  * Writes a 'NOT REACHED' message. This function is put the place where its code
+<span class='line'>253</span>  * should not be executed to tell callers that they did unsupported behaviors.
+<span class='line'>254</span>  */</span><span class="WHIT">
+<span class='line'>255</span> </span><span class="NAME">createjs.notReached</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>256</span> </span><span class="WHIT">  </span><span class="NAME">createjs.debug</span><span class="PUNC">(</span><span class="STRN">'NOT REACHED'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>257</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>258</span> 
+<span class='line'>259</span> </span><span class="COMM">/**
+<span class='line'>260</span>  * Inherits the prototype methods from a parent constructor into a child one.
+<span class='line'>261</span>  * This function creates a temporary class that copies the prototype methods of
+<span class='line'>262</span>  * the parent class and creates it to avoid calling the parent constructor
+<span class='line'>263</span>  * directly. (It may cause a crash to call the parent constructor without
+<span class='line'>264</span>  * arguments.)
+<span class='line'>265</span>  * @param {string} name
+<span class='line'>266</span>  * @param {Function} child
+<span class='line'>267</span>  * @param {Function} parent
+<span class='line'>268</span>  */</span><span class="WHIT">
+<span class='line'>269</span> </span><span class="NAME">createjs.inherits</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">name</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">child</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">parent</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>270</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="string" name="name"/></span><span class="WHIT">
+<span class='line'>271</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="Function" name="child"/></span><span class="WHIT">
+<span class='line'>272</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="Function" name="parent"/></span><span class="WHIT">
+<span class='line'>273</span> </span><span class="WHIT">  </span><span class="NAME">child.superClass_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">parent.prototype</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>274</span> </span><span class="WHIT">  </span><span class="NAME">createjs.assert</span><span class="PUNC">(</span><span class="PUNC">!</span><span class="PUNC">!</span><span class="NAME">Object.create</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>275</span> </span><span class="WHIT">  </span><span class="NAME">child.prototype</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">Object.create</span><span class="PUNC">(</span><span class="NAME">parent.prototype</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>276</span> </span><span class="WHIT">  </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>277</span> </span><span class="WHIT">  </span><span class="NAME">child.prototype.constructor</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">child</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>278</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>279</span> 
+<span class='line'>280</span> </span><span class="COMM">/**
+<span class='line'>281</span>  * Exposes an object and its member methods to the global namespace path.
+<span class='line'>282</span>  * @param {string} name
+<span class='line'>283</span>  * @param {Object} object
+<span class='line'>284</span>  * @param {Object.&lt;string,Function>} methods
+<span class='line'>285</span>  * @param {Object.&lt;string,Function>=} opt_statics
+<span class='line'>286</span>  */</span><span class="WHIT">
+<span class='line'>287</span> </span><span class="NAME">createjs.exportObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">name</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">object</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">methods</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">opt_statics</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>288</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="string" name="name"/></span><span class="WHIT">
+<span class='line'>289</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="Object" name="object"/></span><span class="WHIT">
+<span class='line'>290</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="Object" name="methods"/></span><span class="WHIT">
+<span class='line'>291</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="Object" optional="true" name="opt_statics"/></span><span class="WHIT">
+<span class='line'>292</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">createjs.SUPPORT_AMD</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>293</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">context</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.global</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>294</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">parts</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">name.split</span><span class="PUNC">(</span><span class="STRN">'.'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>295</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">length</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">parts.length</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>296</span> </span><span class="WHIT">    </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">length</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">++</span><span class="NAME">i</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>297</span> </span><span class="WHIT">      </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">part</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">parts</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>298</span> </span><span class="WHIT">      </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">context</span><span class="PUNC">[</span><span class="NAME">part</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>299</span> </span><span class="WHIT">        </span><span class="NAME">context</span><span class="PUNC">[</span><span class="NAME">part</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>300</span> </span><span class="WHIT">      </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>301</span> </span><span class="WHIT">      </span><span class="NAME">context</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">context</span><span class="PUNC">[</span><span class="NAME">part</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>302</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>303</span> </span><span class="WHIT">    </span><span class="NAME">context</span><span class="PUNC">[</span><span class="NAME">parts</span><span class="PUNC">[</span><span class="NAME">length</span><span class="PUNC">]</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">object</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>304</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>305</span> </span><span class="WHIT">  </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">key</span><span class="WHIT"> </span><span class="KEYW">in</span><span class="WHIT"> </span><span class="NAME">methods</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>306</span> </span><span class="WHIT">    </span><span class="NAME">object.prototype</span><span class="PUNC">[</span><span class="NAME">key</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">methods</span><span class="PUNC">[</span><span class="NAME">key</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>307</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>308</span> </span><span class="WHIT">  </span><span class="COMM">// Export the constructor method 'initialize' used by CreateJS.</span><span class="WHIT">
+<span class='line'>309</span> </span><span class="WHIT">  </span><span class="NAME">object.prototype</span><span class="PUNC">[</span><span class="STRN">'initialize'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">object</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>310</span> 
+<span class='line'>311</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">opt_statics</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>312</span> </span><span class="WHIT">    </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">key</span><span class="WHIT"> </span><span class="KEYW">in</span><span class="WHIT"> </span><span class="NAME">opt_statics</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>313</span> </span><span class="WHIT">      </span><span class="NAME">object</span><span class="PUNC">[</span><span class="NAME">key</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">opt_statics</span><span class="PUNC">[</span><span class="NAME">key</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>314</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>315</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>316</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>317</span> 
+<span class='line'>318</span> </span><span class="COMM">/**
+<span class='line'>319</span>  * Exposes static methods to the global namespace path.
+<span class='line'>320</span>  * @param {string} name
+<span class='line'>321</span>  * @param {Object.&lt;string,Function|string|number>} methods
+<span class='line'>322</span>  * @return {Object}
+<span class='line'>323</span>  */</span><span class="WHIT">
+<span class='line'>324</span> </span><span class="NAME">createjs.exportStatic</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">name</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">methods</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>325</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="string" name="name"/></span><span class="WHIT">
+<span class='line'>326</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="Object" name="methods"/></span><span class="WHIT">
+<span class='line'>327</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="Object"/></span><span class="WHIT">
+<span class='line'>328</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">context</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.SUPPORT_AMD</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">createjs.global</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>329</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">createjs.SUPPORT_AMD</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>330</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">parts</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">name.split</span><span class="PUNC">(</span><span class="STRN">'.'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>331</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">length</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">parts.length</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>332</span> </span><span class="WHIT">    </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">length</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">++</span><span class="NAME">i</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>333</span> </span><span class="WHIT">      </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">part</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">parts</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>334</span> </span><span class="WHIT">      </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">context</span><span class="PUNC">[</span><span class="NAME">part</span><span class="PUNC">]</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>335</span> </span><span class="WHIT">        </span><span class="NAME">context</span><span class="PUNC">[</span><span class="NAME">part</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>336</span> </span><span class="WHIT">      </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>337</span> </span><span class="WHIT">      </span><span class="NAME">context</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">context</span><span class="PUNC">[</span><span class="NAME">part</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>338</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>339</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>340</span> </span><span class="WHIT">  </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">key</span><span class="WHIT"> </span><span class="KEYW">in</span><span class="WHIT"> </span><span class="NAME">methods</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>341</span> </span><span class="WHIT">    </span><span class="NAME">context</span><span class="PUNC">[</span><span class="NAME">key</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">methods</span><span class="PUNC">[</span><span class="NAME">key</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>342</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>343</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">context</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>344</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>345</span> 
+<span class='line'>346</span> </span><span class="COMM">/**
+<span class='line'>347</span>  * Returns a string representing the type of a variable.
+<span class='line'>348</span>  * @param {*} value
+<span class='line'>349</span>  * @return {string}
+<span class='line'>350</span>  */</span><span class="WHIT">
+<span class='line'>351</span> </span><span class="NAME">createjs.typeOf</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>352</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>353</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="string"/></span><span class="WHIT">
+<span class='line'>354</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="KEYW">typeof</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>355</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>356</span> 
+<span class='line'>357</span> </span><span class="COMM">/**
+<span class='line'>358</span>  * Returns true if the specified variable is a string primitive.
+<span class='line'>359</span>  * @param {*} value
+<span class='line'>360</span>  * @return {boolean}
+<span class='line'>361</span>  */</span><span class="WHIT">
+<span class='line'>362</span> </span><span class="NAME">createjs.isString</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>363</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>364</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>365</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.typeOf</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="STRN">'string'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>366</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>367</span> 
+<span class='line'>368</span> </span><span class="COMM">/**
+<span class='line'>369</span>  * Returns true if the specified variable is a string primitive.
+<span class='line'>370</span>  * @param {*} value
+<span class='line'>371</span>  * @return {boolean}
+<span class='line'>372</span>  */</span><span class="WHIT">
+<span class='line'>373</span> </span><span class="NAME">createjs.isNumber</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>374</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>375</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>376</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.typeOf</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="STRN">'number'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>377</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>378</span> 
+<span class='line'>379</span> </span><span class="COMM">/**
+<span class='line'>380</span>  * Returns true if the specified variable is a string primitive.
+<span class='line'>381</span>  * @param {*} value
+<span class='line'>382</span>  * @return {boolean}
+<span class='line'>383</span>  */</span><span class="WHIT">
+<span class='line'>384</span> </span><span class="NAME">createjs.isBoolean</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>385</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>386</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>387</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.typeOf</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="STRN">'boolean'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>388</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>389</span> 
+<span class='line'>390</span> </span><span class="COMM">/**
+<span class='line'>391</span>  * Returns true if the specified variable is not undefined, i.e. the variable is
+<span class='line'>392</span>  * a defined one.
+<span class='line'>393</span>  * @param {*} value
+<span class='line'>394</span>  * @return {boolean}
+<span class='line'>395</span>  */</span><span class="WHIT">
+<span class='line'>396</span> </span><span class="NAME">createjs.isDefined</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>397</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>398</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>399</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.typeOf</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="STRN">'undefined'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>400</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>401</span> 
+<span class='line'>402</span> </span><span class="COMM">/**
+<span class='line'>403</span>  * Returns true if the specified variable is a Function object.
+<span class='line'>404</span>  * @param {*} value
+<span class='line'>405</span>  * @return {boolean}
+<span class='line'>406</span>  */</span><span class="WHIT">
+<span class='line'>407</span> </span><span class="NAME">createjs.isFunction</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>408</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>409</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>410</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.typeOf</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="STRN">'function'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>411</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>412</span> 
+<span class='line'>413</span> </span><span class="COMM">/**
+<span class='line'>414</span>  * Returns true if the specified variable is an Object variable.
+<span class='line'>415</span>  * @param {*} value
+<span class='line'>416</span>  * @return {boolean}
+<span class='line'>417</span>  */</span><span class="WHIT">
+<span class='line'>418</span> </span><span class="NAME">createjs.isObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>419</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>420</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>421</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.typeOf</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="STRN">'object'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>422</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>423</span> 
+<span class='line'>424</span> </span><span class="COMM">/**
+<span class='line'>425</span>  * Returns true if the specified variable is an Array object.
+<span class='line'>426</span>  * @param {*} value
+<span class='line'>427</span>  * @return {boolean}
+<span class='line'>428</span>  */</span><span class="WHIT">
+<span class='line'>429</span> </span><span class="NAME">createjs.isArray</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>430</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>431</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>432</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">value</span><span class="WHIT"> </span><span class="KEYW">instanceof</span><span class="WHIT"> </span><span class="NAME">Array</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>433</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>434</span> 
+<span class='line'>435</span> </span><span class="COMM">/**
+<span class='line'>436</span>  * Returns true if the specified variable is NaN. NaN does not become equal to
+<span class='line'>437</span>  * anything, including NaN itself. This method uses this property to check if
+<span class='line'>438</span>  * the specified value is NaN. (This method returns false if the 'value'
+<span class='line'>439</span>  * parameter is undefined, i.e. this method is not completely equivalent to the
+<span class='line'>440</span>  * isNaN() method.)
+<span class='line'>441</span>  * @param {*} value
+<span class='line'>442</span>  * @return {boolean}
+<span class='line'>443</span>  */</span><span class="WHIT">
+<span class='line'>444</span> </span><span class="NAME">createjs.isNaN</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>445</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>446</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>447</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">value</span><span class="WHIT"> </span><span class="PUNC">!==</span><span class="WHIT"> </span><span class="NAME">value</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>448</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>449</span> 
+<span class='line'>450</span> </span><span class="COMM">/**
+<span class='line'>451</span>  * Changes the type of the specified variable to string.
+<span class='line'>452</span>  * @param {*} value
+<span class='line'>453</span>  * @return {string}
+<span class='line'>454</span>  */</span><span class="WHIT">
+<span class='line'>455</span> </span><span class="NAME">createjs.castString</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>456</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>457</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="string"/></span><span class="WHIT">
+<span class='line'>458</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="COMM">/** @type {string} */</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>459</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>460</span> 
+<span class='line'>461</span> </span><span class="COMM">/**
+<span class='line'>462</span>  * Changes the type of the specified variable to number. This function does not
+<span class='line'>463</span>  * actually converts a string to a number, i.e. 'createjs.castNumber("0") + 1'
+<span class='line'>464</span>  * returns a string "01" instead of returning a number 1. (In terms of C++, this
+<span class='line'>465</span>  * function is similar to 'reinterpret_cast&lt;TYPE>'.)
+<span class='line'>466</span>  * @param {*} value
+<span class='line'>467</span>  * @return {number}
+<span class='line'>468</span>  */</span><span class="WHIT">
+<span class='line'>469</span> </span><span class="NAME">createjs.castNumber</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>470</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>471</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>472</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="COMM">/** @type {number} */</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>473</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>474</span> 
+<span class='line'>475</span> </span><span class="COMM">/**
+<span class='line'>476</span>  * Changes the type of the specified variable to boolean.
+<span class='line'>477</span>  * @param {*} value
+<span class='line'>478</span>  * @return {boolean}
+<span class='line'>479</span>  */</span><span class="WHIT">
+<span class='line'>480</span> </span><span class="NAME">createjs.castBoolean</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>481</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>482</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>483</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="COMM">/** @type {boolean} */</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>484</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>485</span> 
+<span class='line'>486</span> </span><span class="COMM">/**
+<span class='line'>487</span>  * Changes the type of the specified variable to Function.
+<span class='line'>488</span>  * @param {*} value
+<span class='line'>489</span>  * @return {Function}
+<span class='line'>490</span>  */</span><span class="WHIT">
+<span class='line'>491</span> </span><span class="NAME">createjs.castFunction</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>492</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>493</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="Function"/></span><span class="WHIT">
+<span class='line'>494</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="COMM">/** @type {Function} */</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>495</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>496</span> 
+<span class='line'>497</span> </span><span class="COMM">/**
+<span class='line'>498</span>  * Changes the type of the specified variable to Object.
+<span class='line'>499</span>  * @param {*} value
+<span class='line'>500</span>  * @return {Object}
+<span class='line'>501</span>  */</span><span class="WHIT">
+<span class='line'>502</span> </span><span class="NAME">createjs.castObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>503</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>504</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="Object"/></span><span class="WHIT">
+<span class='line'>505</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="COMM">/** @type {Object} */</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>506</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>507</span> 
+<span class='line'>508</span> </span><span class="COMM">/**
+<span class='line'>509</span>  * Changes the type of the specified variable to Array.
+<span class='line'>510</span>  * @param {*} value
+<span class='line'>511</span>  * @return {Array}
+<span class='line'>512</span>  */</span><span class="WHIT">
+<span class='line'>513</span> </span><span class="NAME">createjs.castArray</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>514</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>515</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="Array"/></span><span class="WHIT">
+<span class='line'>516</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="COMM">/** @type {Array} */</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>517</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>518</span> 
+<span class='line'>519</span> </span><span class="COMM">/**
+<span class='line'>520</span>  * Changes the type of the specified variable to ArrayBuffer.
+<span class='line'>521</span>  * @param {*} value
+<span class='line'>522</span>  * @return {ArrayBuffer}
+<span class='line'>523</span>  */</span><span class="WHIT">
+<span class='line'>524</span> </span><span class="NAME">createjs.castArrayBuffer</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>525</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>526</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="ArrayBuffer"/></span><span class="WHIT">
+<span class='line'>527</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="COMM">/** @type {ArrayBuffer} */</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>528</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>529</span> 
+<span class='line'>530</span> </span><span class="COMM">/**
+<span class='line'>531</span>  * Changes the type of the specified variable to number only if it is a number.
+<span class='line'>532</span>  * @param {*} value
+<span class='line'>533</span>  * @return {string}
+<span class='line'>534</span>  */</span><span class="WHIT">
+<span class='line'>535</span> </span><span class="NAME">createjs.getString</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>536</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>537</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="string"/></span><span class="WHIT">
+<span class='line'>538</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">createjs.isString</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>539</span> </span><span class="WHIT">    </span><span class="NAME">createjs.error</span><span class="PUNC">(</span><span class="STRN">'value is not a string.'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>540</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>541</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.castString</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>542</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>543</span> 
+<span class='line'>544</span> </span><span class="COMM">/**
+<span class='line'>545</span>  * Changes the type of the specified variable to number only if it is a number.
+<span class='line'>546</span>  * @param {*} value
+<span class='line'>547</span>  * @return {number}
+<span class='line'>548</span>  */</span><span class="WHIT">
+<span class='line'>549</span> </span><span class="NAME">createjs.getNumber</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>550</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>551</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>552</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">createjs.isNumber</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>553</span> </span><span class="WHIT">    </span><span class="NAME">createjs.error</span><span class="PUNC">(</span><span class="STRN">'value is not a number.'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>554</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>555</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.castNumber</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>556</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>557</span> 
+<span class='line'>558</span> </span><span class="COMM">/**
+<span class='line'>559</span>  * Changes the type of the specified variable to boolean only if it is a boolean
+<span class='line'>560</span>  * variable.
+<span class='line'>561</span>  * @param {*} value
+<span class='line'>562</span>  * @return {boolean}
+<span class='line'>563</span>  */</span><span class="WHIT">
+<span class='line'>564</span> </span><span class="NAME">createjs.getBoolean</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>565</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>566</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="boolean"/></span><span class="WHIT">
+<span class='line'>567</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">createjs.isBoolean</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>568</span> </span><span class="WHIT">    </span><span class="NAME">createjs.error</span><span class="PUNC">(</span><span class="STRN">'value is not a boolean.'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>569</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>570</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.castBoolean</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>571</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>572</span> 
+<span class='line'>573</span> </span><span class="COMM">/**
+<span class='line'>574</span>  * Changes the type of the specified variable to Function only if it is a
+<span class='line'>575</span>  * Function.
+<span class='line'>576</span>  * @param {*} value
+<span class='line'>577</span>  * @return {Function}
+<span class='line'>578</span>  */</span><span class="WHIT">
+<span class='line'>579</span> </span><span class="NAME">createjs.getFunction</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>580</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>581</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="Function"/></span><span class="WHIT">
+<span class='line'>582</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">createjs.isFunction</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>583</span> </span><span class="WHIT">    </span><span class="NAME">createjs.error</span><span class="PUNC">(</span><span class="STRN">'value is not a Function.'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>584</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>585</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.castFunction</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>586</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>587</span> 
+<span class='line'>588</span> </span><span class="COMM">/**
+<span class='line'>589</span>  * Changes the type of the specified variable to Object only if it is an Object.
+<span class='line'>590</span>  * @param {*} value
+<span class='line'>591</span>  * @return {Object}
+<span class='line'>592</span>  */</span><span class="WHIT">
+<span class='line'>593</span> </span><span class="NAME">createjs.getObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>594</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>595</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="Object"/></span><span class="WHIT">
+<span class='line'>596</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">createjs.isObject</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>597</span> </span><span class="WHIT">    </span><span class="NAME">createjs.error</span><span class="PUNC">(</span><span class="STRN">'value is not an Object.'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>598</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>599</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.castObject</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>600</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>601</span> 
+<span class='line'>602</span> </span><span class="COMM">/**
+<span class='line'>603</span>  * Changes the type of the specified variable to Array only if it is an Array.
+<span class='line'>604</span>  * @param {*} value
+<span class='line'>605</span>  * @return {Array}
+<span class='line'>606</span>  */</span><span class="WHIT">
+<span class='line'>607</span> </span><span class="NAME">createjs.getArray</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>608</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>609</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="Array"/></span><span class="WHIT">
+<span class='line'>610</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">createjs.isArray</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>611</span> </span><span class="WHIT">    </span><span class="NAME">createjs.error</span><span class="PUNC">(</span><span class="STRN">'value is not an Array.'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>612</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>613</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.castArray</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>614</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>615</span> 
+<span class='line'>616</span> </span><span class="COMM">/**
+<span class='line'>617</span>  * Converts a string variable and returns a signed integer. This function always
+<span class='line'>618</span>  * returns a signed number object to which we can apply arithmetic operations to
+<span class='line'>619</span>  * it, i.e. 'org.aegis.parseInt("0") + 1' returns a number 1.
+<span class='line'>620</span>  * @param {*} value
+<span class='line'>621</span>  * @return {number}
+<span class='line'>622</span>  */</span><span class="WHIT">
+<span class='line'>623</span> </span><span class="NAME">createjs.parseInt</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>624</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>625</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>626</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT">
+<span class='line'>627</span> </span><span class="WHIT">      </span><span class="PUNC">!</span><span class="NAME">createjs.isNumber</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">createjs.isString</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>628</span> </span><span class="WHIT">    </span><span class="NAME">createjs.error</span><span class="PUNC">(</span><span class="STRN">'value is not a number.'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>629</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>630</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.castNumber</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">|</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>631</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>632</span> 
+<span class='line'>633</span> </span><span class="COMM">/**
+<span class='line'>634</span>  * Converts a string variable and returns a floating-point number.
+<span class='line'>635</span>  * @param {*} value
+<span class='line'>636</span>  * @return {number}
+<span class='line'>637</span>  */</span><span class="WHIT">
+<span class='line'>638</span> </span><span class="NAME">createjs.parseFloat</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>639</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>640</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>641</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT">
+<span class='line'>642</span> </span><span class="WHIT">      </span><span class="PUNC">!</span><span class="NAME">createjs.isNumber</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">createjs.isString</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>643</span> </span><span class="WHIT">    </span><span class="NAME">createjs.error</span><span class="PUNC">(</span><span class="STRN">'value is not a number.'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>644</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>645</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.castNumber</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>646</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>647</span> 
+<span class='line'>648</span> </span><span class="COMM">/**
+<span class='line'>649</span>  * Converts a string primitive from a primitive variable.
+<span class='line'>650</span>  * @param {*} value
+<span class='line'>651</span>  * @return {string}
+<span class='line'>652</span>  */</span><span class="WHIT">
+<span class='line'>653</span> </span><span class="NAME">createjs.parseString</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>654</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>655</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="string"/></span><span class="WHIT">
+<span class='line'>656</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="NAME">createjs.isObject</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>657</span> </span><span class="WHIT">    </span><span class="NAME">createjs.error</span><span class="PUNC">(</span><span class="STRN">'value is not a primitive.'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>658</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>659</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.castString</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">''</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>660</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>661</span> 
+<span class='line'>662</span> </span><span class="COMM">/**
+<span class='line'>663</span>  * Truncates the specified value. This method discards the fractional part of
+<span class='line'>664</span>  * the specified number and returns only its integral part.
+<span class='line'>665</span>  * @param {number} n
+<span class='line'>666</span>  * @return {number}
+<span class='line'>667</span>  */</span><span class="WHIT">
+<span class='line'>668</span> </span><span class="NAME">createjs.truncate</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">n</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>669</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="n"/></span><span class="WHIT">
+<span class='line'>670</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>671</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">n</span><span class="WHIT"> </span><span class="PUNC">|</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>672</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>673</span> 
+<span class='line'>674</span> </span><span class="COMM">/**
+<span class='line'>675</span>  * Returns the largest integer less than or equal to the specified number.
+<span class='line'>676</span>  * @param {number} n
+<span class='line'>677</span>  * @return {number}
+<span class='line'>678</span>  */</span><span class="WHIT">
+<span class='line'>679</span> </span><span class="NAME">createjs.floor</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">n</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>680</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="n"/></span><span class="WHIT">
+<span class='line'>681</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>682</span> </span><span class="WHIT">  </span><span class="NAME">createjs.assert</span><span class="PUNC">(</span><span class="NUMB">0</span><span class="WHIT"> </span><span class="PUNC">&lt;=</span><span class="WHIT"> </span><span class="NAME">n</span><span class="WHIT"> </span><span class="PUNC">&&</span><span class="WHIT"> </span><span class="NAME">n</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NUMB">1</span><span class="WHIT"> </span><span class="PUNC">&lt;&lt;</span><span class="WHIT"> </span><span class="NUMB">30</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>683</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.truncate</span><span class="PUNC">(</span><span class="NAME">n</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>684</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>685</span> 
+<span class='line'>686</span> </span><span class="COMM">/**
+<span class='line'>687</span>  * Returns the smallest integer greater than or equal to the specified number.
+<span class='line'>688</span>  * @param {number} n
+<span class='line'>689</span>  * @return {number}
+<span class='line'>690</span>  */</span><span class="WHIT">
+<span class='line'>691</span> </span><span class="NAME">createjs.ceil</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">n</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>692</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="n"/></span><span class="WHIT">
+<span class='line'>693</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>694</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">floor</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.floor</span><span class="PUNC">(</span><span class="NAME">n</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>695</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">floor</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NAME">n</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="NAME">n</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">floor</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>696</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>697</span> 
+<span class='line'>698</span> </span><span class="COMM">/**
+<span class='line'>699</span>  * Returns the nearest integer of the specified number.
+<span class='line'>700</span>  * @param {number} n
+<span class='line'>701</span>  * @return {number}
+<span class='line'>702</span>  */</span><span class="WHIT">
+<span class='line'>703</span> </span><span class="NAME">createjs.round</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">n</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>704</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="n"/></span><span class="WHIT">
+<span class='line'>705</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>706</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.floor</span><span class="PUNC">(</span><span class="NAME">n</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">0.5</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>707</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>708</span> 
+<span class='line'>709</span> </span><span class="COMM">/**
+<span class='line'>710</span>  * Returns the absolute value of the specified number.
+<span class='line'>711</span>  * @param {number} n
+<span class='line'>712</span>  * @return {number}
+<span class='line'>713</span>  */</span><span class="WHIT">
+<span class='line'>714</span> </span><span class="NAME">createjs.abs</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">n</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>715</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="n"/></span><span class="WHIT">
+<span class='line'>716</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>717</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">n</span><span class="WHIT"> </span><span class="PUNC">></span><span class="WHIT"> </span><span class="NUMB">0</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="NAME">n</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="NAME">n</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>718</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>719</span> 
+<span class='line'>720</span> </span><span class="COMM">/**
+<span class='line'>721</span>  * Returns the minimum value.
+<span class='line'>722</span>  * @param {number} n0
+<span class='line'>723</span>  * @param {number} n1
+<span class='line'>724</span>  * @return {number}
+<span class='line'>725</span>  */</span><span class="WHIT">
+<span class='line'>726</span> </span><span class="NAME">createjs.min</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">n0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">n1</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>727</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="n0"/></span><span class="WHIT">
+<span class='line'>728</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="n1"/></span><span class="WHIT">
+<span class='line'>729</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>730</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">n0</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">n1</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="NAME">n0</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">n1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>731</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>732</span> 
+<span class='line'>733</span> </span><span class="COMM">/**
+<span class='line'>734</span>  * Returns the maximum value.
+<span class='line'>735</span>  * @param {number} n0
+<span class='line'>736</span>  * @param {number} n1
+<span class='line'>737</span>  * @return {number}
+<span class='line'>738</span>  */</span><span class="WHIT">
+<span class='line'>739</span> </span><span class="NAME">createjs.max</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">n0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">n1</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>740</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="n0"/></span><span class="WHIT">
+<span class='line'>741</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="n1"/></span><span class="WHIT">
+<span class='line'>742</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>743</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">n0</span><span class="WHIT"> </span><span class="PUNC">></span><span class="WHIT"> </span><span class="NAME">n1</span><span class="WHIT"> </span><span class="PUNC">?</span><span class="WHIT"> </span><span class="NAME">n0</span><span class="WHIT"> </span><span class="PUNC">:</span><span class="WHIT"> </span><span class="NAME">n1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>744</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>745</span> 
+<span class='line'>746</span> </span><span class="COMM">/**
+<span class='line'>747</span>  * Returns an approximate value of the Math.sin() method.
+<span class='line'>748</span>  * @param {number} angle
+<span class='line'>749</span>  * @return {number}
+<span class='line'>750</span>  */</span><span class="WHIT">
+<span class='line'>751</span> </span><span class="NAME">createjs.sin</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">angle</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>752</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="angle"/></span><span class="WHIT">
+<span class='line'>753</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>754</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">M_PI_180</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0.017453292519943295</span><span class="PUNC">;</span><span class="WHIT">  </span><span class="COMM">// Math.PI / 180;</span><span class="WHIT">
+<span class='line'>755</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">Math.sin</span><span class="PUNC">(</span><span class="NAME">angle</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NAME">M_PI_180</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>756</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>757</span> 
+<span class='line'>758</span> </span><span class="COMM">/**
+<span class='line'>759</span>  * Returns an approximate value of the Math.cos() method.
+<span class='line'>760</span>  * @param {number} angle
+<span class='line'>761</span>  * @return {number}
+<span class='line'>762</span>  */</span><span class="WHIT">
+<span class='line'>763</span> </span><span class="NAME">createjs.cos</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">angle</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>764</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="angle"/></span><span class="WHIT">
+<span class='line'>765</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>766</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">M_PI_180</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0.017453292519943295</span><span class="PUNC">;</span><span class="WHIT">  </span><span class="COMM">// Math.PI / 180;</span><span class="WHIT">
+<span class='line'>767</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">Math.cos</span><span class="PUNC">(</span><span class="NAME">angle</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NAME">M_PI_180</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>768</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>769</span> 
+<span class='line'>770</span> </span><span class="COMM">/**
+<span class='line'>771</span>  * Returns an approximate value of the arctangent of y / x in degrees. This
+<span class='line'>772</span>  * method does not normalize the output angle to a range [-180,180].
+<span class='line'>773</span>  * @param {number} y
+<span class='line'>774</span>  * @param {number} x
+<span class='line'>775</span>  * @return {number}
+<span class='line'>776</span>  */</span><span class="WHIT">
+<span class='line'>777</span> </span><span class="NAME">createjs.atan2</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">y</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">x</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>778</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="y"/></span><span class="WHIT">
+<span class='line'>779</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="x"/></span><span class="WHIT">
+<span class='line'>780</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="number"/></span><span class="WHIT">
+<span class='line'>781</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">M_180_PI</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">57.29577951308232</span><span class="PUNC">;</span><span class="WHIT">  </span><span class="COMM">// 180 / Math.PI;</span><span class="WHIT">
+<span class='line'>782</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">Math.atan2</span><span class="PUNC">(</span><span class="NAME">y</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">x</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">*</span><span class="WHIT"> </span><span class="NAME">M_180_PI</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>783</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>784</span> 
+<span class='line'>785</span> </span><span class="COMM">/**
+<span class='line'>786</span>  * Changes the type of the specified variable to HTMLCanvasElement.
+<span class='line'>787</span>  * @param {*} value
+<span class='line'>788</span>  * @return {HTMLCanvasElement}
+<span class='line'>789</span>  */</span><span class="WHIT">
+<span class='line'>790</span> </span><span class="NAME">createjs.castCanvas</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>791</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param name="value"/></span><span class="WHIT">
+<span class='line'>792</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="HTMLCanvasElement"/></span><span class="WHIT">
+<span class='line'>793</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="COMM">/** @type {HTMLCanvasElement} */</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">value</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>794</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>795</span> 
+<span class='line'>796</span> </span><span class="COMM">/**
+<span class='line'>797</span>  * Creates a &lt;canvas> element.
+<span class='line'>798</span>  * @return {HTMLCanvasElement}
+<span class='line'>799</span>  */</span><span class="WHIT">
+<span class='line'>800</span> </span><span class="NAME">createjs.createCanvas</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>801</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="HTMLCanvasElement"/></span><span class="WHIT">
+<span class='line'>802</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.castCanvas</span><span class="PUNC">(</span><span class="NAME">document.createElement</span><span class="PUNC">(</span><span class="STRN">'canvas'</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>803</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>804</span> 
+<span class='line'>805</span> </span><span class="COMM">/**
+<span class='line'>806</span>  * Returns the rendering context associated with a &lt;canvas> element.
+<span class='line'>807</span>  * @param {HTMLCanvasElement} canvas
+<span class='line'>808</span>  * @return {CanvasRenderingContext2D}
+<span class='line'>809</span>  */</span><span class="WHIT">
+<span class='line'>810</span> </span><span class="NAME">createjs.getRenderingContext2D</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">canvas</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>811</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="HTMLCanvasElement" name="canvas"/></span><span class="WHIT">
+<span class='line'>812</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="CanvasRenderingContext2D"/></span><span class="WHIT">
+<span class='line'>813</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="COMM">/** @type {CanvasRenderingContext2D} */</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">canvas.getContext</span><span class="PUNC">(</span><span class="STRN">'2d'</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>814</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>815</span> 
+<span class='line'>816</span> </span><span class="COMM">/**
+<span class='line'>817</span>  * Creates an &lt;img> element.
+<span class='line'>818</span>  * @return {HTMLImageElement}
+<span class='line'>819</span>  */</span><span class="WHIT">
+<span class='line'>820</span> </span><span class="NAME">createjs.createImage</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>821</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="HTMLImageElement"/></span><span class="WHIT">
+<span class='line'>822</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="COMM">/** @type {HTMLImageElement} */</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">document.createElement</span><span class="PUNC">(</span><span class="STRN">'img'</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>823</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>824</span> 
+<span class='line'>825</span> </span><span class="COMM">/**
+<span class='line'>826</span>  * Returns the origin of the current location.
+<span class='line'>827</span>  * @return {string}
+<span class='line'>828</span>  */</span><span class="WHIT">
+<span class='line'>829</span> </span><span class="NAME">createjs.getOrigin</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>830</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="string"/></span><span class="WHIT">
+<span class='line'>831</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">createjs.origin_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>832</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>833</span> 
+<span class='line'>834</span> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">createjs.SUPPORT_AMD</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>835</span> </span><span class="WHIT">  </span><span class="COMM">// Export a couple of variables to the global namespace.</span><span class="WHIT">
+<span class='line'>836</span> </span><span class="WHIT">  </span><span class="NAME">createjs.exportStatic</span><span class="PUNC">(</span><span class="STRN">'createjs'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>837</span> </span><span class="WHIT">    </span><span class="STRN">'version'</span><span class="PUNC">:</span><span class="WHIT">
+<span class='line'>838</span> </span><span class="WHIT">        </span><span class="STRN">'0.'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">createjs.MAJOR_VERSION</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'.'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">createjs.MINOR_VERSION</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>839</span> </span><span class="WHIT">    </span><span class="STRN">'denaVersion'</span><span class="PUNC">:</span><span class="WHIT">
+<span class='line'>840</span> </span><span class="WHIT">        </span><span class="PUNC">(</span><span class="NAME">createjs.DENA_MAJOR_VERSION</span><span class="WHIT"> </span><span class="PUNC">&lt;&lt;</span><span class="WHIT"> </span><span class="NUMB">16</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NAME">createjs.DENA_MINOR_VERSION</span><span class="WHIT">
+<span class='line'>841</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>842</span> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>843</span> </span></pre></body></html>

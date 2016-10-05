@@ -1,0 +1,437 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	.KEYW {color: #933;}
+	.COMM {color: #bbb; font-style: italic;}
+	.NUMB {color: #393;}
+	.STRN {color: #393;}
+	.REGX {color: #339;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="COMM">/**
+<span class='line'>  2</span>  * The MIT License (MIT)
+<span class='line'>  3</span>  *
+<span class='line'>  4</span>  * Copyright (c) 2016 DeNA Co., Ltd.
+<span class='line'>  5</span>  *
+<span class='line'>  6</span>  * Permission is hereby granted, free of charge, to any person obtaining a copy
+<span class='line'>  7</span>  * of this software and associated documentation files (the "Software"), to deal
+<span class='line'>  8</span>  * in the Software without restriction, including without limitation the rights
+<span class='line'>  9</span>  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+<span class='line'> 10</span>  * copies of the Software, and to permit persons to whom the Software is
+<span class='line'> 11</span>  * furnished to do so, subject to the following conditions:
+<span class='line'> 12</span>  *
+<span class='line'> 13</span>  * The above copyright notice and this permission notice shall be included in
+<span class='line'> 14</span>  * all copies or substantial portions of the Software.
+<span class='line'> 15</span>  *
+<span class='line'> 16</span>  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+<span class='line'> 17</span>  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+<span class='line'> 18</span>  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+<span class='line'> 19</span>  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+<span class='line'> 20</span>  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+<span class='line'> 21</span>  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+<span class='line'> 22</span>  * SOFTWARE.
+<span class='line'> 23</span>  */</span><span class="WHIT">
+<span class='line'> 24</span> 
+<span class='line'> 25</span> </span><span class="COMM">/// &lt;reference path="base.js"/></span><span class="WHIT">
+<span class='line'> 26</span> </span><span class="COMM">/// &lt;reference path="object.js"/></span><span class="WHIT">
+<span class='line'> 27</span> </span><span class="COMM">/// &lt;reference path="renderer.js"/></span><span class="WHIT">
+<span class='line'> 28</span> </span><span class="COMM">/// &lt;reference path="shadow.js"/></span><span class="WHIT">
+<span class='line'> 29</span> </span><span class="COMM">/// &lt;reference path="rectangle.js"/></span><span class="WHIT">
+<span class='line'> 30</span> </span><span class="COMM">/// &lt;reference path="counter.js"/></span><span class="WHIT">
+<span class='line'> 31</span> </span><span class="COMM">/// &lt;reference path="event.js"/></span><span class="WHIT">
+<span class='line'> 32</span> </span><span class="COMM">/// &lt;reference path="user_agent.js"/></span><span class="WHIT">
+<span class='line'> 33</span> </span><span class="COMM">/// &lt;reference path="ticker.js"/></span><span class="WHIT">
+<span class='line'> 34</span> 
+<span class='line'> 35</span> </span><span class="COMM">/**
+<span class='line'> 36</span>  * A class that implements the createjs.Renderer interface with Canvas 2D.
+<span class='line'> 37</span>  * @param {HTMLCanvasElement} canvas
+<span class='line'> 38</span>  * @param {createjs.BoundingBox} scissor
+<span class='line'> 39</span>  * @extends {createjs.Renderer}
+<span class='line'> 40</span>  * @implements {EventListener}
+<span class='line'> 41</span>  * @constructor
+<span class='line'> 42</span>  */</span><span class="WHIT">
+<span class='line'> 43</span> </span><span class="NAME">createjs.CanvasRenderer</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">canvas</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">scissor</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 44</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="HTMLCanvasElement" name="canvas"/></span><span class="WHIT">
+<span class='line'> 45</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.BoundingBox" name="scissor"/></span><span class="WHIT">
+<span class='line'> 46</span> </span><span class="WHIT">  </span><span class="NAME">createjs.Renderer.call</span><span class="PUNC">(</span><span class="KEYW">this</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">canvas</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">canvas.width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">canvas.height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 47</span> 
+<span class='line'> 48</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 49</span>    * The 2D rendering context attached to the output &lt;canvas> element.
+<span class='line'> 50</span>    * @type {CanvasRenderingContext2D}
+<span class='line'> 51</span>    * @private
+<span class='line'> 52</span>    */</span><span class="WHIT">
+<span class='line'> 53</span> </span><span class="WHIT">  </span><span class="NAME">this.context_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.getRenderingContext2D</span><span class="PUNC">(</span><span class="NAME">canvas</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 54</span> 
+<span class='line'> 55</span> </span><span class="WHIT">  </span><span class="COMM">// Write the context used by this renderer.</span><span class="WHIT">
+<span class='line'> 56</span> </span><span class="WHIT">  </span><span class="NAME">canvas.setAttribute</span><span class="PUNC">(</span><span class="STRN">'dena-context'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="STRN">'2d'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 57</span> 
+<span class='line'> 58</span> </span><span class="WHIT">  </span><span class="COMM">// Listen keyup events to enable debugging features or disable them.</span><span class="WHIT">
+<span class='line'> 59</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 60</span> </span><span class="WHIT">    </span><span class="NAME">document.addEventListener</span><span class="PUNC">(</span><span class="STRN">'keyup'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">this</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">false</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 61</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 62</span> 
+<span class='line'> 63</span> </span><span class="WHIT">  </span><span class="COMM">// Create the clip specified by an application. (This renderer does NOT delete</span><span class="WHIT">
+<span class='line'> 64</span> </span><span class="WHIT">  </span><span class="COMM">// this clip.)</span><span class="WHIT">
+<span class='line'> 65</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">scissor</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 66</span> </span><span class="WHIT">    </span><span class="NAME">this.context_.beginPath</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 67</span> </span><span class="WHIT">    </span><span class="NAME">this.context_.rect</span><span class="PUNC">(</span><span class="NAME">scissor.getLeft</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">scissor.getTop</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 68</span> </span><span class="WHIT">                       </span><span class="NAME">scissor.getWidth</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">scissor.getHeight</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 69</span> </span><span class="WHIT">    </span><span class="NAME">this.context_.clip</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 70</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'> 71</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 72</span> </span><span class="NAME">createjs.inherits</span><span class="PUNC">(</span><span class="STRN">'CanvasRenderer'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">createjs.CanvasRenderer</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">createjs.Renderer</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 73</span> 
+<span class='line'> 74</span> </span><span class="COMM">/**
+<span class='line'> 75</span>  * The current alpha value of the output &lt;canvas> element.
+<span class='line'> 76</span>  * @type {number}
+<span class='line'> 77</span>  * @private
+<span class='line'> 78</span>  */</span><span class="WHIT">
+<span class='line'> 79</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.alpha_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 80</span> 
+<span class='line'> 81</span> </span><span class="COMM">/**
+<span class='line'> 82</span>  * The current composition value of the output &lt;canvas> element.
+<span class='line'> 83</span>  * @type {number}
+<span class='line'> 84</span>  * @private
+<span class='line'> 85</span>  */</span><span class="WHIT">
+<span class='line'> 86</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.compositeOperation_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'> 87</span> </span><span class="WHIT">    </span><span class="NAME">createjs.Renderer.Composition.SOURCE_OVER</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 88</span> 
+<span class='line'> 89</span> </span><span class="COMM">/**
+<span class='line'> 90</span>  * The scissor rectangle currently used by this renderer.
+<span class='line'> 91</span>  * @type {createjs.BoundingBox}
+<span class='line'> 92</span>  * @private
+<span class='line'> 93</span>  */</span><span class="WHIT">
+<span class='line'> 94</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.scissor_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 95</span> 
+<span class='line'> 96</span> </span><span class="COMM">/**
+<span class='line'> 97</span>  * The scissor rectangle currently used by this renderer.
+<span class='line'> 98</span>  * @type {createjs.CanvasRenderer}
+<span class='line'> 99</span>  * @private
+<span class='line'>100</span>  */</span><span class="WHIT">
+<span class='line'>101</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.mask_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>102</span> 
+<span class='line'>103</span> </span><span class="COMM">/**
+<span class='line'>104</span>  * Saves the current rendering context.
+<span class='line'>105</span>  * @private
+<span class='line'>106</span>  */</span><span class="WHIT">
+<span class='line'>107</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.saveContext_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>108</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.save</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>109</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>110</span> 
+<span class='line'>111</span> </span><span class="COMM">/**
+<span class='line'>112</span>  * Restores the rendering context.
+<span class='line'>113</span>  * @private
+<span class='line'>114</span>  */</span><span class="WHIT">
+<span class='line'>115</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.restoreContext_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>116</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.restore</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>117</span> </span><span class="WHIT">  </span><span class="NAME">this.alpha_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>118</span> </span><span class="WHIT">  </span><span class="NAME">this.compositeOperation_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">-</span><span class="NUMB">1</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>119</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>120</span> 
+<span class='line'>121</span> </span><span class="COMM">/**
+<span class='line'>122</span>  * Updates the scissor rectangle.
+<span class='line'>123</span>  * @param {createjs.BoundingBox} scissor
+<span class='line'>124</span>  * @private
+<span class='line'>125</span>  */</span><span class="WHIT">
+<span class='line'>126</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.updateScissor_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">scissor</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>127</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.CanvasRenderer" name="renderer"/></span><span class="WHIT">
+<span class='line'>128</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.BoundingBox" name="scissor"/></span><span class="WHIT">
+<span class='line'>129</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.scissor_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>130</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.scissor_.isEqual</span><span class="PUNC">(</span><span class="NAME">scissor</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>131</span> </span><span class="WHIT">      </span><span class="KEYW">return</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>132</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>133</span> </span><span class="WHIT">    </span><span class="NAME">this.restoreContext_</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>134</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>135</span> </span><span class="WHIT">  </span><span class="NAME">this.scissor_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">scissor</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>136</span> </span><span class="WHIT">  </span><span class="NAME">this.saveContext_</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>137</span> </span><span class="WHIT">  </span><span class="NAME">this.setTransformation</span><span class="PUNC">(</span><span class="NUMB">1</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>138</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.beginPath</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>139</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.rect</span><span class="PUNC">(</span><span class="NAME">scissor.getLeft</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">scissor.getTop</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'>140</span> </span><span class="WHIT">                     </span><span class="NAME">scissor.getWidth</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">scissor.getHeight</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>141</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.clip</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>142</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>143</span> 
+<span class='line'>144</span> </span><span class="COMM">/**
+<span class='line'>145</span>  * Destroys the scissor rectangle.
+<span class='line'>146</span>  * @private
+<span class='line'>147</span>  */</span><span class="WHIT">
+<span class='line'>148</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.destroyScissor_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>149</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.CanvasRenderer" name="renderer"/></span><span class="WHIT">
+<span class='line'>150</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.scissor_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>151</span> </span><span class="WHIT">    </span><span class="NAME">this.restoreContext_</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>152</span> </span><span class="WHIT">    </span><span class="NAME">this.scissor_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>153</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>154</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>155</span> 
+<span class='line'>156</span> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>157</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>158</span>    * Whether to show a red rectangle around a painted objects in a rendering
+<span class='line'>159</span>    * cycle.
+<span class='line'>160</span>    * @type {boolean}
+<span class='line'>161</span>    * @private
+<span class='line'>162</span>    */</span><span class="WHIT">
+<span class='line'>163</span> </span><span class="WHIT">  </span><span class="NAME">createjs.CanvasRenderer.prototype.showPainted_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">true</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>164</span> 
+<span class='line'>165</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>166</span>    * @type {Array.&lt;createjs.Renderer.RenderObject>}
+<span class='line'>167</span>    * @private
+<span class='line'>168</span>    */</span><span class="WHIT">
+<span class='line'>169</span> </span><span class="WHIT">  </span><span class="NAME">createjs.CanvasRenderer.prototype.painted_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>170</span> 
+<span class='line'>171</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>172</span>    * Draws debug information on this renderer.
+<span class='line'>173</span>    * @param {Array.&lt;createjs.Renderer.RenderObject>} painted
+<span class='line'>174</span>    * @private
+<span class='line'>175</span>    */</span><span class="WHIT">
+<span class='line'>176</span> </span><span class="WHIT">  </span><span class="NAME">createjs.CanvasRenderer.prototype.drawDebug_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">painted</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>177</span> </span><span class="WHIT">    </span><span class="COMM">/// &lt;param type="Array" elementType="createjs.Renderer.RenderObject"</span><span class="WHIT">
+<span class='line'>178</span> </span><span class="WHIT">    </span><span class="COMM">///        name="painted"/></span><span class="WHIT">
+<span class='line'>179</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">context</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.context_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>180</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">createjs.UserAgent.isIPhone</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>181</span> </span><span class="WHIT">      </span><span class="NAME">context.fillStyle</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">'#f00'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>182</span> </span><span class="WHIT">      </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">HEIGHT</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">24</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>183</span> </span><span class="WHIT">      </span><span class="NAME">context.font</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">HEIGHT</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'px arial'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>184</span> </span><span class="WHIT">      </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">text</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.Counter.paintedObjects</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'/'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>185</span> </span><span class="WHIT">                 </span><span class="NAME">createjs.Counter.visibleObjects</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'/'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>186</span> </span><span class="WHIT">                 </span><span class="NAME">createjs.Counter.totalObjects</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">' '</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>187</span> </span><span class="WHIT">                 </span><span class="NAME">createjs.Counter.updatedTweens</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'/'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>188</span> </span><span class="WHIT">                 </span><span class="NAME">createjs.Counter.runningTweens</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">' '</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>189</span> </span><span class="WHIT">                 </span><span class="NAME">createjs.Counter.cachedRenderers</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="STRN">'/'</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT">
+<span class='line'>190</span> </span><span class="WHIT">                 </span><span class="NAME">createjs.Counter.totalRenderers</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>191</span> </span><span class="WHIT">      </span><span class="NAME">context.fillText</span><span class="PUNC">(</span><span class="NAME">text</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">HEIGHT</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">10000</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>192</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>193</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.showPainted_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>194</span> </span><span class="WHIT">      </span><span class="NAME">context.strokeStyle</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="STRN">'#f00'</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>195</span> </span><span class="WHIT">      </span><span class="NAME">context.setTransform</span><span class="PUNC">(</span><span class="NUMB">1</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>196</span> </span><span class="WHIT">      </span><span class="KEYW">for</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="NAME">i</span><span class="WHIT"> </span><span class="PUNC">&lt;</span><span class="WHIT"> </span><span class="NAME">painted.length</span><span class="PUNC">;</span><span class="WHIT"> </span><span class="PUNC">++</span><span class="NAME">i</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>197</span> </span><span class="WHIT">        </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">object</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">painted</span><span class="PUNC">[</span><span class="NAME">i</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>198</span> </span><span class="WHIT">        </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">box</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">object.getRenderBox</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>199</span> </span><span class="WHIT">        </span><span class="NAME">context.strokeRect</span><span class="PUNC">(</span><span class="WHIT">
+<span class='line'>200</span> </span><span class="WHIT">            </span><span class="NAME">box.getLeft</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">box.getTop</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">box.getWidth</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">box.getHeight</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>201</span> </span><span class="WHIT">      </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>202</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>203</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>204</span> 
+<span class='line'>205</span> </span><span class="WHIT">  </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>206</span> </span><span class="WHIT">  </span><span class="NAME">createjs.CanvasRenderer.prototype.addDirtyObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">object</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>207</span> </span><span class="WHIT">    </span><span class="NAME">this.painted_.push</span><span class="PUNC">(</span><span class="NAME">object</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>208</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>209</span> 
+<span class='line'>210</span> </span><span class="WHIT">  </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>211</span> </span><span class="WHIT">  </span><span class="NAME">createjs.CanvasRenderer.prototype.handleEvent</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">event</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>212</span> </span><span class="WHIT">    </span><span class="NAME">createjs.assert</span><span class="PUNC">(</span><span class="NAME">event.type</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="STRN">'keyup'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>213</span> 
+<span class='line'>214</span> </span><span class="WHIT">    </span><span class="COMM">/// &lt;var type="KeyboardEvent" name="keyEvent"/></span><span class="WHIT">
+<span class='line'>215</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">keyEvent</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="COMM">/** @type {KeyboardEvent} */</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">event</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>216</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">keyCode</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">keyEvent.keyCode</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>217</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">keyCode</span><span class="WHIT"> </span><span class="PUNC">==</span><span class="WHIT"> </span><span class="NAME">createjs.Event.KeyCodes.Q</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>218</span> </span><span class="WHIT">      </span><span class="NAME">this.showPainted_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">this.showPainted_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>219</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>220</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>221</span> </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>222</span> 
+<span class='line'>223</span> </span><span class="COMM">/**
+<span class='line'>224</span>  * Clears the invalidated rectangles.
+<span class='line'>225</span>  * @protected
+<span class='line'>226</span>  */</span><span class="WHIT">
+<span class='line'>227</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.clearScreen</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>228</span> </span><span class="WHIT">  </span><span class="COMM">// There is a bug on stock browsers of Android 4.1.x and 4.2.x where the</span><span class="WHIT">
+<span class='line'>229</span> </span><span class="WHIT">  </span><span class="COMM">// clearRect() method crashes or does not clear the target canvas. To work</span><span class="WHIT">
+<span class='line'>230</span> </span><span class="WHIT">  </span><span class="COMM">// around this bug, this method calls the clearRect() method with a size</span><span class="WHIT">
+<span class='line'>231</span> </span><span class="WHIT">  </span><span class="COMM">// bigger than the canvas size.</span><span class="WHIT">
+<span class='line'>232</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.setTransform</span><span class="PUNC">(</span><span class="NUMB">1</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>233</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.clearRect</span><span class="PUNC">(</span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">this.getWidth</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">this.getHeight</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">+</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>234</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>235</span> 
+<span class='line'>236</span> </span><span class="COMM">/**
+<span class='line'>237</span>  * Returns a renderer used for composing a render object with a mask.
+<span class='line'>238</span>  * @return {createjs.CanvasRenderer}
+<span class='line'>239</span>  * @protected
+<span class='line'>240</span>  */</span><span class="WHIT">
+<span class='line'>241</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.getMask</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>242</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;returns type="createjs.CanvasRenderer"/></span><span class="WHIT">
+<span class='line'>243</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">this.mask_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>244</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">canvas</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">createjs.createCanvas</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>245</span> </span><span class="WHIT">    </span><span class="NAME">canvas.width</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.getWidth</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>246</span> </span><span class="WHIT">    </span><span class="NAME">canvas.height</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.getHeight</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>247</span> </span><span class="WHIT">    </span><span class="NAME">this.mask_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">new</span><span class="WHIT"> </span><span class="NAME">createjs.CanvasRenderer</span><span class="PUNC">(</span><span class="NAME">canvas</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>248</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>249</span> </span><span class="WHIT">    </span><span class="NAME">this.mask_.clearScreen</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>250</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>251</span> </span><span class="WHIT">  </span><span class="KEYW">return</span><span class="WHIT"> </span><span class="NAME">this.mask_</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>252</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>253</span> 
+<span class='line'>254</span> </span><span class="COMM">/**
+<span class='line'>255</span>  * Deletes the renderer used for composing a render object with a mask.
+<span class='line'>256</span>  * @protected
+<span class='line'>257</span>  * @const
+<span class='line'>258</span>  */</span><span class="WHIT">
+<span class='line'>259</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.destroyMask</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>260</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.mask_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>261</span> </span><span class="WHIT">    </span><span class="NAME">this.mask_.destroy</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>262</span> </span><span class="WHIT">    </span><span class="NAME">this.mask_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>263</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>264</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>265</span> 
+<span class='line'>266</span> </span><span class="COMM">/**
+<span class='line'>267</span>  * Copies the image of a mask renderer, a renderer used for composing a render
+<span class='line'>268</span>  * object with a mask object, to this renderer.
+<span class='line'>269</span>  * @param {createjs.CanvasRenderer} mask
+<span class='line'>270</span>  * @param {number} composition
+<span class='line'>271</span>  * @protected
+<span class='line'>272</span>  * @const
+<span class='line'>273</span>  */</span><span class="WHIT">
+<span class='line'>274</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.drawMask</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">mask</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">composition</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>275</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.CanvasRenderer" name="mask"/></span><span class="WHIT">
+<span class='line'>276</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="composition"/></span><span class="WHIT">
+<span class='line'>277</span> </span><span class="WHIT">  </span><span class="NAME">this.setTransformation</span><span class="PUNC">(</span><span class="NUMB">1</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">1</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>278</span> </span><span class="WHIT">  </span><span class="NAME">this.setAlpha</span><span class="PUNC">(</span><span class="NUMB">1</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>279</span> </span><span class="WHIT">  </span><span class="NAME">this.setComposition</span><span class="PUNC">(</span><span class="NAME">createjs.Renderer.Composition.SOURCE_OVER</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>280</span> </span><span class="WHIT">  </span><span class="NAME">this.drawCanvas</span><span class="PUNC">(</span><span class="WHIT">
+<span class='line'>281</span> </span><span class="WHIT">      </span><span class="NAME">mask.getCanvas</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">this.getWidth</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">this.getHeight</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>282</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>283</span> 
+<span class='line'>284</span> </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>285</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.destroy</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>286</span> </span><span class="WHIT">  </span><span class="NAME">this.destroyMask</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>287</span> </span><span class="WHIT">  </span><span class="NAME">this.context_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">null</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>288</span> </span><span class="WHIT">  </span><span class="NAME">this.resetCanvas</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>289</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>290</span> 
+<span class='line'>291</span> </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>292</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.setTransformation</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>293</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">a</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">b</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">c</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">d</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">tx</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">ty</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>294</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="a"/></span><span class="WHIT">
+<span class='line'>295</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="b"/></span><span class="WHIT">
+<span class='line'>296</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="c"/></span><span class="WHIT">
+<span class='line'>297</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="d"/></span><span class="WHIT">
+<span class='line'>298</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="tx"/></span><span class="WHIT">
+<span class='line'>299</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="ty"/></span><span class="WHIT">
+<span class='line'>300</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.setTransform</span><span class="PUNC">(</span><span class="NAME">a</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">b</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">c</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">d</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">tx</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">ty</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>301</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>302</span> 
+<span class='line'>303</span> </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>304</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.setAlpha</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">alpha</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>305</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="alpha"/></span><span class="WHIT">
+<span class='line'>306</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.alpha_</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="NAME">alpha</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>307</span> </span><span class="WHIT">    </span><span class="NAME">this.alpha_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">alpha</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>308</span> </span><span class="WHIT">    </span><span class="NAME">this.context_.globalAlpha</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">alpha</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>309</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>310</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>311</span> 
+<span class='line'>312</span> </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>313</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.setComposition</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">operation</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>314</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="operation"/></span><span class="WHIT">
+<span class='line'>315</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">this.compositeOperation_</span><span class="WHIT"> </span><span class="PUNC">!=</span><span class="WHIT"> </span><span class="NAME">operation</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>316</span> </span><span class="WHIT">    </span><span class="NAME">this.compositeOperation_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">operation</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>317</span> </span><span class="WHIT">    </span><span class="NAME">this.context_.globalCompositeOperation</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>318</span> </span><span class="WHIT">        </span><span class="NAME">createjs.Renderer.getCompositionName</span><span class="PUNC">(</span><span class="NAME">operation</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>319</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>320</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>321</span> 
+<span class='line'>322</span> </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>323</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.drawCanvas</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>324</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">canvas</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">x</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">y</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>325</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="HTMLCanvasElement" name="canvas"/></span><span class="WHIT">
+<span class='line'>326</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="x"/></span><span class="WHIT">
+<span class='line'>327</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="y"/></span><span class="WHIT">
+<span class='line'>328</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'>329</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'>330</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.drawImage</span><span class="PUNC">(</span><span class="NAME">canvas</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">x</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">y</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>331</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>332</span> 
+<span class='line'>333</span> </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>334</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.drawVideo</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>335</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">video</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">x</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">y</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>336</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="HTMLVideoElement" name="video"/></span><span class="WHIT">
+<span class='line'>337</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="x"/></span><span class="WHIT">
+<span class='line'>338</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="y"/></span><span class="WHIT">
+<span class='line'>339</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'>340</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'>341</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.drawImage</span><span class="PUNC">(</span><span class="NAME">video</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">x</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">y</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>342</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>343</span> 
+<span class='line'>344</span> </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>345</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.drawPartial</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT">
+<span class='line'>346</span> </span><span class="WHIT">    </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">image</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">srcX</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">srcY</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">srcWidth</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">srcHeight</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">x</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">y</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>347</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="HTMLImageElement" name="image"/></span><span class="WHIT">
+<span class='line'>348</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="srcX"/></span><span class="WHIT">
+<span class='line'>349</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="srcY"/></span><span class="WHIT">
+<span class='line'>350</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="srcWidth"/></span><span class="WHIT">
+<span class='line'>351</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="srcHeight"/></span><span class="WHIT">
+<span class='line'>352</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="x"/></span><span class="WHIT">
+<span class='line'>353</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="y"/></span><span class="WHIT">
+<span class='line'>354</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="width"/></span><span class="WHIT">
+<span class='line'>355</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="height"/></span><span class="WHIT">
+<span class='line'>356</span> </span><span class="WHIT">  </span><span class="NAME">this.context_.drawImage</span><span class="PUNC">(</span><span class="WHIT">
+<span class='line'>357</span> </span><span class="WHIT">      </span><span class="NAME">image</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">srcX</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">srcY</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">srcWidth</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">srcHeight</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">x</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">y</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">width</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">height</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>358</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>359</span> 
+<span class='line'>360</span> </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>361</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.addObject</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">object</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>362</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="createjs.Renderer.RenderObject" name="object"/></span><span class="WHIT">
+<span class='line'>363</span> </span><span class="WHIT">  </span><span class="COMM">// Skip rendering the specified object if it is not in the output &lt;canvas>.</span><span class="WHIT">
+<span class='line'>364</span> </span><span class="WHIT">  </span><span class="COMM">// Even when this renderer skips rendering an object, it still needs to</span><span class="WHIT">
+<span class='line'>365</span> </span><span class="WHIT">  </span><span class="COMM">// call its 'beginPaintObject()' method and to update properties of this</span><span class="WHIT">
+<span class='line'>366</span> </span><span class="WHIT">  </span><span class="COMM">// renderer so it can render succeeding objects.</span><span class="WHIT">
+<span class='line'>367</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">box</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">object.getRenderBox</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>368</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">box.maxX</span><span class="WHIT"> </span><span class="PUNC">&lt;=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">box.maxY</span><span class="WHIT"> </span><span class="PUNC">&lt;=</span><span class="WHIT"> </span><span class="NUMB">0</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT">
+<span class='line'>369</span> </span><span class="WHIT">      </span><span class="NAME">this.getWidth</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">&lt;=</span><span class="WHIT"> </span><span class="NAME">box.minX</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">this.getHeight</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">&lt;=</span><span class="WHIT"> </span><span class="NAME">box.minY</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>370</span> </span><span class="WHIT">    </span><span class="NAME">object.beginPaintObject</span><span class="PUNC">(</span><span class="KEYW">this</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>371</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>372</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>373</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>374</span> </span><span class="WHIT">    </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.CanvasRenderer.showPainted_</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>375</span> </span><span class="WHIT">      </span><span class="NAME">this.addDirtyObject</span><span class="PUNC">(</span><span class="NAME">object</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>376</span> </span><span class="WHIT">    </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>377</span> </span><span class="WHIT">    </span><span class="PUNC">++</span><span class="NAME">createjs.Counter.paintedObjects</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>378</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>379</span> </span><span class="WHIT">  </span><span class="COMM">// Draw a masked object. The current code just show render objects</span><span class="WHIT">
+<span class='line'>380</span> </span><span class="WHIT">  </span><span class="COMM">// with 'compose' clips.</span><span class="WHIT">
+<span class='line'>381</span> </span><span class="WHIT">  </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">scissor</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">object.getClip</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>382</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">scissor</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="PUNC">!</span><span class="NAME">scissor.getMethod</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">||</span><span class="WHIT"> </span><span class="NAME">scissor.isShow</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>383</span> </span><span class="WHIT">    </span><span class="NAME">this.destroyScissor_</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>384</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="PUNC">!</span><span class="NAME">scissor.getShape</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>385</span> </span><span class="WHIT">    </span><span class="NAME">this.updateScissor_</span><span class="PUNC">(</span><span class="NAME">scissor.getBox</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>386</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">scissor.isCompose</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>387</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">mask</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">this.getMask</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>388</span> </span><span class="WHIT">    </span><span class="NAME">object.beginPaintObject</span><span class="PUNC">(</span><span class="NAME">mask</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>389</span> </span><span class="WHIT">    </span><span class="NAME">object.paintObject</span><span class="PUNC">(</span><span class="NAME">mask</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>390</span> </span><span class="WHIT">    </span><span class="KEYW">var</span><span class="WHIT"> </span><span class="NAME">shape</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">scissor.getShape</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>391</span> </span><span class="WHIT">    </span><span class="NAME">shape.beginPaintObject</span><span class="PUNC">(</span><span class="NAME">mask</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>392</span> </span><span class="WHIT">    </span><span class="NAME">shape.paintObject</span><span class="PUNC">(</span><span class="NAME">mask</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>393</span> </span><span class="WHIT">    </span><span class="NAME">this.drawMask</span><span class="PUNC">(</span><span class="NAME">mask</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">scissor.getComposition</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>394</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>395</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT"> </span><span class="KEYW">else</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>396</span> </span><span class="WHIT">    </span><span class="KEYW">return</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>397</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>398</span> </span><span class="WHIT">  </span><span class="NAME">object.beginPaintObject</span><span class="PUNC">(</span><span class="KEYW">this</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>399</span> </span><span class="WHIT">  </span><span class="NAME">object.paintObject</span><span class="PUNC">(</span><span class="KEYW">this</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>400</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>401</span> 
+<span class='line'>402</span> </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>403</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.begin</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>404</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>405</span> </span><span class="WHIT">    </span><span class="NAME">this.painted_</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="PUNC">[</span><span class="PUNC">]</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>406</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>407</span> </span><span class="WHIT">  </span><span class="NAME">this.clearScreen</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>408</span> </span><span class="WHIT">  </span><span class="COMM">// Some Android 4.1.x browsers (e.g. DoCoMo L-05E) has an issue that calling</span><span class="WHIT">
+<span class='line'>409</span> </span><span class="WHIT">  </span><span class="COMM">// the CanvasRenderingContext2D.prototype.clearRect() method in a</span><span class="WHIT">
+<span class='line'>410</span> </span><span class="WHIT">  </span><span class="COMM">// setInterval() callback does not clear a &lt;canvas> element:</span><span class="WHIT">
+<span class='line'>411</span> </span><span class="WHIT">  </span><span class="COMM">//   &lt;https://code.google.com/p/android/issues/detail?id=39247>.</span><span class="WHIT">
+<span class='line'>412</span> </span><span class="WHIT">  </span><span class="COMM">// This renderer triggers DOM reflow to work around this issue when a game</span><span class="WHIT">
+<span class='line'>413</span> </span><span class="WHIT">  </span><span class="COMM">// needs it, i.e. it calls the createjs.Config.setUseAndroidWorkarounds()</span><span class="WHIT">
+<span class='line'>414</span> </span><span class="WHIT">  </span><span class="COMM">// method with its parameters '2d' and 1. (DOM reflow is a very slow operation</span><span class="WHIT">
+<span class='line'>415</span> </span><span class="WHIT">  </span><span class="COMM">// and this renderer does not trigger it by default.)</span><span class="WHIT">
+<span class='line'>416</span> </span><span class="WHIT">  </span><span class="NAME">this.updateCanvas</span><span class="PUNC">(</span><span class="STRN">'2d'</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>417</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>418</span> 
+<span class='line'>419</span> </span><span class="COMM">/** @override */</span><span class="WHIT">
+<span class='line'>420</span> </span><span class="NAME">createjs.CanvasRenderer.prototype.paint</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">time</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>421</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="time"/></span><span class="WHIT">
+<span class='line'>422</span> </span><span class="WHIT">  </span><span class="COMM">// Render each layer and copy it to this renderer. Passing null to the</span><span class="WHIT">
+<span class='line'>423</span> </span><span class="WHIT">  </span><span class="COMM">// endPaint() method prevents it from copying its result to this renderer.</span><span class="WHIT">
+<span class='line'>424</span> </span><span class="WHIT">  </span><span class="COMM">// (This is used only by debug builds to hide layers specified by a user.)</span><span class="WHIT">
+<span class='line'>425</span> </span><span class="WHIT">  </span><span class="NAME">this.destroyScissor_</span><span class="PUNC">(</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>426</span> </span><span class="WHIT">  </span><span class="KEYW">if</span><span class="WHIT"> </span><span class="PUNC">(</span><span class="NAME">createjs.DEBUG</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>427</span> </span><span class="WHIT">    </span><span class="NAME">this.drawDebug_</span><span class="PUNC">(</span><span class="NAME">this.painted_</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>428</span> </span><span class="WHIT">  </span><span class="PUNC">}</span><span class="WHIT">
+<span class='line'>429</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>430</span> </span></pre></body></html>

@@ -1,0 +1,162 @@
+<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"> <style>
+	.KEYW {color: #933;}
+	.COMM {color: #bbb; font-style: italic;}
+	.NUMB {color: #393;}
+	.STRN {color: #393;}
+	.REGX {color: #339;}
+	.line {border-right: 1px dotted #666; color: #666; font-style: normal;}
+	</style></head><body><pre><span class='line'>  1</span> <span class="COMM">/**
+<span class='line'>  2</span>  * The MIT License (MIT)
+<span class='line'>  3</span>  *
+<span class='line'>  4</span>  * Copyright (c) 2016 DeNA Co., Ltd.
+<span class='line'>  5</span>  *
+<span class='line'>  6</span>  * Permission is hereby granted, free of charge, to any person obtaining a copy
+<span class='line'>  7</span>  * of this software and associated documentation files (the "Software"), to deal
+<span class='line'>  8</span>  * in the Software without restriction, including without limitation the rights
+<span class='line'>  9</span>  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+<span class='line'> 10</span>  * copies of the Software, and to permit persons to whom the Software is
+<span class='line'> 11</span>  * furnished to do so, subject to the following conditions:
+<span class='line'> 12</span>  *
+<span class='line'> 13</span>  * The above copyright notice and this permission notice shall be included in
+<span class='line'> 14</span>  * all copies or substantial portions of the Software.
+<span class='line'> 15</span>  *
+<span class='line'> 16</span>  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+<span class='line'> 17</span>  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+<span class='line'> 18</span>  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+<span class='line'> 19</span>  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+<span class='line'> 20</span>  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+<span class='line'> 21</span>  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+<span class='line'> 22</span>  * SOFTWARE.
+<span class='line'> 23</span>  */</span><span class="WHIT">
+<span class='line'> 24</span> 
+<span class='line'> 25</span> </span><span class="COMM">/// &lt;reference path="base.js"/></span><span class="WHIT">
+<span class='line'> 26</span> </span><span class="COMM">/// &lt;reference path="event.js"/></span><span class="WHIT">
+<span class='line'> 27</span> 
+<span class='line'> 28</span> </span><span class="COMM">/**
+<span class='line'> 29</span>  * A class encapsulating pointer events, i.e. mouse events, pointer events, and
+<span class='line'> 30</span>  * touch events. For a listing of mouse events and their properties, see the
+<span class='line'> 31</span>  * DisplayObject and Stage event listings.
+<span class='line'> 32</span>  * @param {string} type
+<span class='line'> 33</span>  * @param {boolean} bubbles
+<span class='line'> 34</span>  * @param {boolean} cancelable
+<span class='line'> 35</span>  * @param {number} stageX
+<span class='line'> 36</span>  * @param {number} stageY
+<span class='line'> 37</span>  * @param {Object} nativeEvent
+<span class='line'> 38</span>  * @param {number} pointerID
+<span class='line'> 39</span>  * @param {boolean} primary
+<span class='line'> 40</span>  * @param {number} rawX
+<span class='line'> 41</span>  * @param {number} rawY
+<span class='line'> 42</span>  * @extends {createjs.Event}
+<span class='line'> 43</span>  * @constructor
+<span class='line'> 44</span>  */</span><span class="WHIT">
+<span class='line'> 45</span> </span><span class="NAME">createjs.MouseEvent</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 46</span> </span><span class="WHIT">                               </span><span class="NAME">bubbles</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 47</span> </span><span class="WHIT">                               </span><span class="NAME">cancelable</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 48</span> </span><span class="WHIT">                               </span><span class="NAME">stageX</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 49</span> </span><span class="WHIT">                               </span><span class="NAME">stageY</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 50</span> </span><span class="WHIT">                               </span><span class="NAME">nativeEvent</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 51</span> </span><span class="WHIT">                               </span><span class="NAME">pointerID</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 52</span> </span><span class="WHIT">                               </span><span class="NAME">primary</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 53</span> </span><span class="WHIT">                               </span><span class="NAME">rawX</span><span class="PUNC">,</span><span class="WHIT">
+<span class='line'> 54</span> </span><span class="WHIT">                               </span><span class="NAME">rawY</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'> 55</span> </span><span class="WHIT">  </span><span class="NAME">createjs.Event.call</span><span class="PUNC">(</span><span class="KEYW">this</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">type</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">bubbles</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">cancelable</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 56</span> 
+<span class='line'> 57</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 58</span>    * The normalized x position on the stage.
+<span class='line'> 59</span>    * @type {number}
+<span class='line'> 60</span>    */</span><span class="WHIT">
+<span class='line'> 61</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'stageX'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">stageX</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 62</span> 
+<span class='line'> 63</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 64</span>    * The normalized y position on the stage.
+<span class='line'> 65</span>    * @type {number}
+<span class='line'> 66</span>    */</span><span class="WHIT">
+<span class='line'> 67</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'stageY'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">stageY</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 68</span> 
+<span class='line'> 69</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 70</span>    * The native MouseEvent generated by the browser. The properties and API for
+<span class='line'> 71</span>    * this event may differ between browsers. This property will be null if the
+<span class='line'> 72</span>    * EaselJS property was not directly generated from a native MouseEvent.
+<span class='line'> 73</span>    * @type {Object}
+<span class='line'> 74</span>    */</span><span class="WHIT">
+<span class='line'> 75</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'nativeEvent'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">nativeEvent</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 76</span> 
+<span class='line'> 77</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 78</span>    * The unique id for the pointer (touch point or cursor). This will be either
+<span class='line'> 79</span>    * -1 for the mouse, or the system supplied id value.
+<span class='line'> 80</span>    * @type {number}
+<span class='line'> 81</span>    */</span><span class="WHIT">
+<span class='line'> 82</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'pointerID'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">pointerID</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 83</span> 
+<span class='line'> 84</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 85</span>    * Indicates whether this is the primary pointer in a multi-touch environment.
+<span class='line'> 86</span>    * This will always be true for the mouse. For touch pointers, the first
+<span class='line'> 87</span>    * pointer in the current stack will be considered the primary pointer.
+<span class='line'> 88</span>    * @type {boolean}
+<span class='line'> 89</span>    */</span><span class="WHIT">
+<span class='line'> 90</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'primary'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">primary</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 91</span> 
+<span class='line'> 92</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'> 93</span>    * The raw x position relative to the stage.
+<span class='line'> 94</span>    * outside of the stage bounds.
+<span class='line'> 95</span>    * @type {number}
+<span class='line'> 96</span>    */</span><span class="WHIT">
+<span class='line'> 97</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'rawX'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">rawX</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'> 98</span> 
+<span class='line'> 99</span> </span><span class="WHIT">  </span><span class="COMM">/**
+<span class='line'>100</span>    * The raw y position relative to the stage.
+<span class='line'>101</span>    * @type {number}
+<span class='line'>102</span>    */</span><span class="WHIT">
+<span class='line'>103</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'rawY'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">rawY</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>104</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>105</span> </span><span class="NAME">createjs.inherits</span><span class="PUNC">(</span><span class="STRN">'MouseEvent'</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">createjs.MouseEvent</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">createjs.Event</span><span class="PUNC">)</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>106</span> 
+<span class='line'>107</span> </span><span class="COMM">/**
+<span class='line'>108</span>  * Resets this event.
+<span class='line'>109</span>  * @param {Object} nativeEvent
+<span class='line'>110</span>  * @param {number} pointerID
+<span class='line'>111</span>  * @const
+<span class='line'>112</span>  */</span><span class="WHIT">
+<span class='line'>113</span> </span><span class="NAME">createjs.MouseEvent.prototype.reset</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">nativeEvent</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">pointerID</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>114</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="Object" name="nativeEvent"/></span><span class="WHIT">
+<span class='line'>115</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="pointerID"/></span><span class="WHIT">
+<span class='line'>116</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'nativeEvent'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">nativeEvent</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>117</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'pointerID'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">pointerID</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>118</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>119</span> 
+<span class='line'>120</span> </span><span class="COMM">/**
+<span class='line'>121</span>  * Sets the 'stageX' value of this object and its 'stageY' value.
+<span class='line'>122</span>  * @param {number} stageX
+<span class='line'>123</span>  * @param {number} stageY
+<span class='line'>124</span>  * @const
+<span class='line'>125</span>  */</span><span class="WHIT">
+<span class='line'>126</span> </span><span class="NAME">createjs.MouseEvent.prototype.setStage</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">stageX</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">stageY</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>127</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="stageX"/></span><span class="WHIT">
+<span class='line'>128</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="stageY"/></span><span class="WHIT">
+<span class='line'>129</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'stageX'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">stageX</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>130</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'stageY'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">stageY</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>131</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>132</span> 
+<span class='line'>133</span> </span><span class="COMM">/**
+<span class='line'>134</span>  * Sets the 'primary' value of this object.
+<span class='line'>135</span>  * @param {boolean} primary
+<span class='line'>136</span>  * @const
+<span class='line'>137</span>  */</span><span class="WHIT">
+<span class='line'>138</span> </span><span class="NAME">createjs.MouseEvent.prototype.setPrimary</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">primary</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>139</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="boolean" name="primary"/></span><span class="WHIT">
+<span class='line'>140</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'primary'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">primary</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>141</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>142</span> 
+<span class='line'>143</span> </span><span class="COMM">/**
+<span class='line'>144</span>  * Sets the 'rawX' value of this object and its 'rawY' value.
+<span class='line'>145</span>  * @param {number} rawX
+<span class='line'>146</span>  * @param {number} rawY
+<span class='line'>147</span>  * @const
+<span class='line'>148</span>  */</span><span class="WHIT">
+<span class='line'>149</span> </span><span class="NAME">createjs.MouseEvent.prototype.setRaw</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="KEYW">function</span><span class="PUNC">(</span><span class="NAME">rawX</span><span class="PUNC">,</span><span class="WHIT"> </span><span class="NAME">rawY</span><span class="PUNC">)</span><span class="WHIT"> </span><span class="PUNC">{</span><span class="WHIT">
+<span class='line'>150</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="rawX"/></span><span class="WHIT">
+<span class='line'>151</span> </span><span class="WHIT">  </span><span class="COMM">/// &lt;param type="number" name="rawY"/></span><span class="WHIT">
+<span class='line'>152</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'rawX'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">rawX</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>153</span> </span><span class="WHIT">  </span><span class="KEYW">this</span><span class="PUNC">[</span><span class="STRN">'rawY'</span><span class="PUNC">]</span><span class="WHIT"> </span><span class="PUNC">=</span><span class="WHIT"> </span><span class="NAME">rawY</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>154</span> </span><span class="PUNC">}</span><span class="PUNC">;</span><span class="WHIT">
+<span class='line'>155</span> </span></pre></body></html>
