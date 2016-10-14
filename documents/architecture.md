@@ -610,12 +610,21 @@ Our object renderer draws a [CreateJS] object and its mask to an off-screen
 framebuffer to draw a masked [CreateJS] object:
 
 1. Draw a mask into a memory `<canvas>` element (only once);
+
+   ![Mask 1](mask1.png)
+
 2. Switch a rendering target to an off-screen framebuffer;
 3. Enables the scissor test to the off-screen framebuffer to render only the
    inside of the mask;
 4. Draw the [CreateJS] object onto the off-screen framebuffer;
+
+   ![Mask 2](mask2.png)
+
 5. Draw the memory `<canvas>` element to the off-screen framebuffer with its
    composition mode `destination-in`, and;
+
+   ![Mask 3](mask3.png)
+
 6. Draw the off-screen framebuffer to the output framebuffer.
 
 This implementation currently has limitations:
