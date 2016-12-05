@@ -98,7 +98,7 @@ createjs.Color.prototype.getBlue = function() {
 };
 
 /**
- * Returns the blue component of this color.
+ * Returns the alpha component of this color.
  * @return {number}
  * @const
  */

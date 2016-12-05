@@ -24,9 +24,9 @@
 
 /// <reference path="base.js"/>
 /// <reference path="event_dispatcher.js"/>
-/// <reference path="tween_object.js"/>
 /// <reference path="tick_listener.js"/>
 /// <reference path="ticker.js"/>
+/// <reference path="tween_object.js"/>
 
 /**
  * A class that contains multiple createjs.Tween objects and updates them
@@ -40,14 +40,6 @@
  */
 createjs.Timeline = function(tweens, labels, opt_properties) {
   createjs.EventDispatcher.call(this);
-
-  if (createjs.DEBUG) {
-    /**
-     * An ID for this timeline.
-     * @type {number}
-     */
-    this.id = createjs.Timeline.id_++;
-  }
 
   /**
    * The tweens controlled by this timeline.
@@ -81,19 +73,25 @@ createjs.Timeline = function(tweens, labels, opt_properties) {
 };
 createjs.inherits('Timeline', createjs.Timeline, createjs.EventDispatcher);
 
-if (createjs.DEBUG) {
-  /**
-   * IDs assigned to timelines.
-   * @type {number}
-   */
-  createjs.Timeline.id_ = 0;
-}
-
 /**
  * The total duration of this timeline in milliseconds (or ticks).
  * @type {number}
  */
 createjs.Timeline.prototype['duration'] = 0;
+
+/**
+ * The tweens controlled by this timeline.
+ * @type {Array.<createjs.TweenObject>}
+ * @private
+ */
+createjs.Timeline.prototype.tweens_ = null;
+
+/**
+ * A mapping table from a label name to its position.
+ * @type {Object.<string,number>}
+ * @private
+ */
+createjs.Timeline.prototype.labels_ = null;
 
 /**
  * Whether this timeline loops when it reaches its end.
@@ -116,6 +114,8 @@ createjs.Timeline.prototype.paused_ = false;
  * @private
  */
 createjs.Timeline.prototype.addTweens_ = function(tweens, length) {
+  /// <param type="Array" elementType="createjs.TweenObject" name="tweens"/>
+  /// <param type="number" name="length"/>
   var targets = [];
   for (var i = 0; i < length; ++i) {
     var tween = tweens[i];
@@ -126,7 +126,7 @@ createjs.Timeline.prototype.addTweens_ = function(tweens, length) {
       }
     }
     if (tween) {
-      var duration = tween.setProxy(null, targets);
+      var duration = tween.setProxy(null, targets, null, 0);
       if (this['duration'] < duration) {
         this['duration'] = duration;
       }

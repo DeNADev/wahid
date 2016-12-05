@@ -23,8 +23,9 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="object.js"/>
 /// <reference path="event.js"/>
+/// <reference path="loader.js"/>
+/// <reference path="object.js"/>
 
 /**
  * A singleton class that creates HTMLImageElement objects used in this library.

@@ -259,6 +259,25 @@ createjs.Event.Target.prototype.off =
 };
 
 /**
+ * The type of this event.
+ * @type {string}
+ */
+createjs.Event.prototype.type = '';
+
+/**
+ * The object that triggered this event.
+ * @type {createjs.Event.Target}
+ */
+createjs.Event.prototype['target'] = null;
+
+/**
+ * The current event target, i.e. an object that this event is being
+ * dispatched.
+ * @type {createjs.Event.Target}
+ */
+createjs.Event.prototype['currentTarget'] = null;
+
+/**
  * Indicates whether the event will bubble through CreateJS objects. (This
  * feature is disabled.)
  * @type {boolean}

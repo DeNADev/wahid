@@ -293,7 +293,7 @@ createjs.UserAgent.isAndroidBrowser = function() {
  * Returns whether the hosting browser is Microsoft Edge.
  * @return {boolean}
  */
-createjs.UserAgent.isEdge = function () {
+createjs.UserAgent.isEdge = function() {
   /// <returns type="boolean"/>
   return createjs.UserAgent.compareAgent_(createjs.UserAgent.Type.EDGE);
 };

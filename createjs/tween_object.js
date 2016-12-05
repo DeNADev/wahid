@@ -65,9 +65,12 @@ createjs.TweenObject.prototype.stopTween = function(time) {};
  * Sets a proxy that intermediates this tween and its target.
  * @param {createjs.TweenTarget} proxy
  * @param {Array.<createjs.TweenTarget>} targets
+ * @param {Array.<createjs.TweenObject>} cache
+ * @param {number} cacheId
  * @return {number}
  */
-createjs.TweenObject.prototype.setProxy = function(proxy, targets) {};
+createjs.TweenObject.prototype.setProxy =
+    function(proxy, targets, cache, cacheId) {};
 
 /**
  * Sets the play offset of this tween.

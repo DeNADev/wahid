@@ -23,9 +23,9 @@
  */
 
 /// <reference path="base.js"/>
+/// <reference path="event.js"/>
 /// <reference path="object.js"/>
 /// <reference path="object_list.js"/>
-/// <reference path="event.js"/>
 
 /**
  * A class that can receive events and dispatch events. This class can dispatch

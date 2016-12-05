@@ -23,15 +23,16 @@
  */
 
 /// <reference path="base.js"/>
+/// <reference path="counter.js"/>
+/// <reference path="ease.js"/>
 /// <reference path="event_dispatcher.js"/>
-/// <reference path="tween_object.js"/>
 /// <reference path="tick_listener.js"/>
 /// <reference path="tick_event.js"/>
 /// <reference path="ticker.js"/>
+/// <reference path="tween_motion.js"/>
+/// <reference path="tween_object.js"/>
+/// <reference path="tween_state.js"/>
 /// <reference path="tween_target.js"/>
-/// <reference path="uid.js"/>
-/// <reference path="ease.js"/>
-/// <reference path="counter.js"/>
 
 /**
  * A class that implements a tween.
@@ -39,19 +40,10 @@
  * @extends {createjs.EventDispatcher}
  * @implements {createjs.TweenObject}
  * @implements {createjs.TickListener}
- * @implements {createjs.TweenTarget.Property.Listener}
  * @constructor
  */
 createjs.Tween = function(target) {
   createjs.EventDispatcher.call(this);
-
-  if (createjs.DEBUG) {
-    /**
-     * An ID for this tween.
-     * @type {number}
-     */
-    this.id = createjs.Tween.id_++;
-  }
 
   /**
    * The target object of this tween.
@@ -65,14 +57,6 @@ createjs.Tween = function(target) {
   }
 };
 createjs.inherits('Tween', createjs.Tween, createjs.EventDispatcher);
-
-if (createjs.DEBUG) {
-  /**
-   * IDs assigned to tweens.
-   * @type {number}
-   */
-  createjs.Tween.id_ = 0;
-}
 
 /**
  * Whether the tween loops when it reaches the end.
@@ -121,7 +105,7 @@ createjs.Tween.prototype.seek_ = false;
  * @type {number}
  * @private
  */
-createjs.Tween.prototype.step_ = 1;
+createjs.Tween.prototype.step_ = 0;
 
 /**
  * The index to the current action.
@@ -138,17 +122,19 @@ createjs.Tween.prototype.action_ = 0;
 createjs.Tween.prototype.paused_ = false;
 
 /**
+ * Whether this tween uses a tick count instead of milliseconds as its
+ * position.
  * @type {boolean}
  * @private
  */
 createjs.Tween.prototype.useTicks_ = false;
 
 /**
- * The list of steps added by an application.
- * @type {Array.<createjs.Tween.Step>}
+ * The target object of this tween.
+ * @type {createjs.TweenTarget}
  * @private
  */
-createjs.Tween.prototype.steps_ = null;
+createjs.Tween.prototype.target_ = null;
 
 /**
  * The list of actions added by an application.
@@ -163,6 +149,35 @@ createjs.Tween.prototype.actions_ = null;
  * @private
  */
 createjs.Tween.prototype.commands_ = null;
+
+/**
+ * The list of motions of this tween.
+ * @type {Array.<createjs.TweenMotion>}
+ * @private
+ */
+createjs.Tween.prototype.motions_ = null;
+
+/**
+ * The list of states of this tween.
+ * @type {Array.<createjs.TweenState>}
+ * @private
+ */
+createjs.Tween.prototype.states_ = null;
+
+/**
+ * A mapping table from a target ID to an index to the target list.
+ * @type {Object.<number,number>}
+ * @private
+ */
+createjs.Tween.prototype.targetIds_ = null;
+
+/**
+ * The bit-mask representing the properties changed by this tween. (This mask is
+ * the logical disjunction of the masks of its motions.)
+ * @type {number}
+ * @private
+ */
+createjs.Tween.prototype.mask_ = 0;
 
 /**
  * The target object of this tween.
@@ -215,52 +230,6 @@ createjs.Tween.prototype.registered_ = false;
 createjs.Tween.prototype.time_ = 0;
 
 /**
- * An inner class that represents an animation step of a tween.
- * @param {number} time
- * @param {number} duration
- * @param {Array.<createjs.TweenTarget.Property>} properties
- * @param {createjs.Ease.Delegate} ease
- * @param {boolean} hasNumber
- * @constructor
- */
-createjs.Tween.Step = function(time, duration, properties, ease, hasNumber) {
-  /**
-   * The start time of this step.
-   * @type {number}
-   * @private
-   */
-  this.time_ = time;
-
-  /**
-   * The multiplier that converts a step position [0,duration) to an
-   * interpolation ratio [0,1).
-   * @const {number}
-   * @private
-   */
-  this.scale_ = 1 / duration;
-
-  /**
-   * A list of properties changed by this step.
-   * @const {Array.<createjs.TweenTarget.Property>}
-   */
-  this.properties_ = properties;
-
-  /**
-   * An interpolation function.
-   * @const {createjs.Ease.Delegate}
-   * @private
-   */
-  this.ease_ = ease;
-
-  /**
-   * Whether this step has number properties.
-   * @const {boolean}
-   * @private
-   */
-  this.hasNumber_ = hasNumber;
-};
-
-/**
  * An inner class that represents an action of a tween, a JavaScript function
  * called when a tween reached to the time specified by an application.
  * @param {number} time
@@ -276,36 +245,42 @@ createjs.Tween.Action = function(time, fn, parameters, scope) {
   /// <param type="Object" name="scope"/>
 
   /**
+   * The time to execute this action.
    * @type {number}
    * @private
    */
   this.time_ = time;
 
   /**
+   * The function to be executed by this action.
    * @const {Function}
    * @private
    */
   this.fn_ = fn;
 
   /**
+   * The first parameter to the function.
    * @const {*}
    * @private
    */
   this.param0_ = parameters[0];
 
   /**
+   * The second parameter to the function.
    * @const {*}
    * @private
    */
   this.param1_ = parameters[1];
 
   /**
+   * The third parameter to the function.
    * @const {*}
    * @private
    */
   this.param2_ = parameters[2];
 
   /**
+   * The 'this' parameter to the function.
    * @const {Object}
    * @private
    */
@@ -317,140 +292,31 @@ createjs.Tween.Action = function(time, fn, parameters, scope) {
  * @private
  */
 createjs.Tween.Action.prototype.execute_ = function() {
+  // Use the Function.prototype.call() method to explicitly specify its scope
+  // and parameters.
   this.fn_.call(this.scope_, this.param0_, this.param1_, this.param2_);
 };
 
 /**
- * An inner interface used by the createjs.Tween class to execute an animation
- * command.
- * @interface
- */
-createjs.Tween.Command = function() {};
-
-/**
- * Adds target objects changed by this command to the specified array.
- * @param {Object.<string,createjs.TweenTarget.Property>} properties
- * @param {Object.<string,createjs.TweenTarget.Setter>} setters
- */
-createjs.Tween.Command.prototype.getProperties =
-    function(properties, setters) {};
-
-/**
- * Adds target objects changed by this command to the specified array.
- * @param {number} time
- * @param {Array.<createjs.TweenTarget>} targets
- * @return {number}
- */
-createjs.Tween.Command.prototype.getTargets = function(time, targets) {};
-
-/**
- * Compiles this command.
- * @param {number} time
- * @param {createjs.TweenTarget} target
- * @param {Array.<createjs.TweenTarget>} targets
- * @param {Object.<string,createjs.TweenTarget.Property>} current
- * @param {Array.<createjs.Tween.Step>} steps
- * @return {number}
- */
-createjs.Tween.Command.prototype.compile =
-    function(time, target, targets, current, steps) {};
-
-/**
- * An inner class used by the createjs.Tween class to halt an animation.
+ * An inner class that encapsulates a command added to a createjs.Tween object.
+ * The createjs.Tween object compiles the commands added to it into internal
+ * objects to calculate values frequently-used while it plays an animation in
+ * advance.
  * @param {number} duration
- * @implements {createjs.Tween.Command}
+ * @param {Object} properties
+ * @param {createjs.Ease.Delegate} ease
  * @constructor
  */
-createjs.Tween.Wait = function(duration) {
+createjs.Tween.Command = function(duration, properties, ease) {
+  /// <param type="number" name="duration"/>
+  /// <param type="Object" name="propertiess"/>
+  /// <param type="createjs.Ease.Delegate" name="ease"/>
   /**
    * The duration of this command.
    * @const {number}
    * @private
    */
   this.duration_ = duration;
-};
-
-/** @override */
-createjs.Tween.Wait.prototype.getProperties = function(properties, setters) {
-};
-
-/** @override */
-createjs.Tween.Wait.prototype.getTargets = function(time, targets) {
-  /// <param type="number" name="time"/>
-  /// <param type="Array" elementType="createjs.TweenTarget" name="targets"/>
-  /// <returns type="number"/>
-  return this.duration_;
-};
-
-/** @override */
-createjs.Tween.Wait.prototype.compile =
-    function(time, target, targets, current, steps) {
-  /// <param type="number" name="time"/>
-  /// <param type="createjs.TweenTarget" name="target"/>
-  /// <param type="Array" elementType="createjs.TweenTarget" name="targets"/>
-  /// <param type="Object" name="current"/>
-  /// <param type="Array" elementType="createjs.Tween.Step" name="steps"/>
-  /// <returns type="number"/>
-  var clone = [];
-  for (var key in current) {
-    // CRATLSPRT-47: this wait command increases the tween position by the
-    // specified duration, i.e. its end value is (the current position) + (its
-    // duration).
-    var property;
-    if (key == 'startPosition') {
-      property = current[key].clone(target, targets, time + this.duration_);
-    } else {
-      property = current[key].clone(target, targets);
-    }
-    clone.push(property);
-  }
-  steps.push(new createjs.Tween.Step(
-      time, this.duration_, clone, null, false));
-  return this.duration_;
-};
-
-/**
- * An inner class used by the createjs.Tween class to move a display object
- * along the specified quadratic-Bezier paths.
- * @param {Array.<number>} path
- * @param {number} start
- * @param {number} end
- * @param {boolean} orientation
- * @param {Object} properties
- * @param {number} duration
- * @param {createjs.Ease.Delegate} ease
- * @implements {createjs.Tween.Command}
- * @constructor
- */
-createjs.Tween.Guide =
-    function(path, start, end, orientation, properties, duration, ease) {
-  /**
-   * An array of points.
-   * @const {Array.<number>}
-   * @private
-   */
-  this.path_ = path;
-
-  /**
-   * The start position.
-   * @const {number}
-   * @private
-   */
-  this.start_ = start || 0;
-
-  /**
-   * The end position.
-   * @const {number}
-   * @private
-   */
-  this.end_ = (end == null) ? 1 : end;
-
-  /**
-   * The orientation.
-   * @const {number}
-   * @private
-   */
-  this.orientation_ = createjs.Tween.Guide.getOrientation_(orientation);
 
   /**
    * The set of properties to be changed by this command.
@@ -458,20 +324,6 @@ createjs.Tween.Guide =
    * @private
    */
   this.properties_ = properties;
-
-  /**
-   * The duration of this command.
-   * @const {number}
-   * @private
-   */
-  this.duration_ = duration;
-
-  /**
-   * The current position in this command.
-   * @type {number}
-   * @private
-   */
-  this.position_ = 0;
 
   /**
    * The interpolation function.
@@ -482,396 +334,81 @@ createjs.Tween.Guide =
 };
 
 /**
- * Returns a number representing the orientation.
- * @param {string|boolean} orientation
- * @return {number}
- * @private
- */
-createjs.Tween.Guide.getOrientation_ = function(orientation) {
-  if (!orientation) {
-    return createjs.TweenTarget.Orientation.NONE;
-  } else if (orientation == 'auto') {
-    return createjs.TweenTarget.Orientation.AUTO;
-  } else if (orientation == 'cw') {
-    return createjs.TweenTarget.Orientation.CLOCKWISE;
-  } else if (orientation == 'ccw') {
-    return createjs.TweenTarget.Orientation.COUNTERCLOCKWISE;
-  } else {
-    return createjs.TweenTarget.Orientation.FIXED;
-  }
-};
-
-/**
- * Adds an animation step.
+ * Compiles this command and Writes its result to a createjs.TweenMotion object.
  * @param {number} time
- * @param {createjs.TweenTarget.NumberProperty} x
- * @param {createjs.TweenTarget.NumberProperty} y
- * @param {createjs.TweenTarget.NumberProperty} rotation
- * @param {number} index
- * @param {number} t0
- * @param {number} t1
- * @param {number} unit
- * @param {number} offset
- * @param {Object.<string,createjs.TweenTarget.Property>} current
- * @param {Array.<createjs.Tween.Step>} steps
+ * @param {createjs.TweenTarget} target
+ * @param {createjs.TweenMotion} motion
  * @return {number}
- * @private
+ * @const
  */
-createjs.Tween.Guide.prototype.addStep_ = function(
-    time, x, y, rotation, index, t0, t1, unit, offset, current, steps) {
-  /// <param type="number" name="time"/>
-  /// <param type="createjs.TweenTarget.NumberProperty" name="x"/>
-  /// <param type="createjs.TweenTarget.NumberProperty" name="y"/>
-  /// <param type="createjs.TweenTarget.NumberProperty" name="rotation"/>
-  /// <param type="number" name="index"/>
-  /// <param type="number" name="t0"/>
-  /// <param type="number" name="t1"/>
-  /// <param type="number" name="unit"/>
-  /// <param type="number" name="offset"/>
-  /// <param type="Object" name="current"/>
-  /// <param type="Array" elementType="createjs.Tween.Step" name="steps"/>
-  /// <returns type="number"/>
-  var size = t1 - t0;
-  var duration = unit * size;
-  var clone = [];
-  if (duration == 1) {
-    // Games may use a path property to specify the position of a target object
-    // frame by frame. In this case, this code adds NumberProperty objects
-    // instead of adding a PathProperty object to use linear interpolation.
-    clone.push(
-        createjs.TweenTarget.NumberProperty.clone(x, this.path_[index + 4]),
-        createjs.TweenTarget.NumberProperty.clone(y, this.path_[index + 5]));
-  } else {
-    clone.push(createjs.TweenTarget.PathProperty.get(
-        x, y, this.path_, index, t0, size));
-    if (this.orientation_) {
-      clone.push(createjs.TweenTarget.RotationProperty.get(
-          rotation, this.path_, index, t0, size, this.orientation_, offset));
-    }
-  }
-  var r0 = this.position_ / this.duration_;
-  this.position_ += duration;
-  var r1 = this.position_ / this.duration_;
-  for (var key in current) {
-    if (key != 'x' && key != 'y') {
-      if (this.orientation_ && key == 'rotation') {
-        continue;
-      }
-      var start = current[key];
-      var property = start.interpolate(this.properties_[key], r0, r1);
-      clone.push(property);
-    }
-  }
-  steps.push(new createjs.Tween.Step(time, duration, clone, this.ease_, true));
-  return duration;
-};
-
-/**
- * Updates the current properties.
- * @param {Object.<string,createjs.TweenTarget.Property>} current
- * @param {createjs.TweenTarget.Property} x
- * @param {createjs.TweenTarget.Property} y
- * @param {number} index
- * @param {number} t
- * @param {createjs.TweenTarget} target
- * @private
- */
-createjs.Tween.Guide.prototype.update_ =
-    function(current, x, y, index, t, target) {
-  /// <param type="Object" name="current"/>
-  /// <param type="createjs.TweenTarget.Property name="x"/>
-  /// <param type="createjs.TweenTarget.Property name="y"/>
-  /// <param type="number name="index"/>
-  /// <param type="number name="t"/>
-  /// <param type="createjs.TweenTarget name="target"/>
-  var path = this.path_;
-  var endX = path[index + 4];
-  var endY = path[index + 5];
-  if (t < 1) {
-    var t_ = 1 - t;
-    var t0 = t_ * t_;
-    var t1 = 2 * t_ * t;
-    var t2 = t * t;
-    endX = t0 * path[index] + t1 * path[index + 2] + t2 * endX;
-    endY = t0 * path[index + 1] + t1 * path[index + 3] + t2 * endY;
-  }
-  current['x'] = x.clone(target, null, endX);
-  current['y'] = y.clone(target, null, endY);
-  for (var key in this.properties_) {
-    if (key != 'guide') {
-      current[key] = current[key].clone(target, null, this.properties_[key]);
-    }
-  }
-};
-
-/** @override */
-createjs.Tween.Guide.prototype.getProperties = function(current, setters) {
-  /// <param type="Object" name="properties"/>
-  /// <param type="Object" name="setters"/>
-  var KEYS = ['x', 'y', 'rotation'];
-  var length = this.orientation_ ? 3 : 2;
-  for (var i = 0; i < length; ++i) {
-    var key = KEYS[i];
-    if (!current[key]) {
-      current[key] = createjs.TweenTarget.Property.get(setters[key]);
-    }
-  }
-  for (var key in this.properties_) {
-    if (key != 'guide') {
-      var setter = setters[key];
-      if (setter && !current[key]) {
-        current[key] = createjs.TweenTarget.Property.get(setter);
-      }
-    }
-  }
-};
-
-/** @override */
-createjs.Tween.Guide.prototype.getTargets = function(time, targets) {
-  /// <param type="number" name="time"/>
-  /// <param type="Array" elementType="createjs.TweenTarget" name="targets"/>
-  /// <returns type="number"/>
-  return this.duration_;
-};
-
-/** @override */
-createjs.Tween.Guide.prototype.compile =
-    function(time, target, targets, current, steps) {
+createjs.Tween.Command.prototype.setMotion = function(time, target, motion) {
   /// <param type="number" name="time"/>
   /// <param type="createjs.TweenTarget" name="target"/>
-  /// <param type="Array" elementType="createjs.TweenTarget" name="targets"/>
-  /// <param type="Object" name="current"/>
-  /// <param type="Array" elementType="createjs.Tween.Step" name="steps"/>
-  /// <returns type="number"/>
-  var length = this.path_.length;
-  var segments = (length - 2) >> 2;
-  var start = this.start_ * segments;
-  var end = this.end_ * segments;
-  var unit = this.duration_ / (end - start);
-  var x = /** @type {createjs.TweenTarget.NumberProperty} */ (current['x']);
-  var y = /** @type {createjs.TweenTarget.NumberProperty} */ (current['y']);
-  var rotation =
-      /** @type {createjs.TweenTarget.NumberProperty} */ (current['rotation']);
-  createjs.assert(x instanceof createjs.TweenTarget.NumberProperty);
-  createjs.assert(y instanceof createjs.TweenTarget.NumberProperty);
-
-  // Split the path of this guide into multiple Bezier curves and create a step
-  // for each curve, e.g. a guide property consisting of two Bezier curves is
-  // split into two guide properties each of which consists of one Bezier curve
-  // as listed below.
-  //   'duration': 100, 'guide': { 'path': [0, 0, 50, 0, 50, 50, 0, 50, 0, 0] }
-  //   -> 'duration': 50, 'guide': { 'path': [0, 0, 50, 0, 50, 50] },
-  //      'duration': 50, 'guide': { 'path': [50, 50, 0, 50, 0, 0] },
-  // This code also splits the duration value according to the length of each
-  // curve.
-  if (end >= start) {
-    var offset = createjs.TweenTarget.RotationProperty.getOffset(this.path_, 0);
-    for (var i = 6; i <= length && 0 <= end; i += 4, --start, --end) {
-      if (1 <= start) {
-        continue;
-      }
-      var t0 = createjs.max(0, start);
-      var t1 = createjs.min(1, end);
-      time += this.addStep_(
-          time, x, y, rotation, i - 6, t0, t1, unit, offset, current, steps);
+  /// <param type="createjs.TweenMotion" name="motion"/>
+  motion.initialize(time, this.duration_, null);
+  if (this.properties_) {
+    var graphics = motion.updateProperties(this.properties_);
+    if (graphics) {
+      target.addGraphics(graphics);
     }
-    length -= 6;
-    ++end;
-  } else {
-    var offset = createjs.TweenTarget.RotationProperty.getOffset(
-        this.path_, length - 6);
-    start -= segments;
-    end -= segments;
-    for (var i = length - 6; i >= 0 && end < 0; i -= 4) {
-      ++start;
-      ++end;
-      if (start <= 0) {
-        continue;
-      }
-      var t0 = createjs.min(1, start);
-      var t1 = createjs.max(0, end);
-      time += this.addStep_(
-          time, x, y, rotation, i, t0, t1, unit, offset, current, steps);
-    }
-    length = 0;
-  }
-  // Calculate the last position of this tween and update the current property.
-  this.update_(current, x, y, length, end, target);
-  return this.duration_;
-};
-
-/**
- * An inner class used by the createjs.Tween class to move an animation.
- * @param {Object} properties
- * @param {number} duration
- * @param {createjs.Ease.Delegate} ease
- * @implements {createjs.Tween.Command}
- * @constructor
- */
-createjs.Tween.To = function(properties, duration, ease) {
-  /**
-   * The set of properties to be changed by this command.
-   * @const {Object}
-   * @private
-   */
-  this.properties_ = properties;
-
-  /**
-   * The duration of this command.
-   * @const {number}
-   * @private
-   */
-  this.duration_ = duration;
-
-  /**
-   * The interpolation function.
-   * @const {createjs.Ease.Delegate}
-   * @private
-   */
-  this.ease_ = ease;
-};
-
-/** @override */
-createjs.Tween.To.prototype.getProperties = function(current, setters) {
-  /// <param type="Object" name="current"/>
-  /// <param type="Object" name="setters"/>
-  for (var key in this.properties_) {
-    var setter = setters[key];
-    if (setter && !current[key]) {
-      var property = createjs.TweenTarget.Property.get(setter);
-      if (property){
-        current[key] = property;
-      }
-    }
-  }
-};
-
-/** @override */
-createjs.Tween.To.prototype.getTargets = function(time, targets) {
-  /// <param type="number" name="time"/>
-  /// <param type="Array" elementType="createjs.TweenTarget" name="targets"/>
-  /// <returns type="number"/>
-  return this.duration_;
-};
-
-/** @override */
-createjs.Tween.To.prototype.compile =
-    function(time, target, targets, current, steps) {
-  /// <param type="number" name="time"/>
-  /// <param type="createjs.TweenTarget" name="target"/>
-  /// <param type="Array" elementType="createjs.TweenTarget" name="targets"/>
-  /// <param type="Object" name="current"/>
-  /// <param type="Array" elementType="createjs.Tween.Step" name="steps"/>
-  /// <returns type="number"/>
-
-  // Create a set of properties to be set in this step.
-  var clone = [];
-  var hasNumber = 0;
-  for (var key in current) {
-    var start = current[key];
-    var property = start.clone(target, null, this.properties_[key]);
-    clone.push(property);
-    hasNumber |= property.isNumber();
-    current[key] = property;
-  }
-  if (this.duration_) {
-    steps.push(new createjs.Tween.Step(
-        time, this.duration_, clone, this.ease_, !!hasNumber));
   }
   return this.duration_;
 };
 
 /**
- * An inner class used by the createjs.Tween class to add display objects or to
- * remove them.
- * @param {Array.<Object>} end
- * @param {number} duration
- * @implements {createjs.Tween.Command}
- * @constructor
- */
-createjs.Tween.State = function(end, duration) {
-  /**
-   * The list of states to be changed by this command. Each state is an Object
-   * consisting of two properties as listed in the following table.
-   *   +-----+------------------------------------------------------+
-   *   | key |                         value                        |
-   *   +-----+----------------------------------------+-------------+
-   *   |     | type                                   | description |
-   *   +-----+----------------------------------------+-------------+
-   *   | 't' | createjs.TweenTarget                   | target      |
-   *   | 'p' | Object,<string,boolean|number|string>  | properties  |
-   *   +-----+----------------------------------------+-------------+
-   * @const {Array.<Object>}
-   * @private
-   */
-  this.end_ = end;
-
-  /**
-   * The duration of this command.
-   * @const {number}
-   * @private
-   */
-  this.duration_ = duration;
-};
-
-/**
- * Adds the specified target to the specified array if the array does not have
- * the target.
+ * Compiles this command and writes its result to a createjs.TweenState object.
  * @param {number} time
- * @param {Array.<createjs.TweenTarget>} targets
- * @param {createjs.TweenTarget} target
- * @private
+ * @param {Object.<number,number>} ids
+ * @param {createjs.TweenState} state
+ * @return {number}
+ * @const
  */
-createjs.Tween.State.prototype.addTarget_ = function(time, targets, target) {
+createjs.Tween.Command.prototype.setState = function(time, ids, state) {
   /// <param type="number" name="time"/>
-  /// <param type="Array" elementType="createjs.TweenTarget" name="targets"/>
-  /// <param type="createjs.TweenTarget" name="target"/>
-  for (var i = 0; i < targets.length; ++i) {
-    if (targets[i] === target) {
-      return;
+  /// <param type="Object" elementType="number" name="ids"/>
+  /// <param type="createjs.TweenState" name="state"/>
+  state.initialize(time, this.duration_, null);
+  if (this.properties_) {
+    // Retrieve a copy of all targets changed by this tween and set false to the
+    // '_off' properties of all targets in this state, i.e. attach all targets
+    // in this state.
+    var values = state.copyValues();
+
+    // A 'state' property is an array of objects consisting of two properties as
+    // listed below.
+    //   +-----+------------------------------------------------------+
+    //   | key |                         value                        |
+    //   +-----+----------------------------------------+-------------+
+    //   |     | type                                   | description |
+    //   +-----+----------------------------------------+-------------+
+    //   | 't' | createjs.TweenTarget                   | target      |
+    //   | 'p' | Object,<string,boolean|number|string>  | properties  |
+    //   +-----+----------------------------------------+-------------+
+    var end_ = /** @type {Array.<Object>} */ (this.properties_['state']);
+    var length = end_.length;
+    for (var i = 0; i < length; ++i) {
+      var end = end_[i];
+      var t = /** @type {createjs.TweenTarget} */ (end['t']);
+      var id = ids[t.getTargetId()];
+      var value = values[id];
+      value.updateOff(0);
+      var p = /** @type {Object} */ (end['p']);
+      if (p) {
+        value.updateProperties(p);
+      }
+      values[id] = null;
     }
-  }
-  target.setOff(!!time);
-  targets.push(target);
-};
-
-/** @override */
-createjs.Tween.State.prototype.getProperties = function(properties, setters) {
-  createjs.notReached();
-};
-
-/** @override */
-createjs.Tween.State.prototype.getTargets = function(time, targets) {
-  /// <param type="number" name="time"/>
-  /// <param type="Array" elementType="createjs.TweenTarget" name="targets"/>
-  /// <returns type="number"/>
-  for (var i = 0; i < this.end_.length; ++i) {
-    this.addTarget_(time, targets, this.end_[i]['t']);
-  }
-  return this.duration_;
-};
-
-/** @override */
-createjs.Tween.State.prototype.compile =
-    function(time, target, targets, current, steps) {
-  /// <param type="number" name="time"/>
-  /// <param type="createjs.TweenTarget" name="target"/>
-  /// <param type="Array" elementType="createjs.TweenTarget" name="targets"/>
-  /// <param type="Object" name="current"/>
-  /// <param type="Array" elementType="createjs.Tween.Step" name="steps"/>
-  /// <returns type="number"/>
-  createjs.assert(!!targets);
-
-  var key = 'state';
-  var start = current[key];
-  if (!start) {
-    start = createjs.TweenTarget.StateProperty.get(targets);
-  }
-  var property = start.clone(null, targets, this.end_);
-  current[key] = property;
-  if (this.duration_) {
-    steps.push(new createjs.Tween.Step(
-        time, this.duration_, [property], null, false));
+    // This values array now consists of targets not in this state. Set true to
+    // their '_off' properties, i.e. detach all targets not in this state.
+    if (length < values.length) {
+      length = values.length;
+      for (var i = 0; i < length; ++i) {
+        var value = values[i];
+        if (value) {
+          value.updateOff(1);
+        }
+      }
+    }
   }
   return this.duration_;
 };
@@ -912,29 +449,108 @@ createjs.Tween.get =
 
 /**
  * Compiles tween commands and creates steps.
+ * @param {Array.<createjs.TweenObject>} cache
+ * @param {number} cacheId
  * @private
  */
-createjs.Tween.prototype.compileCommands_ = function() {
+createjs.Tween.prototype.compileCommands_ = function(cache, cacheId) {
+  /// <param type="Array" elementType="createjs.TweenObject" name="cache"/>
+  /// <param type="number" name="cacheId"/>
   if (!this.commands_) {
     return;
   }
-  if (!this.steps_) {
-    this.steps_ = [];
+  // Use the cached values and states, which do not depend either on tweens or
+  // on target objects, when a proxy caches compiled tweens.
+  var commands = this.commands_;
+  this.commands_ = null;
+  if (cache) {
+    var tween = /** @type {createjs.Tween} */ (cache[cacheId]);
+    if (tween) {
+      this.motions_ = tween.motions_;
+      this.states_ = tween.states_;
+      this.mask_ = tween.mask_;
+      return;
+    }
+    cache[cacheId] = this;
   }
-  var current = {};
-  var length = this.commands_.length;
+  // Compile the commands added to this tween. This code roughly compiles a
+  // command as listed below:
+  // 1. Create a createjs.TweenMotion (createjs.TweenState) object;
+  // 2. Retrieve the property values at the beginning of the command and write
+  //    them to the object, and;
+  // 3. Calculate the property values at the end of the command and write them
+  //    to the object.
   if (this.target_) {
-    // Retrieve the values of all properties used by this tween.
-    var setters = this.target_.getSetters();
-    for (var i = 0; i < length; ++i) {
-      this.commands_[i].getProperties(current, setters);
+    // This tweens is a motion tween. Compile the first command of this motion
+    // tween. The property values at its beginning are either:
+    // * The property values of the target display object, or;
+    // * The property values at the end of the last motion.
+    var motion = new createjs.TweenMotion();
+    if (!this.motions_) {
+      this.motions_ = [];
+      this.target_.getTweenMotion(motion);
+    } else {
+      this.motions_[this.motions_.length - 1].copy(motion);
+    }
+    var duration = commands[0].setMotion(this.time_, this.target_, motion);
+    if (duration) {
+      this.time_ += duration;
+      this.motions_.push(motion);
+    }
+    // Compile every other command. The property values at its beginning is
+    // always to the ones at the end of its predecessor.
+    var length = commands.length;
+    for (var i = 1; i < length; ++i) {
+      var nextMotion = new createjs.TweenMotion();
+      motion.copy(nextMotion);
+      duration = commands[i].setMotion(this.time_, this.target_, nextMotion);
+      if (duration) {
+        this.time_ += duration;
+        this.motions_.push(nextMotion);
+      }
+      motion = nextMotion;
+    }
+    // Copy the mask of the last motion, which represents all properties changed
+    // by this tween. (This mask is used in moving its position backwards.)
+    this.mask_ |= motion.getMask();
+  } else {
+    // This tween is a state tween. A game often uses state tweens just to
+    // wait for ticks and run actions. Such state tweens do not add targets
+    // and this method should initialize its target array.
+    if (!this.targets_) {
+      this.targets_ = [];
+      this.targetIds_ = {};
+    }
+    // Compile the commands queued to this state tween. This compilation code is
+    // same as the one for the state tween except this code needs to generate a
+    // list of motions for each of its targets.
+    var size = this.targets_.length;
+    var state = new createjs.TweenState(size);
+    if (!this.states_) {
+      this.states_ = [];
+      for (var i = 0; i < size; ++i) {
+        this.targets_[i].getTweenMotion(state.get(i));
+      }
+    } else {
+      this.states_[this.states_.length - 1].copy(state);
+    }
+    var duration = commands[0].setState(this.time_, this.targetIds_, state);
+    if (duration) {
+      this.time_ += duration;
+      this.states_.push(state);
+    }
+    var length = commands.length;
+    for (var i = 1; i < length; ++i) {
+      var nextState = new createjs.TweenState(size);
+      state.copy(nextState);
+      duration = commands[i].setState(this.time_, this.targetIds_, nextState);
+      if (duration) {
+        this.time_ += duration;
+        this.states_.push(nextState);
+      }
+      state = nextState;
     }
   }
-  for (var i = 0; i < length; ++i) {
-    this.time_ += this.commands_[i].compile(
-        this.time_, this.target_, this.targets_, current, this.steps_);
-  }
-  this.commands_ = null;
 };
 
 /**
@@ -979,31 +595,6 @@ createjs.Tween.prototype.unregister_ = function(target) {
 createjs.Tween.prototype.setProperties_ = function(properties, target) {
   /// <param type="Object" name="properties"/>
   /// <param type="createjs.TweenTarget" name="target"/>
-  var values = createjs.TweenTarget.ValueProperty.get(properties);
-  for (var i = 0; i < values.length; ++i) {
-    values[i].setValue(target);
-  }
-};
-
-/**
- * Retrieves the animation step.
- * @param {number} position
- * @return {createjs.Tween.Step}
- * @private
- */
-createjs.Tween.prototype.getStep_ = function(position) {
-  /// <param type="number" name="position"/>
-  /// <returns type="createjs.Tween.Step"/>
-  var i = createjs.max(this.step_, 0);
-  var length = this.steps_.length;
-  for (; i < length; ++i) {
-    if (this.steps_[i].time_ > position) {
-      break;
-    }
-  }
-  --i;
-  this.step_ = i;
-  return this.steps_[i];
 };
 
 /**
@@ -1020,51 +611,79 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
   if (createjs.DEBUG) {
     ++createjs.Counter.runningTweens;
   }
-  this.compileCommands_();
+  this.compileCommands_(null, 0);
   if (position >= this.duration_) {
     if (!this.loop_ || !this.duration_) {
       position = this.duration_;
       this.ended_ = true;
     } else {
       position %= this.duration_;
-      this.step_ = 1;
+      this.step_ = 0;
     }
   }
-  // This tween is playing now. Retrieve the animation being played now and
-  // update the state of its target. (This code does not need to compare with
-  // |step[1].time_| because it represents the beginning of this animation,
-  // i.e. |step[0].time_| is always 0.)
-  if (!this.steps_) {
-    return position;
-  }
-  var index = this.step_;
-  var step = this.getStep_(position);
-  if (!step) {
-    return position;
-  }
-  var stepPosition = position - step.time_;
-  var stepRatio = stepPosition * step.scale_;
-  var updated = seek || stepRatio == 0 || stepRatio == 1;
-  if (!step.hasNumber_ && index == this.step_) {
-    if (!updated) {
-      return position;
+  // Update the target (or targets) of this tween.
+  if (this.target_) {
+    if (this.motions_) {
+      // Find a motion matching to the current position (or time) of this
+      // tween and copy its values to the target of this tween.
+      var length = this.motions_.length - 1;
+      for (var i = this.step_; i < length; ++i) {
+        var motion = this.motions_[i];
+        if (motion.contain(position)) {
+          if (motion.needUpdate(position, seek, i, this.step_)) {
+            var mask = motion.interpolate(position);
+            if (mask & (1 << createjs.TweenMotion.ID.LOOP)) {
+              this.loop_ = motion.getLoop();
+            }
+            this.target_.setTweenMotion(
+                motion, seek ? this.mask_ : mask, this.proxy_);
+          }
+          this.step_ = i;
+          return position;
+        }
+      }
+      // Copy the values of the last motion when its predecessors do not the
+      // contain the current position.
+      var motion = this.motions_[length];
+      if (motion.needUpdate(position, seek, length, this.step_)) {
+        var mask = motion.interpolate(position);
+        if (mask & (1 << createjs.TweenMotion.ID.LOOP)) {
+          this.loop_ = motion.getLoop();
+        }
+        this.target_.setTweenMotion(
+            motion, seek ? this.mask_ : mask, this.proxy_);
+      }
+      this.step_ = length;
     }
-  }
-  if (createjs.DEBUG) {
-    ++createjs.Counter.updatedTweens;
-  }
-  var ratio = step.ease_ ? step.ease_.interpolate(stepRatio) : stepRatio;
-  // It is slow for a tween to change the positions of movie clips. To avoid it,
-  // a tween sets the position of movie clips only when it needs to, i.e.:
-  // * when a game has changed the position of this tween,
-  // * when this tween is at the beginning of a step, or;
-  // * when this tween is at the end of a step.
-  if (!updated) {
-    stepRatio = -1;
-  }
-  for (var i = 0; i < step.properties_.length; ++i) {
-    step.properties_[i].setValue(
-        this.target_, this.proxy_, ratio, this, stepRatio, this.targets_);
+  } else {
+    if (this.states_) {
+      var length = this.states_.length - 1;
+      for (var i = this.step_; i < length; ++i) {
+        var state = this.states_[i];
+        if (state.contain(position)) {
+          if (state.needUpdate(position, seek, i, this.step_)) {
+            var targetLength = this.targets_.length;
+            for (var j = 0; j < targetLength; ++j) {
+              var value = state.get(j);
+              var mask = value.interpolate(position);
+              this.targets_[j].setTweenMotion(value, mask, this.proxy_);
+            }
+          }
+          this.step_ = i;
+          return position;
+        }
+      }
+      var state = this.states_[length];
+      if (state.needUpdate(position, seek, length, this.step_)) {
+        var targetLength = this.targets_.length;
+        for (var j = 0; j < targetLength; ++j) {
+          var value = state.get(j);
+          var mask = value.interpolate(position);
+          this.targets_[j].setTweenMotion(value, mask, this.proxy_);
+        }
+      }
+      this.step_ = length;
+    }
   }
   return position;
 };
@@ -1223,7 +842,7 @@ createjs.Tween.prototype.wait = function(duration, opt_passive) {
   if (!this.commands_) {
     this.commands_ = [];
   }
-  this.commands_.push(new createjs.Tween.Wait(duration));
+  this.commands_.push(new createjs.Tween.Command(duration, null, null));
   this.duration_ += duration;
   return this;
 };
@@ -1247,27 +866,29 @@ createjs.Tween.prototype.to = function(properties, duration, opt_ease) {
   if (!this.commands_) {
     this.commands_ = [];
   }
-  if (this.target_) {
-    var guide = properties['guide'];
-    var ease = opt_ease || null;
-    if (ease === createjs.Ease.linear) {
-      ease = null;
+  var ease = opt_ease || null;
+  if (ease === createjs.Ease.linear) {
+    ease = null;
+  }
+  this.commands_.push(new createjs.Tween.Command(duration, properties, ease));
+  if (!this.target_) {
+    // Scan the specified 'state' property to add targets when this tween is a
+    // state tween.
+    if (!this.targets_) {
+      this.targets_ = [];
+      this.targetIds_ = {};
     }
-    if (guide) {
-      this.commands_.push(new createjs.Tween.Guide(guide['path'],
-                                                   guide['start'],
-                                                   guide['end'],
-                                                   guide['orient'],
-                                                   properties,
-                                                   duration,
-                                                   ease));
-    } else {
-      this.commands_.push(
-          new createjs.Tween.To(properties, duration, ease));
-    }
-  } else {
     var end = /** @type {Array.<Object>} */ (properties['state']);
-    this.commands_.push(new createjs.Tween.State(end, duration));
+    for (var i = 0; i < end.length; ++i) {
+      var state = end[i];
+      var t = /** @type {createjs.TweenTarget} */ (state['t']);
+      var id = t.getTargetId();
+      if (this.targetIds_[id] == null) {
+        var index = this.targets_.length;
+        this.targets_[index] = t;
+        this.targetIds_[id] = index;
+      }
+    }
   }
   this.duration_ += duration;
   return this;
@@ -1411,9 +1032,11 @@ createjs.Tween.prototype.stopTween = function(time) {
 };
 
 /** @override */
-createjs.Tween.prototype.setProxy = function(proxy, targets) {
+createjs.Tween.prototype.setProxy = function(proxy, targets, cache, cacheId) {
   /// <param type="createjs.TweenTarget" name="proxy"/>
   /// <param type="Array" elementType="createjs.TweenTarget" name="targets"/>
+  /// <param type="Array" elementType="createjs.TweenObject" name="cache"/>
+  /// <param type="number" name="cacheId"/>
   /// <returns type="number"/>
   if (!proxy || this.target_ !== proxy) {
     createjs.assert(!this.proxy_);
@@ -1421,15 +1044,11 @@ createjs.Tween.prototype.setProxy = function(proxy, targets) {
     if (this.target_) {
       targets.unshift(this.target_);
     } else {
-      var time = 0;
-      this.targets_ = [];
-      if (this.commands_) {
-        for (var i = 0; i < this.commands_.length; ++i) {
-          time += this.commands_[i].getTargets(time, this.targets_);
-        }
-        if (this.targets_.length) {
-          targets.unshift.apply(targets, this.targets_);
-        }
+      if (!this.targets_) {
+        this.targets_ = [];
+        this.targetIds_ = {};
+      } else {
+        targets.unshift.apply(targets, this.targets_);
       }
     }
     if (proxy) {
@@ -1449,7 +1068,7 @@ createjs.Tween.prototype.setProxy = function(proxy, targets) {
         }
       }
     }
-    this.compileCommands_();
+    this.compileCommands_(cache, cacheId);
     // When this tween has a proxy, the proxy runs the tween on behalf of its
     // target and this tween does not have to register itself to its target any
     // longer. This method marks this tween as registered to prevent this tween
@@ -1472,7 +1091,7 @@ createjs.Tween.prototype.setPosition = function(position, mode) {
   /// <param type="number" name="mode"/>
   // A MovieClip object calls this method with a negative position to reset this
   // tween.
-  this.step_ = 1;
+  this.step_ = 0;
   this.action_ = 0;
   this.ended_ = false;
   if (mode) {
@@ -1514,14 +1133,6 @@ createjs.Tween.prototype.handleTick = function(time) {
   if (this.ended_) {
     createjs.Ticker.removeListener('tick', this, false);
   }
-};
-
-/** @override */
-createjs.Tween.prototype.handleLoopChanged = function(value) {
-  // This method is called when another tween is changing the 'loop' property of
-  // the target object of this tween, which is a createjs.MovieClip object.
-  // Synchronize the loop property of this tween with the one of the target.
-  this.loop_ = value;
 };
 
 // Add getters for applications to access internal variables.

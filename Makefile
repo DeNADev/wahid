@@ -41,8 +41,7 @@ COMMON_SOURCES = createjs/base.js \
                  createjs/script_factory.js
 
 # The source files of our object renderer.
-EASELJS_SOURCES = createjs/uid.js \
-                  createjs/point.js \
+EASELJS_SOURCES = createjs/point.js \
                   createjs/region.js \
                   createjs/rectangle.js \
                   createjs/shadow.js \
@@ -60,6 +59,9 @@ EASELJS_SOURCES = createjs/uid.js \
                   createjs/bounding_box.js \
                   createjs/transform.js \
                   createjs/graphics.js \
+                  createjs/tween_property.js \
+                  createjs/tween_motion.js \
+                  createjs/tween_state.js \
                   createjs/tween_target.js \
                   createjs/display_object.js \
                   createjs/container.js \

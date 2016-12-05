@@ -23,22 +23,24 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="event_dispatcher.js"/>
-/// <reference path="object_list"/>
-/// <reference path="point.js"/>
-/// <reference path="color.js"/>
-/// <reference path="rectangle.js"/>
-/// <reference path="bounding_box.js"/>
-/// <reference path="transform.js"/>
-/// <reference path="filter.js"/>
-/// <reference path="shadow.js"/>
-/// <reference path="renderer.js"/>
-/// <reference path="tween_object.js"/>
-/// <reference path="tween_target.js"/>
-/// <reference path="ticker.js"/>
 /// <reference path="alpha_map_filter.js"/>
+/// <reference path="bounding_box.js"/>
+/// <reference path="color.js"/>
 /// <reference path="color_filter.js"/>
 /// <reference path="color_matrix_filter.js"/>
+/// <reference path="event_dispatcher.js"/>
+/// <reference path="filter.js"/>
+/// <reference path="object_list"/>
+/// <reference path="point.js"/>
+/// <reference path="rectangle.js"/>
+/// <reference path="renderer.js"/>
+/// <reference path="shadow.js"/>
+/// <reference path="ticker.js"/>
+/// <reference path="transform.js"/>
+/// <reference path="tween_motion.js"/>
+/// <reference path="tween_object.js"/>
+/// <reference path="tween_property.js"/>
+/// <reference path="tween_target.js"/>
 
 /**
  * A base class for all drawable objects. This class consists of five
@@ -61,13 +63,13 @@
 createjs.DisplayObject = function() {
   createjs.EventDispatcher.call(this);
 
-  if (createjs.DEBUG) {
-    /**
-     * The Unique ID assigned to this display object.
-     * @type {number}
-     */
-    this.id = createjs.UID.get();
-  }
+  /**
+   * The object ID. This ID is used by tweens to distinguish their targets, i.e.
+   * this ID is unique only among display objects.
+   * @type {number}
+   * @private
+   */
+  this.targetId_ = createjs.DisplayObject.targetId_++;
 
   /**
    * The rendering state of this object, a set of the variables having used by
@@ -316,6 +318,14 @@ createjs.DisplayObject.RenderState.prototype.composition_ =
 createjs.DisplayObject.RenderState.prototype.clip_ = null;
 
 /**
+ * The bounding box of the owner. This bounding box is in the <canvas>
+ * coordinate.
+ * @type {createjs.BoundingBox}
+ * @private
+ */
+createjs.DisplayObject.RenderState.prototype.box_ = null;
+
+/**
  * Retrieves the clipping information.
  * @return {createjs.Renderer.Clip}
  * @const
@@ -510,6 +520,13 @@ createjs.DisplayObject.DIRTY_ALL = createjs.DisplayObject.DIRTY_TRANSFORM |
                                    createjs.DisplayObject.DIRTY_BOX;
 
 /**
+ * The ID generator that generates target IDs.
+ * @type {number}
+ * @private
+ */
+createjs.DisplayObject.targetId_ = 0;
+
+/**
  * Whether this display object should be removed from an object tree. This
  * value is used by tweens to remove a display object.
  * @type {boolean}
@@ -523,14 +540,21 @@ createjs.DisplayObject.prototype['_off'] = false;
  */
 createjs.DisplayObject.prototype['name'] = '';
 
-if (createjs.DEBUG) {
-  /**
-   * The unique ID assigned to this object.
-   * @type {number}
-   * @protected
-   */
-  createjs.DisplayObject.prototype.id = -1;
-}
+/**
+ * The object ID. This ID is used by tweens to distinguish their targets, i.e.
+ * this ID is unique only among display objects.
+ * @type {number}
+ * @private
+ */
+createjs.DisplayObject.prototype.targetId_ = 0;
+
+/**
+ * The rendering state of this object, variables used by a createjs.Renderer
+ * object to render this object.
+ * @type {createjs.DisplayObject.RenderState}
+ * @private
+ */
+createjs.DisplayObject.prototype.state_ = null;
 
 /**
  * A dirty flag, i.e. a flag representing variables that should be re-calculated
@@ -546,6 +570,45 @@ createjs.DisplayObject.prototype.dirty = 0;
  * @protected
  */
 createjs.DisplayObject.prototype.isStage = false;
+
+/**
+ * The position of this display object, relative to its parent.
+ * @type {createjs.Point}
+ * @private
+ */
+createjs.DisplayObject.prototype.position_ = null;
+
+/**
+ * The scaling factor to stretch this display object. For example, setting
+ * scale_.x to 2 will stretch the display object to twice its nominal width.
+ * To flip an object, set the scale to a negative number.
+ * @type {createjs.Point}
+ * @private
+ */
+createjs.DisplayObject.prototype.scale_ = null;
+
+/**
+ * The factor to skew this display object horizontally.
+ * @type {createjs.Point}
+ * @private
+ */
+createjs.DisplayObject.prototype.skew_ = null;
+
+/**
+ * The registration point of this display object. For example, to make a
+ * 100x100px Bitmap rotate around its center, you would set regX and the
+ * DisplayObject.regY property to 50.
+ * @type {createjs.Point}
+ * @private
+ */
+createjs.DisplayObject.prototype.registration_ = null;
+
+/**
+ * The bounding box of this object in the local coordinate system.
+ * @type {createjs.BoundingBox}
+ * @private
+ */
+createjs.DisplayObject.prototype.box_ = null;
 
 /**
  * The rotation in degrees for this display object.
@@ -1876,6 +1939,7 @@ createjs.DisplayObject.prototype.setBounds = function(x, y, width, height) {
 
 /** @override */
 createjs.DisplayObject.prototype.registerTween = function(tween) {
+  /// <param type="createjs.TweenObject" name="tween"/>
   if (!this.tweens_) {
     this.tweens_ = new createjs.DisplayObject.ObjectList();
   } else {
@@ -1893,6 +1957,7 @@ createjs.DisplayObject.prototype.registerTween = function(tween) {
 
 /** @override */
 createjs.DisplayObject.prototype.unregisterTween = function(tween) {
+  /// <param type="createjs.TweenObject" name="tween"/>
   if (this.tweens_) {
     this.tweens_.removeItem(tween);
   }
@@ -1950,11 +2015,13 @@ createjs.DisplayObject.prototype.updateTweens = function(time) {
 
 /** @override */
 createjs.DisplayObject.prototype.hasTweens = function() {
+  /// <returns type="boolean"/>
   return !!this.tweens_ && !!this.tweens_.getLength();
 };
 
 /** @override */
 createjs.DisplayObject.prototype.setTweenPosition = function(position) {
+  /// <param type="number" name="number"/>
   if (this.tweens_) {
     this.tweens_.setPositions_(
         createjs.Ticker.getRunTime(), position, this.paused_);
@@ -1970,6 +2037,9 @@ createjs.DisplayObject.prototype.setTweenPosition = function(position) {
 /** @override */
 createjs.DisplayObject.prototype.setTweenProperties =
     function(loop, position, single) {
+  /// <param type="boolean" name="loop"/>
+  /// <param type="number" name="position"/>
+  /// <param type="boolean" name="single"/>
   if (this.tweens_) {
     this.tweens_.setProperties_(this, loop, position, single);
   }
@@ -2033,49 +2103,85 @@ createjs.DisplayObject.prototype.addGraphics = function(graphics) {
 };
 
 /** @override */
-createjs.DisplayObject.prototype.getSetters = function() {
-  /// <returns type="Object" elementType="createjs.TweenTarget.Setter"/>
-  if (!this.position_) {
-    return null;
-  }
-  var setters = createjs.TweenTarget.Property.getSetters();
-  setters['_off'].setBoolean(this.getOff());
-  setters['x'].setNumber(this.position_.x);
-  setters['y'].setNumber(this.position_.y);
-  setters['scaleX'].setNumber(this.scale_.x);
-  setters['scaleY'].setNumber(this.scale_.y);
-  setters['skewX'].setNumber(this.skew_.x);
-  setters['skewY'].setNumber(this.skew_.y);
-  setters['regX'].setNumber(this.registration_.x);
-  setters['regY'].setNumber(this.registration_.y);
-  setters['rotation'].setNumber(this.rotation_);
-  setters['visible'].setBoolean(this.visible_);
-  setters['alpha'].setNumber(this.alpha_);
+createjs.DisplayObject.prototype.getTargetId = function() {
+  return this.targetId_;
+}
 
-  // Disable setters not available for this object.
-  setters['startPosition'].setNull();
-  setters['loop'].setNull();
-  setters['mode'].setNull();
-  setters['text'].setNull();
-  setters['graphics'].setNull();
-  return setters;
+/** @override */
+createjs.DisplayObject.prototype.getTweenMotion = function(motion) {
+  /// <param type="createjs.TweenMotion" name="motion"/>
+  /// <returns type="boolean"/>
+  if (!this.position_) {
+    return false;
+  }
+  motion.setOff(this.getOff());
+  motion.setX(this.position_.x);
+  motion.setY(this.position_.y);
+  motion.setScaleX(this.scale_.x);
+  motion.setScaleY(this.scale_.y);
+  motion.setSkewX(this.skew_.x);
+  motion.setSkewY(this.skew_.y);
+  motion.setRegX(this.registration_.x);
+  motion.setRegY(this.registration_.y);
+  motion.setRotation(this.rotation_);
+  motion.setVisible(this.visible_);
+  motion.setAlpha(this.alpha_);
+  return true;
 };
 
-// Add setters to allow tweens to change this object.
-createjs.TweenTarget.Property.addSetters({
-  '_off': createjs.DisplayObject.prototype.setOff,
-  'x': createjs.DisplayObject.prototype.setX,
-  'y': createjs.DisplayObject.prototype.setY,
-  'scaleX': createjs.DisplayObject.prototype.setScaleX,
-  'scaleY': createjs.DisplayObject.prototype.setScaleY,
-  'skewX': createjs.DisplayObject.prototype.setSkewX,
-  'skewY': createjs.DisplayObject.prototype.setSkewY,
-  'regX': createjs.DisplayObject.prototype.setRegX,
-  'regY': createjs.DisplayObject.prototype.setRegY,
-  'rotation': createjs.DisplayObject.prototype.setRotation,
-  'visible': createjs.DisplayObject.prototype.setVisible,
-  'alpha': createjs.DisplayObject.prototype.setAlpha
-});
+/** @override */
+createjs.DisplayObject.prototype.setTweenMotion =
+    function(motion, mask, proxy) {
+  /// <param type="createjs.TweenMotion" name="motion"/>
+  /// <param type="number" name="mask"/>
+  /// <param type="createjs.TweenTarget" name="proxy"/>
+  var flag = createjs.DisplayObject.DIRTY_TRANSFORM;
+  if (mask & (1 << createjs.TweenMotion.ID.OFF)) {
+    this.setOff(motion.getOff());
+  }
+  if (mask & (1 << createjs.TweenMotion.ID.X)) {
+    this.position_.x = motion.getX();
+  }
+  if (mask & (1 << createjs.TweenMotion.ID.Y)) {
+    this.position_.y = motion.getY();
+  }
+  if (mask & (1 << createjs.TweenMotion.ID.SCALE_X)) {
+    this.scale_.x = motion.getScaleX();
+  }
+  if (mask & (1 << createjs.TweenMotion.ID.SCALE_Y)) {
+    this.scale_.y = motion.getScaleY();
+  }
+  if (mask & (1 << createjs.TweenMotion.ID.SKEW_X)) {
+    this.skew_.x = motion.getSkewX();
+  }
+  if (mask & (1 << createjs.TweenMotion.ID.SKEW_Y)) {
+    this.skew_.y = motion.getSkewY();
+  }
+  if (mask & (1 << createjs.TweenMotion.ID.REG_X)) {
+    this.registration_.x = motion.getRegX();
+  }
+  if (mask & (1 << createjs.TweenMotion.ID.REG_Y)) {
+    this.registration_.y = motion.getRegY();
+  }
+  if (mask & (1 << createjs.TweenMotion.ID.ROTATION)) {
+    this.rotation_ = motion.getRotation();
+  }
+  if (mask & (1 << createjs.TweenMotion.ID.VISIBLE)) {
+    if (this.visible_ != motion.getVisible()) {
+      flag |= createjs.DisplayObject.DIRTY_ALL;
+      this.visible_ = motion.getVisible();
+    }
+  }
+  if (mask & (1 << createjs.TweenMotion.ID.ALPHA)) {
+    var alpha = motion.getAlpha();
+    if (this.alpha_ != alpha) {
+      flag |= !alpha ? createjs.DisplayObject.DIRTY_ALL :
+          createjs.DisplayObject.DIRTY_PROPERTIES;
+      this.alpha_ = alpha;
+    }
+  }
+  this.setDirty(flag);
+};
 
 // Add getters and setters for applications to access internal variables.
 Object.defineProperties(createjs.DisplayObject.prototype, {

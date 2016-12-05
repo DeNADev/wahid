@@ -1,0 +1,11 @@
+* text=auto eol=lf
+*.html text
+*.js text
+*.css text
+README.md text
+Makefile text eol=auto
+*.jar binary
+*.gif binary
+*.jpeg binary
+*.jpg binary
+*.png binary

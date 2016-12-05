@@ -23,10 +23,10 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="object.js"/>
 /// <reference path="event.js"/>
-/// <reference path="sprite.js"/>
 /// <reference path="movie_clip.js"/>
+/// <reference path="object.js"/>
+/// <reference path="sprite.js"/>
 
 /**
  * A class that creates an interactive button from a createjs.MovieClip instance
@@ -104,6 +104,36 @@ createjs.ButtonHelper = function(target,
   this.goto_(this.out_);
 };
 createjs.inherits('ButtonHelper', createjs.ButtonHelper, createjs.Object);
+
+/**
+ * The target for this button helper.
+ * @type {createjs.MovieClip|createjs.Sprite}
+ * @private
+ */
+createjs.ButtonHelper.prototype.target_ = null;
+
+/**
+ * The label name or frame number to jump when the target receives a 'pressup'
+ * event.
+ * @type {string|number}
+ * @private
+ */
+createjs.ButtonHelper.prototype.out_ = 'out';
+
+/**
+ * The label name or frame number to jump when the target receives a
+ * 'mousedown' event.
+ * @type {string|number}
+ * @private
+ */
+createjs.ButtonHelper.prototype.down_ = 'down';
+
+/**
+ * Whether this ButtonHelper play the target clip.
+ * @type {boolean}
+ * @private
+ */
+createjs.ButtonHelper.prototype.play_ = false;
 
 /**
  * Whether the object is listening events.

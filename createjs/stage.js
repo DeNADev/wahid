@@ -23,19 +23,19 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="container.js"/>
-/// <reference path="tick_listener.js"/>
-/// <reference path="renderer.js"/>
 /// <reference path="canvas_renderer.js"/>
-/// <reference path="webgl_renderer.js"/>
-/// <reference path="user_agent.js"/>
-/// <reference path="counter.js"/>
-/// <reference path="mouse_event.js"/>
-/// <reference path="ticker.js"/>
-/// <reference path="graphics.js"/>
-/// <reference path="sound.js"/>
-/// <reference path="image_factory.js"/>
 /// <reference path="config.js"/>
+/// <reference path="container.js"/>
+/// <reference path="counter.js"/>
+/// <reference path="graphics.js"/>
+/// <reference path="image_factory.js"/>
+/// <reference path="mouse_event.js"/>
+/// <reference path="renderer.js"/>
+/// <reference path="sound.js"/>
+/// <reference path="tick_listener.js"/>
+/// <reference path="ticker.js"/>
+/// <reference path="user_agent.js"/>
+/// <reference path="webgl_renderer.js"/>
 
 /**
  * A class that represents the root node of an object tree.
@@ -168,6 +168,20 @@ createjs.Stage.prototype['mouseY'] = 0;
  * @type {boolean}
  */
 createjs.Stage.prototype['mouseInBounds'] = false;
+
+/**
+ * The renderer interface that renders objects in this stage.
+ * @type {createjs.Renderer}
+ * @private
+ */
+createjs.Stage.prototype.renderer_ = null;
+
+/**
+ * Mapping from a pointer ID to its data.
+ * @type {Array.<createjs.Stage.Pointer>}
+ * @private
+ */
+createjs.Stage.prototype.pointers_ = null;
 
 /**
  * The draw event dispatched to listeners.
@@ -735,8 +749,10 @@ createjs.Stage.prototype.enableDOMEvents = function(enable) {
       this.removeListeners_(canvas, createjs.Stage.Event.MOUSE);
     } else {
       this.addListeners_(canvas, createjs.Stage.Event.MOUSE);
-      window.addEventListener('hashchange', this, false);
-      window.addEventListener('unload', this, false);
+      if (createjs.UserAgent.isIPhone()) {
+        window.addEventListener('hashchange', this, false);
+        window.addEventListener('unload', this, false);
+      }
     }
   }
 };
@@ -890,8 +906,8 @@ createjs.Stage.prototype.handleEvent = function(event) {
   if (processed) {
     this.applyMouseEvent_(event, this.preventDefault_);
     // Kick the global ticker and try updating this stage for Android Chrome,
-    // which dispatches touch events too often and it does not call the
-    // setInterval() callback of the ticker while it sends touch events.
+    // which does not call a setInterval() callback (including the
+    // createjs.Ticker.handleTimeout() method) while it sends touch events.
     createjs.Ticker.kick();
     return;
   }
@@ -903,8 +919,7 @@ createjs.Stage.prototype.handleEvent = function(event) {
   if (type == 'hashchange' || type == 'unload') {
     window.removeEventListener(type, this, false);
     this.removeAllChildren(true);
-    var unload = type == 'unload' ? 1 : 0;
-    createjs.Sound.reset(unload);
+    createjs.Sound.reset(type == 'unload' ? 1 : 0);
     return;
   }
   // Finally, process mouse events.

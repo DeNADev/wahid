@@ -23,11 +23,11 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="display_object.js"/>
-/// <reference path="rectangle.js"/>
 /// <reference path="composer.js"/>
 /// <reference path="config.js"/>
+/// <reference path="display_object.js"/>
 /// <reference path="image_factory.js"/>
+/// <reference path="rectangle.js"/>
 
 /**
  * A class that encapsulates an <img> element or a <canvas> element into a
@@ -36,6 +36,7 @@
  * needs workarounds to render <video> elements inline on Mobile Safari. The
  * createjs.Video class implements these workarounds needed for encapsulating a
  * <video> element into a CreateJS object.
+ * @param {HTMLImageElement|HTMLCanvasElement|string} value
  * @extends {createjs.DisplayObject}
  * @implements {EventListener}
  * @constructor
@@ -52,7 +53,7 @@ createjs.Bitmap = function(value) {
   /// </signature>
   createjs.DisplayObject.call(this);
 
-  // Initialize this object only if its parameter is non-null. Flash-generated 
+  // Initialize this object only if its parameter is non-null. Flash-generated
   // classes use 'derived.prototype = new createjs.Bitmap' to copy the methods
   // of this class and its properties.
   if (value != null) {

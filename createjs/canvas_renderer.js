@@ -23,14 +23,14 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="object.js"/>
-/// <reference path="renderer.js"/>
-/// <reference path="shadow.js"/>
-/// <reference path="rectangle.js"/>
 /// <reference path="counter.js"/>
 /// <reference path="event.js"/>
-/// <reference path="user_agent.js"/>
+/// <reference path="object.js"/>
+/// <reference path="rectangle.js"/>
+/// <reference path="renderer.js"/>
+/// <reference path="shadow.js"/>
 /// <reference path="ticker.js"/>
+/// <reference path="user_agent.js"/>
 
 /**
  * A class that implements the createjs.Renderer interface with Canvas 2D.
@@ -70,6 +70,13 @@ createjs.CanvasRenderer = function(canvas, scissor) {
   }
 };
 createjs.inherits('CanvasRenderer', createjs.CanvasRenderer, createjs.Renderer);
+
+/**
+ * The 2D rendering context attached to the output <canvas> element.
+ * @type {CanvasRenderingContext2D}
+ * @private
+ */
+createjs.CanvasRenderer.prototype.context_ = null;
 
 /**
  * The current alpha value of the output <canvas> element.

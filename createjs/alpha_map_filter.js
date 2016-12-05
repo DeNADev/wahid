@@ -54,6 +54,12 @@ createjs.AlphaMapFilter = function(image) {
 createjs.inherits('AlphaMapFilter', createjs.AlphaMapFilter, createjs.Filter);
 
 /**
+ * The <img> element representing this alpha map.
+ * @type {HTMLImageElement}
+ */
+createjs.AlphaMapFilter.prototype.image = null;
+
+/**
  * Changes the type of the specified Filter object to createjs.AlphaMapFilter.
  * @param {createjs.Filter} filter
  * @return {createjs.AlphaMapFilter}

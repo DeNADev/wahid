@@ -23,9 +23,9 @@
  */
 
 /// <reference path="base.js"/>
+/// <reference path="bounding_box.js"/>
 /// <reference path="display_object.js"/>
 /// <reference path="object_list.js"/>
-/// <reference path="bounding_box.js"/>
 
 /**
  * A class that contains multiple createjs.DisplayObject instances.
@@ -43,6 +43,13 @@ createjs.Container = function() {
   this.children_ = new createjs.ObjectList();
 };
 createjs.inherits('Container', createjs.Container, createjs.DisplayObject);
+
+/**
+ * The list of children of this container.
+ * @type {createjs.ObjectList}
+ * @private
+ */
+createjs.Container.prototype.children_ = null;
 
 /**
  * A clone of the list of the children of this container.

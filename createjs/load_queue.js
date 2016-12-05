@@ -24,8 +24,8 @@
 
 /// <reference path="base.js"/>
 /// <reference path="event_dispatcher.js"/>
-/// <reference path="loader.js"/>
 /// <reference path="file_event.js"/>
+/// <reference path="loader.js"/>
 /// <reference path="sound.js"/>
 
 /**
@@ -120,6 +120,41 @@ createjs.LoadQueue.Listener.prototype.handleFileComplete = function(item) {
   /// <param type="createjs.Loader.Item" name="item"/>
   /// <returns type="boolean"/>
 };
+
+/**
+ * A path that will be prepended onto the item's `src`.
+ * @type {string}
+ * @private
+ */
+createjs.LoadQueue.prototype.basePath_ = '';
+
+/**
+ * A listed of queued items that have not yet started downloading.
+ * @type {Array.<createjs.Loader>}
+ * @private
+ */
+createjs.LoadQueue.prototype.queue_ = null;
+
+/**
+ * An array containing the currently downloading files.
+ * @type {Array.<createjs.Loader>}
+ * @private
+ */
+createjs.LoadQueue.prototype.loading_ = null;
+
+/**
+ * A table from a source or an ID name to a createjs.Loader.Item Object.
+ * @type {Object.<string,createjs.Loader.Item>}
+ * @private
+ */
+createjs.LoadQueue.prototype.items_ = null;
+
+/**
+ * A list of scripts being loaded.
+ * @type {Array.<createjs.Loader.Item>}
+ * @private
+ */
+createjs.LoadQueue.prototype.scripts_ = null;
 
 /**
  * A list of observers who monitors the activities of this object.
@@ -224,7 +259,7 @@ createjs.LoadQueue.prototype.sendFileLoad_ = function(item) {
 };
 
 /**
- * Create a loader for loading the specified item.
+ * Creates a loader for loading the specified item.
  * @param {createjs.Loader.Item} item
  * @return {createjs.Loader}
  * @private

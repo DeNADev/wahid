@@ -23,13 +23,13 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="object.js"/>
-/// <reference path="shadow.js"/>
 /// <reference path="bounding_box.js"/>
 /// <reference path="color.js"/>
-/// <reference path="rectangle.js"/>
-/// <reference path="transform.js"/>
+/// <reference path="object.js"/>
 /// <reference path="point.js"/>
+/// <reference path="rectangle.js"/>
+/// <reference path="shadow.js"/>
+/// <reference path="transform.js"/>
 
 /**
  * An abstract class that renders shapes and objects to an HTMLCanvasElement
@@ -64,6 +64,27 @@ createjs.Renderer = function(canvas, width, height) {
    */
   this.height_ = height;
 };
+
+/**
+ * The output <canvas> element.
+ * @type {HTMLCanvasElement}
+ * @private
+ */
+createjs.Renderer.prototype.canvas_ = null;
+
+/**
+ * The current width of the output <canvas> element.
+ * @type {number}
+ * @private
+ */
+createjs.Renderer.prototype.width_ = 0;
+
+/**
+ * The current height of the output <canvas> element.
+ * @type {number}
+ * @private
+ */
+createjs.Renderer.prototype.height_ = 0;
 
 /**
  * Whether this renderer applies workarounds for Android browsers.

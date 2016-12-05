@@ -23,12 +23,12 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="point.js"/>
 /// <reference path="bounding_box.js"/>
+/// <reference path="point.js"/>
 
 /**
  * A class that represents an affine transformation compatible with the one used
- * by the CanvasRenderingContext2D interface, e.g. a 3x3 matrix listed below:
+ * by the CanvasRenderingContext2D interface, i.e. a 3x3 matrix listed below:
  *   | a c tx |
  *   | b d ty |
  *   | 0 0 1  |

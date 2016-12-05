@@ -52,7 +52,7 @@ createjs.DENA_MAJOR_VERSION = 0;
  * Represents the minor version of this library.
  * @define {number}
  */
-createjs.DENA_MINOR_VERSION = 7;
+createjs.DENA_MINOR_VERSION = 8;
 
 /**
  * Represents the build number of this library. (This define is a placeholder
@@ -78,7 +78,7 @@ createjs.COMPILED = false;
  * Represents whether to enable debugging features.
  * @define {boolean}
  */
-createjs.DEBUG = true;
+createjs.DEBUG = false;
 
 /**
  * An alias of true. (This define is used only for commenting out unused code.)

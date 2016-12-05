@@ -23,11 +23,11 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="display_object.js"/>
-/// <reference path="word_breaker.js"/>
-/// <reference path="tween_target.js"/>
-/// <reference path="shadow.js"/>
 /// <reference path="counter.js"/>
+/// <reference path="display_object.js"/>
+/// <reference path="shadow.js"/>
+/// <reference path="tween_target.js"/>
+/// <reference path="word_breaker.js"/>
 
 /**
  * A class that displays one-line text or multi-line text.
@@ -99,6 +99,20 @@ createjs.Text.Renderer = function() {
   // Use a low-color texture to save memory.
   this.canvas_.format_ = createjs.Renderer.Format.RGBA4444;
 };
+
+/**
+ * The output <canvas> element.
+ * @type {HTMLCanvasElement}
+ * @private
+ */
+createjs.Text.Renderer.prototype.canvas_ = null;
+
+/**
+ * The 2D rendering context attached to the output <canvas> element.
+ * @type {CanvasRenderingContext2D}
+ * @private
+ */
+createjs.Text.Renderer.prototype.context_ = null;
 
 /**
  * The current width of the output <canvas> element.
@@ -335,6 +349,36 @@ createjs.Text.Renderer.prototype.measureText_ = function(text) {
  * @private
  */
 createjs.Text.lineAdvances_ = {};
+
+/**
+ * The text to be displayed.
+ * @type {string}
+ * @private
+ */
+createjs.Text.prototype.text_ = '';
+
+/**
+ * The font style to use. Any valid value for the CSS font attribute is
+ * acceptable (ex. "bold 36px Arial").
+ * @type {string}
+ * @private
+ */
+createjs.Text.prototype.font_ = '';
+
+/**
+ * The color to draw the text in. Any valid value for the CSS color attribute
+ * is acceptable (ex. "#F00"). Default is "#000". It will also accept valid
+ * canvas fillStyle values.
+ * @type {string}
+ * @private
+ */
+createjs.Text.prototype.textColor_ = '';
+
+/**
+ * @type {createjs.Point}
+ * @private
+ */
+createjs.Text.prototype.offset_ = null;
 
 /**
  * The horizontal text alignment. This value must be one of "start", "end",
@@ -931,17 +975,31 @@ createjs.Text.prototype.getBounds = function() {
 };
 
 /** @override */
-createjs.Text.prototype.getSetters = function() {
-  /// <return type="Object" elementType="createjs.TweenTarget.Setter"/>
-  var setters = createjs.Text.superClass_.getSetters.call(this);
-  setters['text'].setString(this.text_);
-  return setters;
+createjs.Text.prototype.getTweenMotion = function (motion) {
+  /// <param type="createjs.TweenMotion" name="motion"/>
+  /// <returns type="boolean"/>
+  if (!createjs.Text.superClass_.getTweenMotion.call(this, motion)) {
+    return false;
+  }
+  motion.setText(this.text_);
+  return true;
 };
 
-// Add a setter to allow tweens to change this object.
-createjs.TweenTarget.Property.addSetters({
-  'text': createjs.Text.prototype.setText
-});
+/** @override */
+createjs.Text.prototype.setTweenMotion = function (motion, mask, proxy) {
+  /// <param type="createjs.TweenMotion" name="motion"/>
+  /// <param type="number" name="mask"/>
+  /// <param type="createjs.TweenTarget" name="proxy"/>
+  if (mask & (1 << createjs.TweenMotion.ID.TEXT)) {
+    var text = motion.getText();
+    if (this.text_ != text) {
+      this.text_ = text;
+      this.lines_ = null;
+      this.textDirty_ = true;
+    }
+  }
+  createjs.Text.superClass_.setTweenMotion.call(this, motion, mask, proxy);
+};
 
 // Add getters and setters for applications to access internal variables.
 Object.defineProperties(createjs.Text.prototype, {

@@ -23,8 +23,8 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="filter.js"/>
 /// <reference path="color_matrix.js"/>
+/// <reference path="filter.js"/>
 
 /**
  * A class encapsulating a color-matrix filter of CreateJS.
@@ -45,6 +45,13 @@ createjs.ColorMatrixFilter = function(matrix) {
 createjs.inherits('ColorMatrixFilter',
                   createjs.ColorMatrixFilter,
                   createjs.Filter);
+
+/**
+ * The color matrix used by this filter.
+ * @type {createjs.ColorMatrix}
+ * @private
+ */
+createjs.ColorMatrixFilter.prototype.matrix_ = null;
 
 /**
  * Changes the type of the specified Filter object to createjs.ColorFilter.

@@ -38,19 +38,19 @@ createjs.ColorMatrix = function(brightness, contrast, saturation, hue) {
   /// <param type="number" name="contrast"/>
   /// <param type="number" name="saturation"/>
   /// <param type="number" name="hue"/>
-  /**
-   * The color matrix. Even though this is a 5x5 matrix, this class actually
-   * uses its 4x5 sub-matrix.
-   * @type {Array.<number>}
-   * @private
-   */
-  this.matrix_ = null;
-
   this.setColor(brightness, contrast, saturation, hue);
 };
 createjs.inherits('ColorMatrix',
                   createjs.ColorMatrix,
                   createjs.Object);
+
+/**
+ * The color matrix. Even though this is a 5x5 matrix, this class actually
+ * uses its 4x5 sub-matrix.
+ * @type {Array.<number>}
+ * @private
+ */
+createjs.ColorMatrix.prototype.matrix_ = null;
 
 /**
  * Initializes this matrix and applies color filters.
@@ -59,6 +59,7 @@ createjs.inherits('ColorMatrix',
  * @param {number} saturation
  * @param {number} hue
  * @return {createjs.ColorMatrix}
+ * @const
  */
 createjs.ColorMatrix.prototype.setColor =
     function(brightness, contrast, saturation, hue) {
@@ -73,6 +74,7 @@ createjs.ColorMatrix.prototype.setColor =
 /**
  * Sets this matrix to the identify one.
  * @return {createjs.ColorMatrix}
+ * @const
  */
 createjs.ColorMatrix.prototype.reset = function() {
   /// <returns type="createjs.ColorMatrix"/>

@@ -24,9 +24,9 @@
 
 /// <reference path="base.js"/>
 /// <reference path="event_dispatcher.js"/>
+/// <reference path="object_list.js"/>
 /// <reference path="tick_event.js"/>
 /// <reference path="tick_listener.js"/>
-/// <reference path="object_list.js"/>
 /// <reference path="user_agent.js"/>
 
 /**

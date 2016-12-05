@@ -73,6 +73,12 @@ createjs.ObjectList = function() {
 };
 
 /**
+ * A list of objects.
+ * @type {Array.<createjs.Object>}
+ */
+createjs.ObjectList.prototype.items_ = null;
+
+/**
  * A clone of the list while this list is locked.
  * @type {Array.<*>}
  */

@@ -23,10 +23,10 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="event_dispatcher.js"/>
-/// <reference path="rectangle.js"/>
 /// <reference path="config.js"/>
+/// <reference path="event_dispatcher.js"/>
 /// <reference path="image_factory.js"/>
+/// <reference path="rectangle.js"/>
 
 /**
  * A class that represents a sprite animation. This class reads a sprite sheet
@@ -72,7 +72,7 @@ createjs.SpriteSheet.prototype.framerate = 0;
 createjs.SpriteSheet.prototype.animations_ = null;
 
 /**
- * The list of animation frames (i.e. a pair of an <image> element and a source 
+ * The list of animation frames (i.e. a pair of an <img> element and a source
  * rectangle) generated from a 'frames' parameter.
  * @type {Array.<createjs.SpriteSheet.Frame>}
  * @private

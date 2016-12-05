@@ -253,7 +253,7 @@ createjs.FramePlayer.Sound.prototype.handleDecode_ = function(buffer) {
   this.parent_.postMessage({
     'a': createjs.FrameCommand.DECODE,
     'b': this.id_
-  }, "*");
+  }, '*');
   if (this.auto_) {
     this.play_(this.loop_, this.volume_);
     this.auto_ = 0;
@@ -282,7 +282,7 @@ createjs.FramePlayer.Sound.prototype.handleEnded_ = function() {
   this.parent_.postMessage({
     'a': createjs.FrameCommand.END,
     'b': this.id_
-  }, "*");
+  }, '*');
 };
 
 /**
@@ -293,16 +293,15 @@ createjs.FramePlayer.Sound.prototype.handleEnded_ = function() {
  */
 createjs.FramePlayer.Sound.prototype.play_ = function(loop, volume) {
   createjs.debug('play=' + this.id_ + ',' + loop + ',' + volume);
+  this.loop_ = loop;
+  this.volume_ = volume;
   if (!this.buffer_) {
     this.auto_ = 1;
-    this.loop_ = loop;
-    this.volume_ = volume;
     return;
   }
   if (this.source_) {
     this.stop_();
   }
-  this.volume_ = volume;
   var context = createjs.context_;
   var gain =
       context.createGain ? context.createGain() : context.createGainNode();
@@ -392,7 +391,7 @@ createjs.FramePlayer.handleTimeout_ = function() {
   if (createjs.context_.currentTime || !createjs.retry_) {
     createjs.global.parent.postMessage({
       'a': createjs.FrameCommand.TOUCH
-    }, "*");
+    }, '*');
   } else {
     --createjs.retry_;
     var player = /** @type {EventListener} */ (createjs.player_);
@@ -504,5 +503,5 @@ createjs.global.onload = function() {
   var parent = createjs.global.parent;
   parent.postMessage({
     'a': createjs.FrameCommand.INITIALIZE
-  }, "*");
+  }, '*');
 };

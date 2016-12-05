@@ -23,11 +23,11 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="renderer.js"/>
 /// <reference path="bounding_box.js"/>
 /// <reference path="color.js"/>
-/// <reference path="counter.js"/>
 /// <reference path="config.js"/>
+/// <reference path="counter.js"/>
+/// <reference path="renderer.js"/>
 
 /**
  * A class that implements the createjs.Renderer interface with the WebGL API.
@@ -106,6 +106,37 @@ createjs.WebGLRenderer.context = '';
  * @type {number}
  */
 createjs.WebGLRenderer.id = 0;
+
+/**
+ * The rendering context attached to the output <canvas> element.
+ * @type {createjs.WebGLRenderer.Context}
+ * @private
+ */
+createjs.WebGLRenderer.prototype.context_ = null;
+
+/**
+ * The horizontal scaling factor to convert the coordinate system from the one
+ * used by the Canvas 2D API to the one used by WebGL.
+ * @type {number}
+ * @private
+ */
+createjs.WebGLRenderer.prototype.scaleX_ = 1;
+
+/**
+ * The vertical scaling factor to convert the coordinate system from the one
+ * used by the Canvas 2D API to the one used by WebGL.
+ * @type {number}
+ * @private
+ */
+createjs.WebGLRenderer.prototype.scaleY_ = 1;
+
+/**
+ * The viewport rectangle specified by a game. (This rectangle is used for
+ * rendering only the specified part of the output <canvas> element.)
+ * @type {createjs.BoundingBox}
+ * @private
+ */
+createjs.WebGLRenderer.prototype.viewport_ = null;
 
 /**
  * The clipping rectangle of an object.
@@ -561,6 +592,20 @@ createjs.WebGLRenderer.Context = function(context) {
    */
   this.id_ = ++createjs.WebGLRenderer.id;
 };
+
+/**
+ * The rendering context of WebGL used by this object.
+ * @type {WebGLRenderingContext}
+ * @private
+ */
+createjs.WebGLRenderer.Context.prototype.context_ = null;
+
+/**
+ * An ID assigned to this context.
+ * @type {number}
+ * @private
+ */
+createjs.WebGLRenderer.Context.prototype.id_ = 0;
 
 /**
  * The WebGLTexture object bound to this context.
@@ -1270,6 +1315,27 @@ createjs.WebGLRenderer.Alpha =
 };
 
 /**
+ * The dirty flag.
+ * @type {boolean}
+ * @private
+ */
+createjs.WebGLRenderer.Alpha.prototype.dirty_ = false;
+
+/**
+ * The uniform location representing this color.
+ * @type {WebGLUniformLocation}
+ * @private
+ */
+createjs.WebGLRenderer.Alpha.prototype.color_ = null;
+
+/**
+ * The alpha component.
+ * @type {number}
+ * @private
+ */
+createjs.WebGLRenderer.Alpha.prototype.alpha_ = 0;
+
+/**
  * Changes the alpha value of this color.
  * @param {number} alpha
  * @const
@@ -1339,6 +1405,34 @@ createjs.WebGLRenderer.Vector = function(context, program, key, x, y) {
    */
   this.y_ = y;
 };
+
+/**
+ * The dirty flag.
+ * @type {boolean}
+ * @private
+ */
+createjs.WebGLRenderer.Vector.prototype.dirty_ = false;
+
+/**
+ * The uniform location representing this vector.
+ * @type {WebGLUniformLocation}
+ * @private
+ */
+createjs.WebGLRenderer.Vector.prototype.point_ = null;
+
+/**
+ * The x coordinate.
+ * @type {number}
+ * @private
+ */
+createjs.WebGLRenderer.Vector.prototype.x_ = 0;
+
+/**
+ * The y coordinate.
+ * @type {number}
+ * @private
+ */
+createjs.WebGLRenderer.Vector.prototype.y_ = 0;
 
 /**
  * Changes this point.
@@ -1415,6 +1509,27 @@ createjs.WebGLRenderer.Rectangle =
    */
   this.attribute_ = context.getRectangleAttribute(program, key);
 };
+
+/**
+ * An array representing this triable strip.
+ * @type {Float32Array}
+ * @private
+ */
+createjs.WebGLRenderer.Rectangle.prototype.points_ = null;
+
+/**
+ * The WebGL buffer (or GPU memory) stores the above array.
+ * @type {WebGLBuffer}
+ * @private
+ */
+createjs.WebGLRenderer.Rectangle.prototype.buffer_ = null;
+
+/**
+ * The attribute representing this rectangle.
+ * @type {number}
+ * @private
+ */
+createjs.WebGLRenderer.Rectangle.prototype.attribute_ = 0;
 
 /**
  * Deletes all resources used by this rectangle.
@@ -1499,6 +1614,20 @@ createjs.WebGLRenderer.Transform = function(context, program, key) {
 };
 
 /**
+ * The uniform location representing this transform.
+ * @type {WebGLUniformLocation}
+ * @private
+ */
+createjs.WebGLRenderer.Transform.prototype.transform_ = null;
+
+/**
+ * The transformation matrix.
+ * @type {Float32Array}
+ * @private
+ */
+createjs.WebGLRenderer.Transform.prototype.matrix_ = null;
+
+/**
  * Sets this transform.
  * @param {number} a
  * @param {number} b
@@ -1579,6 +1708,27 @@ createjs.WebGLRenderer.ColorMatrix = function(context, program, key) {
     0, 0, 0, 1
   ]);
 };
+
+/**
+ * The dirty flag.
+ * @type {boolean}
+ * @private
+ */
+createjs.WebGLRenderer.ColorMatrix.prototype.dirty_ = false;
+
+/**
+ * The OpenGL attribute representing this matrix.
+ * @type {WebGLUniformLocation}
+ * @private
+ */
+createjs.WebGLRenderer.ColorMatrix.prototype.transform_ = null;
+
+/**
+ * The values of this matrix.
+ * @type {Float32Array}
+ * @private
+ */
+createjs.WebGLRenderer.ColorMatrix.prototype.matrix_ = null;
 
 /**
  * Sets the values of this matrix. This method transposes the top-left 3x3
@@ -1701,6 +1851,41 @@ createjs.WebGLRenderer.Color =
 };
 
 /**
+ * The dirty flag.
+ * @type {boolean}
+ * @private
+ */
+createjs.WebGLRenderer.Color.prototype.dirty_ = false;
+
+/**
+ * The uniform location representing this color.
+ * @type {WebGLUniformLocation}
+ * @private
+ */
+createjs.WebGLRenderer.Color.prototype.color_ = null;
+
+/**
+ * The red component.
+ * @type {number}
+ * @private
+ */
+createjs.WebGLRenderer.Color.prototype.red_ = 0;
+
+/**
+ * The green component.
+ * @type {number}
+ * @private
+ */
+createjs.WebGLRenderer.Color.prototype.green_ = 0;
+
+/**
+ * The blue component.
+ * @type {number}
+ * @private
+ */
+createjs.WebGLRenderer.Color.prototype.blue_ = 0;
+
+/**
  * Changes this color.
  * @param {number} red
  * @param {number} green
@@ -1758,6 +1943,21 @@ createjs.WebGLRenderer.Blend = function(context) {
 };
 
 /**
+ * The dirty flag.
+ * @type {boolean}
+ * @private
+ */
+createjs.WebGLRenderer.Blend.prototype.dirty_ = false;
+
+/**
+ * The composition ID.
+ * @type {number}
+ * @private
+ */
+createjs.WebGLRenderer.Blend.prototype.operation_ =
+    createjs.Renderer.Composition.SOURCE_OVER;
+
+/**
  * Sets the color-blend operation.
  * @param {number} operation
  * @const
@@ -1810,6 +2010,20 @@ createjs.WebGLRenderer.Frame = function(context, width, height, mask) {
    */
   this.buffer_ = context.createFramebuffer(this.texture_);
 };
+
+/**
+ * The texture that stores the pixels of this framebuffer.
+ * @type {WebGLTexture}
+ * @private
+ */
+createjs.WebGLRenderer.Frame.prototype.texture_ = null;
+
+/**
+ * The framebuffer.
+ * @type {WebGLFramebuffer}
+ * @private
+ */
+createjs.WebGLRenderer.Frame.prototype.buffer_ = null;
 
 /**
  * Returns the texture associated with this frame buffer.
@@ -2039,16 +2253,78 @@ createjs.WebGLRenderer.Program = function(context, scaleX, scaleY) {
    * @private
    */
   this.blend_ = new createjs.WebGLRenderer.Blend(context);
-
-  if (createjs.DEBUG) {
-    /**
-     * The images that have their textures created by this program.
-     * @type {Object.<string,number>}
-     * @private
-     */
-    this.ids_ = {};
-  }
 };
+
+/**
+ * The rendering context that owns this program.
+ * @type {createjs.WebGLRenderer.Context}
+ * @private
+ */
+createjs.WebGLRenderer.Program.prototype.context_ = null;
+
+/**
+ * The vertex shader and the fragment shader. (This program uses one vertex
+ * shader and one fragment shader.)
+ * @type {WebGLProgram}
+ * @private
+ */
+createjs.WebGLRenderer.Program.prototype.program_ = null;
+
+/**
+ * The vector representing the output <canvas> element of this program.
+ * @type {createjs.WebGLRenderer.Vector}
+ * @private
+ */
+createjs.WebGLRenderer.Program.prototype.screen_ = null;
+
+/**
+ * The affine transform used by CreateJS.
+ * @type {createjs.WebGLRenderer.Transform}
+ * @private
+ */
+createjs.WebGLRenderer.Program.prototype.transform_ = null;
+
+/**
+ * The destination rectangle.
+ * @type {createjs.WebGLRenderer.Rectangle}
+ * @private
+ */
+createjs.WebGLRenderer.Program.prototype.position_ = null;
+
+/**
+ * The source rectangle.
+ * @type {createjs.WebGLRenderer.Rectangle}
+ * @private
+ */
+createjs.WebGLRenderer.Program.prototype.texture_ = null;
+
+/**
+ * The alpha-composition value.
+ * @type {createjs.WebGLRenderer.Alpha}
+ * @private
+ */
+createjs.WebGLRenderer.Program.prototype.alpha_ = null;
+
+/**
+ * The color matrix.
+ * @type {createjs.WebGLRenderer.ColorMatrix}
+ * @private
+ */
+createjs.WebGLRenderer.Program.prototype.matrix_ = null;
+
+/**
+ * The color offset.
+ * @type {createjs.WebGLRenderer.Color}
+ * @private
+ */
+createjs.WebGLRenderer.Program.prototype.offset_ = null;
+
+/**
+ * The blending operation.
+ * @type {createjs.WebGLRenderer.Blend}
+ * @private
+ */
+createjs.WebGLRenderer.Program.prototype.blend_ = null;
 
 /**
  * Returns the rendering context who owns this program.
@@ -2254,15 +2530,9 @@ createjs.WebGLRenderer.Program.prototype.cache = function(image) {
   if (texture && tid == context.getId()) {
     return false;
   }
-  // Create a texture and attach it to the given image. Also attach an ID of the
-  // context that creates this texture to release the texture when the context
+  // Create a texture and attach it to the given image. Also attach the context
+  // ID to the image so this renderer can release the texture when the context
   // is lost.
-  if (createjs.DEBUG) {
-    if (!this.ids_[image.id]) {
-      this.ids_[image.id] = 0;
-    }
-    this.ids_[image.id]++;
-  }
   texture = context.createTexture(image);
   image.texture_ = texture;
   image.tid_ = context.getId();
@@ -2281,9 +2551,6 @@ createjs.WebGLRenderer.Program.prototype.uncache = function(image) {
   var context = this.getContext_();
   if (texture && context) {
     context.deleteTexture(texture);
-    if (createjs.DEBUG) {
-      --this.ids_[image.id];
-    }
   }
 };
 

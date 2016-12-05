@@ -24,8 +24,8 @@
 
 /// <reference path="base.js"/>
 /// <reference path="container.js"/>
-/// <reference path="tween_target.js"/>
 /// <reference path="tween_object.js"/>
+/// <reference path="tween_target.js"/>
 
 /**
  * A class that associates a createjs.Timeline object with a createjs.Container
@@ -303,6 +303,34 @@ createjs.MovieClip.getMode_ = function(mode) {
 };
 
 /**
+ * The first frame to play in this clip.
+ * @type {number}
+ * @private
+ */
+createjs.MovieClip.prototype.startPosition_ = 0;
+
+/**
+ * Whether this clip loops when it reaches its end.
+ * @type {boolean}
+ * @private
+ */
+createjs.MovieClip.prototype.loop_ = true;
+
+/**
+ * A mapping table from a label name to its position.
+ * @type {Object.<string,number>}
+ * @private
+ */
+createjs.MovieClip.prototype.labels_ = null;
+
+/**
+ * The timeline object for this clip.
+ * @type {createjs.MovieClip.Timeline}
+ * @private
+ */
+createjs.MovieClip.prototype.timeline_ = null;
+
+/**
  * The total duration of this clip in milliseconds.
  * @type {number}
  * @private
@@ -329,6 +357,21 @@ createjs.MovieClip.prototype.targets_ = null;
  * @private
  */
 createjs.MovieClip.prototype.updated_ = false;
+
+/**
+ * The ID assigned to tweens added to this clip.
+ * @private
+ */
+createjs.MovieClip.prototype.tweenId_ = 0;
+
+/**
+ * The compiled tweens cached by this clip. A Flash-generated class derived
+ * from this class always adds its tweens in the same order. This array caches
+ * compiled tweens for the first time when the Flash-generated class creates its
+ * instance to re-use their compiled data next times.
+ * @type {Array.<createjs.TweenObject>}
+ */
+createjs.MovieClip.prototype.cache_ = null;
 
 /**
  * Sets the positions of all tweens attached to this clip.
@@ -529,7 +572,26 @@ createjs.MovieClip.prototype.addTween = function(tween) {
   if (!this.targets_) {
     this.targets_ = [];
   }
-  var duration = tween.setProxy(this, this.targets_);
+  // Create a tween cache to the PROTOTYPE object of this class. (This cache is
+  // a per-class cache, it is shared by all instances of each Flash-generated
+  // class.)
+  var proto = Object.getPrototypeOf(this);
+  var cache = proto.cache_;
+  if (!cache) {
+    cache = [
+      null, null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, null
+    ];
+    proto.cache_ = cache;
+  }
+  var duration = tween.setProxy(this, this.targets_, cache, this.tweenId_);
+  ++this.tweenId_;
   if (this.duration_ < duration) {
     this.duration_ = duration;
   }
@@ -645,22 +707,52 @@ createjs.MovieClip.prototype.updateTweens = function(time) {
 };
 
 /** @override */
-createjs.MovieClip.prototype.getSetters = function() {
-  /// <return type="Object" elementType="createjs.TweenTarget.Setter"/>
-  var MODES = ['independent', 'single', 'synched'];
-  var setters = createjs.MovieClip.superClass_.getSetters.call(this);
-  setters['startPosition'].setPosition(this.startPosition_);
-  setters['loop'].setLoop(this.loop_);
-  setters['mode'].setString(MODES[this.getPlayMode()]);
-  return setters;
+createjs.MovieClip.prototype.getTweenMotion = function(motion) {
+  /// <param type="createjs.TweenMotion" name="motion"/>
+  /// <returns type="boolean"/>
+  if (!createjs.MovieClip.superClass_.getTweenMotion.call(this, motion)) {
+    return false;
+  }
+  motion.setStartPosition(this.startPosition_);
+  motion.setLoop(this.loop_);
+  motion.setPlayMode(this.getPlayMode());
+  return true;
 };
 
-// Add setters to allow tweens to change this object.
-createjs.TweenTarget.Property.addSetters({
-  'startPosition': createjs.MovieClip.prototype.setStartPosition_,
-  'loop': createjs.MovieClip.prototype.setLoop_,
-  'mode': createjs.MovieClip.prototype.setMode_
-});
+/** @override */
+createjs.MovieClip.prototype.setTweenMotion = function(motion, mask, proxy) {
+  /// <param type="createjs.TweenMotion" name="motion"/>
+  /// <param type="number" name="mask"/>
+  /// <param type="createjs.TweenTarget" name="proxy"/>
+  if (mask & (1 << createjs.TweenMotion.ID.START_POSITION)) {
+    var startPosition = motion.getStartPosition();
+    if (startPosition >= 0) {
+      startPosition = createjs.truncate(startPosition);
+      if (this.startPosition_ != startPosition) {
+        this.startPosition_ = startPosition;
+        this.updated_ = true;
+      }
+    }
+  }
+  if (mask & (1 << createjs.TweenMotion.ID.LOOP)) {
+    var loop = motion.getLoop();
+    if (this.loop_ != loop) {
+      this.loop_ = loop;
+      this.updated_ = true;
+    }
+  }
+  if (mask & (1 << createjs.TweenMotion.ID.PLAY_MODE)) {
+    var mode = motion.getPlayMode();
+    if (this.getPlayMode() != mode) {
+      this.setPlayMode(mode);
+      if (proxy) {
+        proxy.synchronize(this, mode == createjs.TweenTarget.PlayMode.SYNCHED);
+      }
+      this.updated_ = true;
+    }
+  }
+  createjs.MovieClip.superClass_.setTweenMotion.call(this, motion, mask, proxy);
+};
 
 // Add getters for applications to read internal variables.
 Object.defineProperties(createjs.MovieClip.prototype, {

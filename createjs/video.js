@@ -52,6 +52,13 @@ createjs.Video = function(video) {
 createjs.inherits('Video', createjs.Video, createjs.DisplayObject);
 
 /**
+ * The <video> element to be rendered.
+ * @type {HTMLVideoElement}
+ * @private
+ */
+createjs.Video.prototype.video_ = null;
+
+/**
  * Whether the associated <video> element starts over when it reaches its end.
  * @type {boolean}
  * @private

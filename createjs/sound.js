@@ -133,6 +133,13 @@ createjs.Sound.getInstance_ = function() {
 };
 
 /**
+ * The sound players.
+ * @type {Object.<string,createjs.Sound.Player>}
+ * @private
+ */
+createjs.Sound.prototype.players_ = null;
+
+/**
  * The features supported by this module.
  * @type {Object.<string,number>}
  * @private
@@ -225,7 +232,7 @@ createjs.WebAudioPlugin.getContext_ = function() {
       // when the createjs.Sound class uses FrameAudioPlayer objects (i.e. when
       // it uses an <iframe> element to play sounds) to avoid creating an
       // unnecessary AudioContent object.
-      if (createjs.Config.useFrame()) {
+      if (createjs.USE_FRAME && createjs.Config.useFrame()) {
         createjs.WebAudioPlugin['context'] = {
           'currentTime': -1
         };
@@ -294,7 +301,7 @@ createjs.WebAudioPlugin.playEmptySound = function() {
     // Abort playing empty sounds when the createjs.Sound class uses an <iframe>
     // element to play sounds. (The returned AudioContent object is a dummy
     // object and cannot play sounds.)
-    if (createjs.Config.useFrame()) {
+    if (createjs.USE_FRAME && createjs.Config.useFrame()) {
       return;
     }
     // An application may call this method before this method finishes playing
@@ -335,6 +342,7 @@ createjs.exportObject('createjs.WebAudioPlugin', createjs.WebAudioPlugin, {
 createjs.Sound.Player = function(item) {
   /// <param type="cretejs.Loader.Item" name="item"/>
   /**
+   * The loader item provided by the createjs.LoadQueue class.
    * @type {createjs.Loader.Item}
    * @protected
    */
@@ -359,6 +367,13 @@ createjs.Sound.Player.Event = {
  * @type {number}
  */
 createjs.Sound.Player.prototype['playState'] = createjs.Sound.PLAY_FAILED;
+
+/**
+ * The loader item provided by the createjs.LoadQueue class.
+ * @type {createjs.Loader.Item}
+ * @protected
+ */
+createjs.Sound.Player.prototype.item = null;
 
 /**
  * Whether this player repeats playing a sound portion.

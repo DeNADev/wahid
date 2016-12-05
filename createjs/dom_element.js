@@ -67,6 +67,22 @@ createjs.DOMElement = function(id) {
 createjs.inherits('DOMElement', createjs.DOMElement, createjs.DisplayObject);
 
 /**
+ * The HTMLElement object associated with this object.
+ * @type {HTMLElement}
+ * @private
+ */
+createjs.DOMElement.prototype.element_ = null;
+
+/**
+ * Whether the hosting browser uses WebKit (or blink). This class caches this
+ * value to avoid calling a function every time when it updates the position
+ * of its associated element.
+ * @type {boolean}
+ * @private
+ */
+createjs.DOMElement.prototype.isWebKit_ = false;
+
+/**
  * Returns an HTMLElement object associated with this object.
  * @return {HTMLElement}
  * @private

@@ -23,9 +23,9 @@
  */
 
 /// <reference path="base.js"/>
+/// <reference path="bounding_box.js"/>
 /// <reference path="display_object.js"/>
 /// <reference path="sprite_sheet.js"/>
-/// <reference path="bounding_box.js"/>
 /// <reference path="tick_event.js"/>
 
 /**
@@ -66,6 +66,26 @@ createjs.Sprite = function(spriteSheet, opt_frameOrAnimation) {
   }
 };
 createjs.inherits('Sprite', createjs.Sprite, createjs.DisplayObject);
+
+/**
+ * The SpriteSheet instance exported to applications.
+ * @type {createjs.SpriteSheet}
+ */
+createjs.Sprite.prototype['spriteSheet'] = null;
+
+/**
+ * The SpriteSheet instance being played.
+ * @type {createjs.SpriteSheet}
+ * @private
+ */
+createjs.Sprite.prototype.spriteSheet_ = null;
+
+/**
+ * The number of frames to advance.
+ * @type {number}
+ * @private
+ */
+createjs.Sprite.prototype.framerate_ = 0;
 
 /**
  * The name of the animation being played.

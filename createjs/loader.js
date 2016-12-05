@@ -23,12 +23,12 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="progress_event.js"/>
-/// <reference path="location.js"/>
-/// <reference path="user_agent.js"/>
-/// <reference path="image_factory.js"/>
-/// <reference path="script_factory.js"/>
 /// <reference path="config.js"/>
+/// <reference path="image_factory.js"/>
+/// <reference path="location.js"/>
+/// <reference path="progress_event.js"/>
+/// <reference path="script_factory.js"/>
+/// <reference path="user_agent.js"/>
 
 /**
  * A class that loads a file either from a server or from a cache.
@@ -344,8 +344,10 @@ createjs.Loader.Item.prototype.initializeItem = function(values, basePath) {
   var target = new createjs.Location(this.source_);
   this.extension_ = createjs.Loader.Item.getExtension_(target.getExtension());
   if (!this.type_) {
-    this.type_ = createjs.Loader.Item.getType_(this.extension_);
-    this.values_['type'] = createjs.Loader.TYPE_NAMES_[this.type_];
+    if (this.extension_ >= 0) {
+      this.type_ = createjs.Loader.Item.getType_(this.extension_);
+      this.values_['type'] = createjs.Loader.TYPE_NAMES_[this.type_];
+    }
   }
   // Prepend basePath when the input path is a relative one.
   if (!target.protocol && target.isRelative()) {
@@ -687,6 +689,20 @@ createjs.Loader.Cache.Listener.prototype.handlePutSuccess = function(key) {};
  * @param {string} key
  */
 createjs.Loader.Cache.Listener.prototype.handlePutError = function(key) {};
+
+/**
+ * The listener who listens events from this loader.
+ * @type {createjs.Loader.Listener}
+ * @private
+ */
+createjs.Loader.prototype.listener_ = null;
+
+/**
+ * The item this loader represents.
+ * @type {createjs.Loader.Item}
+ * @private
+ */
+createjs.Loader.prototype.item_ = null;
 
 /**
  * Whether this loader has finished loading files.
@@ -1115,17 +1131,13 @@ createjs.Loader.prototype.handleGetSuccess = function(key, data) {
     result = createjs.castString(data);
   } else if (item.isVideo()) {
     // Treat the cached data as an MPEG-4 video clip and create an object URL
-    // from the data. It is OK to always treat the cached data as an MPEG-4
-    // video clip because MPEG-4 is the only supported video format of this
-    // loader.
+    // from the data. It is OK to always treat the cached data as MPEG-4 video
+    // clips because this loader can load MPEG-4 video clips only.
     result = this.createObjectURL_('video/mp4', createjs.castArrayBuffer(data));
   } else {
     result = '';
   }
   this.handleLoadComplete_(item, result);
-  // Set this item to the cache again to update its time stamp.
-  var cache = createjs.Loader.getCache();
-  cache.set(this, key, data);
 };
 
 /** @override */

@@ -23,8 +23,8 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="filter.js"/>
 /// <reference path="color.js"/>
+/// <reference path="filter.js"/>
 
 /**
  * A class encapsulating a color filter of CreateJS.
@@ -70,6 +70,18 @@ createjs.ColorFilter = function(opt_redMultiplier,
       opt_alphaOffset || 0);
 };
 createjs.inherits('ColorFilter', createjs.ColorFilter, createjs.Filter);
+
+/**
+ * The color multiplier.
+ * @type {createjs.Color}
+ */
+createjs.ColorFilter.prototype.multiplier = null;
+
+/**
+ * The offset color.
+ * @type {createjs.Color}
+ */
+createjs.ColorFilter.prototype.offset = null;
 
 /**
  * Changes the type of the specified Filter object to createjs.ColorFilter.

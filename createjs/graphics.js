@@ -23,11 +23,12 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="object.js"/>
-/// <reference path="bounding_box.js"/>
-/// <reference path="counter.js"/>
 /// <reference path="base64.js"/>
+/// <reference path="bounding_box.js"/>
 /// <reference path="config.js"/>
+/// <reference path="counter.js"/>
+/// <reference path="object.js"/>
+/// <reference path="shell_renderer.js"/>
 
 /**
  * A class that exposes an easy-to-use API for generating vector drawing
@@ -72,6 +73,26 @@ createjs.Graphics.MAX_WIDTH = 128;
  * @define {number}
  */
 createjs.Graphics.MAX_HEIGHT = 128;
+
+/**
+ * The bounding box of this graphics.
+ * @type {createjs.BoundingBox}
+ */
+createjs.Graphics.prototype.box = null;
+
+/**
+ * A list of all paths.
+ * @type {Array.<createjs.Graphics.Command>}
+ * @private
+ */
+createjs.Graphics.prototype.path_ = null;
+
+/**
+ * The current path.
+ * @type {Array.<createjs.Graphics.Command>}
+ * @private
+ */
+createjs.Graphics.prototype.active_ = null;
 
 /**
  * The renderer that renders its paths to a cache.

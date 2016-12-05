@@ -23,8 +23,8 @@
  */
 
 /// <reference path="base.js"/>
-/// <reference path="object.js"/>
 /// <reference path="color.js"/>
+/// <reference path="object.js"/>
 /// <reference path="renderer.js"/>
 /// <reference path="user_agent.js"/>
 

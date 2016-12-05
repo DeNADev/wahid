@@ -31,34 +31,41 @@
  * @constructor
  */
 createjs.Location = function(source) {
+  /// <param type="string" name="source"/>
   var match = source.match(createjs.Location.PATTERN_);
 
   /**
+   * The protocol scheme, e.g. 'http:', 'https:', etc.
    * @const {string}
    */
   this.protocol = match[1];
 
   /**
+   * The user-name and the password, e.g. 'anonymous:password@'.
    * @const {string}
    */
   this.user = match[2];
 
   /**
+   * The host name and the port number, e.g. 'localhost:8888'.
    * @const {string}
    */
   this.hostname = match[3];
 
   /**
+   * The file path, e.g. '/images/logo.png'.
    * @const {string}
    */
   this.pathname = match[4];
 
   /**
+   * The search string, e.g. '?q=0'.
    * @const {string}
    */
   this.search = match[5];
 
   /**
+   * The hash string, e.g. '#top'.
    * @const {string}
    */
   this.hash = match[6];
@@ -90,6 +97,7 @@ createjs.Location.PATTERN_ = new RegExp(
  * @const
  */
 createjs.Location.prototype.isRelative = function() {
+  /// <returns type="boolean"/>
   return !!this.pathname && this.pathname.charCodeAt(0) != 0x2f;
 };
 
@@ -99,6 +107,7 @@ createjs.Location.prototype.isRelative = function() {
  * @const
  */
 createjs.Location.prototype.isCrossDomain = function() {
+  /// <returns type="boolean"/>
   var targetOrigin = this.protocol + '//' + this.hostname;
   var origin = createjs.getOrigin();
   return targetOrigin != origin;
@@ -107,8 +116,10 @@ createjs.Location.prototype.isCrossDomain = function() {
 /**
  * Returns whether this location is a local one.
  * @return {boolean}
+ * @const
  */
 createjs.Location.prototype.isLocal = function() {
+  /// <returns type="boolean"/>
   return !this.hostname || this.protocol == 'file:';
 };
 
@@ -118,6 +129,7 @@ createjs.Location.prototype.isLocal = function() {
  * @const
  */
 createjs.Location.prototype.getExtension = function() {
+  /// <returns type="string"/>
   if (!this.pathname) {
     return '';
   }

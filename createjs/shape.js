@@ -23,9 +23,9 @@
  */
 
 /// <reference path="base.js"/>
+/// <reference path="config.js"/>
 /// <reference path="display_object.js"/>
 /// <reference path="graphics.js"/>
-/// <reference path="config.js"/>
 
 /**
  * A class that represents a vector shape.
@@ -46,7 +46,14 @@ createjs.Shape = function(opt_graphics) {
 createjs.inherits('Shape', createjs.Shape, createjs.DisplayObject);
 
 /**
- * Createjs.Graphics objects to be set by a tween attached to this shape.
+ * The createjs.Graphics object that actually represents this shape.
+ * @type {createjs.Graphics}
+ * @private
+ */
+createjs.Shape.prototype.graphics_ = null;
+
+/**
+ * The list of createjs.Graphics objects set by a tween.
  * @type {Array.<createjs.Graphics>}
  * @private
  */
@@ -239,17 +246,26 @@ createjs.Shape.prototype.addGraphics = function(graphics) {
 };
 
 /** @override */
-createjs.Shape.prototype.getSetters = function() {
-  /// <return type="Object" elementType="createjs.TweenTarget.Setter"/>
-  var setters = createjs.Shape.superClass_.getSetters.call(this);
-  setters['graphics'].setGraphics(this.graphics_);
-  return setters;
+createjs.Shape.prototype.getTweenMotion = function(motion) {
+  /// <param type="createjs.TweenMotion" name="motion"/>
+  /// <returns type="boolean"/>
+  if (!createjs.Shape.superClass_.getTweenMotion.call(this, motion)) {
+    return false;
+  }
+  motion.setGraphics(this.graphics_);
+  return true;
 };
 
-// Add a setter to allow tweens to change this object.
-createjs.TweenTarget.Property.addSetters({
-  'graphics': createjs.Shape.prototype.setGraphics
-});
+/** @override */
+createjs.Shape.prototype.setTweenMotion = function(motion, mask, proxy) {
+  /// <param type="createjs.TweenMotion" name="motion"/>
+  /// <param type="number" name="mask"/>
+  /// <param type="createjs.TweenTarget" name="proxy"/>
+  if (mask & (1 << createjs.TweenMotion.ID.GRAPHICS)) {
+    this.setGraphics(motion.getGraphics());
+  }
+  createjs.Shape.superClass_.setTweenMotion.call(this, motion, mask, proxy);
+};
 
 // Adds a getter and a setter for applications to access internal variables.
 Object.defineProperties(createjs.Shape.prototype, {
