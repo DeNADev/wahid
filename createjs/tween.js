@@ -345,7 +345,7 @@ createjs.Tween.Command.prototype.setMotion = function(time, target, motion) {
   /// <param type="number" name="time"/>
   /// <param type="createjs.TweenTarget" name="target"/>
   /// <param type="createjs.TweenMotion" name="motion"/>
-  motion.initialize(time, this.duration_, null);
+  motion.initialize(time, this.duration_, this.ease_);
   if (this.properties_) {
     var graphics = motion.updateProperties(this.properties_);
     if (graphics) {
@@ -627,62 +627,66 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
       // Find a motion matching to the current position (or time) of this
       // tween and copy its values to the target of this tween.
       var length = this.motions_.length - 1;
-      for (var i = this.step_; i < length; ++i) {
-        var motion = this.motions_[i];
-        if (motion.contain(position)) {
-          if (motion.needUpdate(position, seek, i, this.step_)) {
-            var mask = motion.interpolate(position);
-            if (mask & (1 << createjs.TweenMotion.ID.LOOP)) {
-              this.loop_ = motion.getLoop();
+      if (length >= 0) {
+        for (var i = this.step_; i < length; ++i) {
+          var motion = this.motions_[i];
+          if (motion.contain(position)) {
+            if (motion.needUpdate(position, seek, i, this.step_)) {
+              var mask = motion.interpolate(position);
+              if (mask & (1 << createjs.TweenMotion.ID.LOOP)) {
+                this.loop_ = motion.getLoop();
+              }
+              this.target_.setTweenMotion(
+                  motion, seek ? this.mask_ : mask, this.proxy_);
             }
-            this.target_.setTweenMotion(
-                motion, seek ? this.mask_ : mask, this.proxy_);
+            this.step_ = i;
+            return position;
           }
-          this.step_ = i;
-          return position;
         }
-      }
-      // Copy the values of the last motion when its predecessors do not the
-      // contain the current position.
-      var motion = this.motions_[length];
-      if (motion.needUpdate(position, seek, length, this.step_)) {
-        var mask = motion.interpolate(position);
-        if (mask & (1 << createjs.TweenMotion.ID.LOOP)) {
-          this.loop_ = motion.getLoop();
+        // Copy the values of the last motion when its predecessors do not the
+        // contain the current position.
+        var motion = this.motions_[length];
+        if (motion.needUpdate(position, seek, length, this.step_)) {
+          var mask = motion.interpolate(position);
+          if (mask & (1 << createjs.TweenMotion.ID.LOOP)) {
+            this.loop_ = motion.getLoop();
+          }
+          this.target_.setTweenMotion(
+              motion, seek ? this.mask_ : mask, this.proxy_);
         }
-        this.target_.setTweenMotion(
-            motion, seek ? this.mask_ : mask, this.proxy_);
+        this.step_ = length;
       }
-      this.step_ = length;
     }
   } else {
     if (this.states_) {
       var length = this.states_.length - 1;
-      for (var i = this.step_; i < length; ++i) {
-        var state = this.states_[i];
-        if (state.contain(position)) {
-          if (state.needUpdate(position, seek, i, this.step_)) {
-            var targetLength = this.targets_.length;
-            for (var j = 0; j < targetLength; ++j) {
-              var value = state.get(j);
-              var mask = value.interpolate(position);
-              this.targets_[j].setTweenMotion(value, mask, this.proxy_);
+      if (length >= 0) {
+        for (var i = this.step_; i < length; ++i) {
+          var state = this.states_[i];
+          if (state.contain(position)) {
+            if (state.needUpdate(position, seek, i, this.step_)) {
+              var targetLength = this.targets_.length;
+              for (var j = 0; j < targetLength; ++j) {
+                var value = state.get(j);
+                var mask = value.interpolate(position);
+                this.targets_[j].setTweenMotion(value, mask, this.proxy_);
+              }
             }
+            this.step_ = i;
+            return position;
           }
-          this.step_ = i;
-          return position;
         }
-      }
-      var state = this.states_[length];
-      if (state.needUpdate(position, seek, length, this.step_)) {
-        var targetLength = this.targets_.length;
-        for (var j = 0; j < targetLength; ++j) {
-          var value = state.get(j);
-          var mask = value.interpolate(position);
-          this.targets_[j].setTweenMotion(value, mask, this.proxy_);
+        var state = this.states_[length];
+        if (state.needUpdate(position, seek, length, this.step_)) {
+          var targetLength = this.targets_.length;
+          for (var j = 0; j < targetLength; ++j) {
+            var value = state.get(j);
+            var mask = value.interpolate(position);
+            this.targets_[j].setTweenMotion(value, mask, this.proxy_);
+          }
         }
+        this.step_ = length;
       }
-      this.step_ = length;
     }
   }
   return position;

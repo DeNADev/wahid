@@ -154,97 +154,104 @@ createjs.TweenMotion.Rotation = function(x0, y0, x1, y1, delta) {
 };
 
 /**
- * Creates a new createjs.TweenMotion.Rotation object.
- * @param {number} orientation
- * @param {Array.<number>} path
- * @param {number} index
- * @return {createjs.TweenMotion.Rotation}
- * @const
- */
-createjs.TweenMotion.Rotation.get = function(orientation, path, index) {
-  /// <param type="number" name="orientation"/>
-  /// <param type="Array" elementType="number" name="path"/>
-  /// <param type="number" name="index"/>
-  /// <returns type="createjs.TweenMotion.Rotation"/>
-  var x0 = path[index + 2] - path[index];
-  var y0 = path[index + 3] - path[index + 1];
-  var x1 = path[index + 4] - path[index + 2];
-  var y1 = path[index + 5] - path[index + 3];
-  var delta = 0;
-  if (orientation != createjs.TweenMotion.Orientation.FIXED) {
-    delta = createjs.atan2(x1, y1) - createjs.atan2(x0, y0);
-    switch (orientation) {
-      case createjs.TweenMotion.Orientation.AUTO:
-        if (delta > 180) {
-          delta -= 360;
-        } else if (delta < -180) {
-          delta += 360;
-        }
-        break;
-      case createjs.TweenMotion.Orientation.CLOCKWISE:
-        if (delta < 0) {
-          delta += 360;
-        }
-        break;
-      case createjs.TweenMotion.Orientation.COUNTERCLOCKWISE:
-        if (delta > 0) {
-          delta -= 360;
-        }
-        break;
-    }
-  }
-  return new createjs.TweenMotion.Rotation(x0, y0, x1, y1, delta);
-};
-
-/**
- * Copies the end angle.
- * @param {Array.<number>} values
- * @const
- */
-createjs.TweenMotion.Rotation.prototype.copy = function(values) {
-  /// <param type="Array" elementType="number" name="values"/>
-  values[createjs.TweenMotion.ID.ROTATION] =
-      createjs.atan2(this.y1_, this.x1_) + this.delta_;
-};
-
-/**
- * Sets the rotation property of the specified value set.
+ * Returns the interpolated angle.
  * @param {number} t
  * @param {number} t_
  * @param {number} angle
- * @param {Array.<number>} values
  * @const
  */
-createjs.TweenMotion.Rotation.prototype.interpolate =
-    function (t, t_, angle, values) {
-  /// <param type="number" name="t"/>
-  /// <param type="number" name="t_"/>
-  /// <param type="number" name="angle"/>
-  /// <param type="Array" elementType="number" name="values"/>
+createjs.TweenMotion.Rotation.prototype.interpolate = function(t, t_, angle) {
   var x = t_ * this.x0_ + t * this.x1_;
   var y = t_ * this.y0_ + t * this.y1_;
-  values[createjs.TweenMotion.ID.ROTATION] =
-      angle + createjs.atan2(y, x) + this.delta_ * t;
+  return angle + createjs.atan2(y, x) + this.delta_ * t;
 };
 
 /**
- * A class that represents an animation step of a tween.
- * @param {Array.<number>} path
- * @param {number} index
- * @param {number} ratio
- * @param {number} start
- * @param {number} end
+ * Returns the last angle.
+ * @param {number} angle
+ * @const
+ */
+createjs.TweenMotion.Rotation.prototype.getLast = function(angle) {
+  return angle + createjs.atan2(this.y1_, this.x1_) + this.delta_;
+};
+
+/**
+ * An inner class that represents a point on a quadratic bezier curve.
+ * @param {number} x
+ * @param {number} y
+ * @param {number} t
+ * @param {number} length
  * @constructor
  */
-createjs.TweenMotion.Guide = function(path, index, ratio, start, end) {
+createjs.TweenMotion.Point = function(x, y, t, length) {
+  /// <param type="number" name="x"/>
+  /// <param type="number" name="y"/>
+  /// <param type="number" name="t"/>
+  /// <param type="number" name="length"/>
+  /**
+   * The x coordinate of this point.
+   * @const {number}
+   * @private
+   */
+  this.x_ = x;
+
+  /**
+   * The y coordinate of this point.
+   * @const {number}
+   * @private
+   */
+  this.y_ = y;
+
+  /**
+   * The curve ratio of this point.
+   * @const {number}
+   * @private
+   */
+  this.t_ = t;
+
+  /**
+   * The approximate length from the beginning of the bezier curve to this
+   * point.
+   * @type {number}
+   * @private
+   */
+  this.start_ = 0;
+
+  /**
+   * The approximate Euclidean distance from the previous point to this point.
+   * @type {number}
+   * @private
+   */
+  this.length_ = length;
+
+  /**
+   * The curve ratio of the previous point.
+   * point.
+   * @type {number}
+   * @private
+   */
+  this.t0_ = 0;
+
+  /**
+   * The scale factor that normalize a position "[0,length)" to a number
+   * "[0,1)", i.e. the reciprocal of the length_ property.
+   * @type {number}
+   * @private
+   */
+  this.scale_ = 0;
+};
+
+/**
+ * An inner class that represents a quadratic bezier curve in a guide path.
+ * @param {Array.<number>} path
+ * @param {number} index
+ * @param {number} start
+ * @constructor
+ */
+createjs.TweenMotion.Curve = function(path, index, start) {
   /// <param type="Array" elementType="number" name="path"/>
   /// <param type="number" name="index"/>
-  /// <param type="number" name="ratio"/>
   /// <param type="number" name="start"/>
-  /// <param type="number" name="end"/>
-  start = createjs.max(0, start);
-  end = createjs.min(1, end);
-
   /**
    * The x coordinate of the start point.
    * @const {number}
@@ -288,25 +295,40 @@ createjs.TweenMotion.Guide = function(path, index, ratio, start, end) {
   this.y2_ = path[index + 5];
 
   /**
-   * The start ratio of this bezier path.
-   * @const {number}
+   * The anchor points in this quadratic bezier curve.
+   * @const {Array.<createjs.TweenMotion.Point>}
    * @private
    */
-  this.offset_ = start;
+  this.points_ = [];
 
   /**
-   * The start time.
-   * @const {number}
+   * The number of anchor points.
+   * @type {number}
    * @private
    */
-  this.start_ = ratio;
+  this.size_ = 0;
 
   /**
-   * The end time.
-   * @const {number}
+   * The index to the current anchor point.
+   * @type {number}
    * @private
    */
-  this.end_ = ratio + end - start;
+  this.index_ = 0;
+
+  /**
+   * The Euclidean distance from the beginning of the owner guide path to this
+   * curve.
+   * @type {number}
+   * @private
+   */
+  this.start_ = start;
+
+  /**
+   * The Euclidean distance of this path.
+   * @type {number}
+   * @private
+   */
+  this.length_ = -1;
 
   /**
    * The rotation angle.
@@ -317,49 +339,196 @@ createjs.TweenMotion.Guide = function(path, index, ratio, start, end) {
 };
 
 /**
- * Copies the end position of this guide.
- * @param {Array.<number>} values
+ * Initializes the rotation angle of this path.
+ * @param {number} orientation
  * @const
  */
-createjs.TweenMotion.Guide.prototype.copy = function(values) {
-  /// <param type="Array" elementType="number" name="values"/>
-  values[createjs.TweenMotion.ID.X] = this.x2_;
-  values[createjs.TweenMotion.ID.Y] = this.y2_;
-  if (this.rotation_) {
-    this.rotation_.copy(values);
+createjs.TweenMotion.Curve.prototype.setRotation = function(orientation) {
+  /// <param type="number" name="orientation"/>
+  var x0 = this.x1_ - this.x0_;
+  var y0 = this.y1_ - this.y0_;
+  var x1 = this.x2_ - this.x1_;
+  var y1 = this.y2_ - this.y1_;
+  var delta = 0;
+  if (orientation != createjs.TweenMotion.Orientation.FIXED) {
+    delta = createjs.atan2(x1, y1) - createjs.atan2(x0, y0);
+    switch (orientation) {
+      case createjs.TweenMotion.Orientation.AUTO:
+        if (delta > 180) {
+          delta -= 360;
+        } else if (delta < -180) {
+          delta += 360;
+        }
+        break;
+      case createjs.TweenMotion.Orientation.CLOCKWISE:
+        if (delta < 0) {
+          delta += 360;
+        }
+        break;
+      case createjs.TweenMotion.Orientation.COUNTERCLOCKWISE:
+        if (delta > 0) {
+          delta -= 360;
+        }
+        break;
+    }
   }
+  this.rotation_ = new createjs.TweenMotion.Rotation(x0, y0, x1, y1, delta);
 };
 
 /**
- * Calculates the interpolated position of this guide.
- * @param {number} ratio
- * @param {number} angle
- * @param {Array.<number>} values
- * @return {boolean}
+ * Calculates the approximate Euclidean distance of this curve. This method uses
+ * de-Casteljeau's algorithm to divide this curve into (up to sixteen) lines
+ * and returns the total distance of them.
+ * @return {number}
  * @const
  */
-createjs.TweenMotion.Guide.prototype.interpolate =
-    function(ratio, angle, values) {
-  /// <param type="number" name="ratio"/>
-  /// <param type="number" name="angle"/>
-  /// <param type="Array" elementType="number" name="values"/>
-  /// <returns type="boolean"/>
-  if (this.start_ <= ratio && ratio <= this.end_) {
-    var t = this.offset_ + (ratio - this.start_);
+createjs.TweenMotion.Curve.prototype.getDistance = function() {
+  /// <returns type="number"/>
+
+  // Initialize the anchor-point array with the start point and the end one.
+  // The size of this array is always "16 + 1 = 17".
+  var points = [
+    null, null, null, null, null, null, null, null,
+    null, null, null, null, null, null, null, null,
+    null
+  ];
+  var dx = this.x2_ - this.x0_;
+  var dy = this.y2_ - this.y0_;
+  points[0] = new createjs.TweenMotion.Point(this.x0_, this.y0_, 0, 0);
+  points[16] = new createjs.TweenMotion.Point(
+      this.x2_, this.y2_, 1, Math.sqrt(dx * dx + dy * dy));
+
+  // Fill the anchor-point array with points on this curve. This loop adds
+  // points to approximate the length of this curve with the total length of
+  // lines "p0->p1->...->p16", i.e. the length of this curve is sufficiently
+  // close to the total length of the lines.
+  var EPSILON = 4;
+  var stack = [0, 16];
+  while (stack.length > 0) {
+    // Retrieve the start point and the end point from the stack.
+    var n1 = stack.pop();
+    var n0 = stack.pop();
+    var p1 = points[n1];
+    var p0 = points[n0];
+
+    // Calculate the "middle" point of the points.
+    var t = (p0.t_ + p1.t_) * 0.5;
     var t_ = 1 - t;
     var t0 = t_ * t_;
     var t1 = 2 * t_ * t;
     var t2 = t * t;
-    values[createjs.TweenMotion.ID.X] =
-        t0 * this.x0_ + t1 * this.x1_ + t2 * this.x2_;
-    values[createjs.TweenMotion.ID.Y] =
-        t0 * this.y0_ + t1 * this.y1_ + t2 * this.y2_;
-    if (this.rotation_) {
-      this.rotation_.interpolate(t, t_, angle, values);
+    var x = t0 * this.x0_ + t1 * this.x1_ + t2 * this.x2_;
+    var y = t0 * this.y0_ + t1 * this.y1_ + t2 * this.y2_;
+    var dx0 = x - p0.x_;
+    var dy0 = y - p0.y_;
+    var p = new createjs.TweenMotion.Point(
+        x, y, t, Math.sqrt(dx0 * dx0 + dy0 * dy0));
+
+    // Save the original distance of the end point and update its distance.
+    var length = p1.length_;
+    var dx1 = p1.x_ - x;
+    var dy1 = p1.y_ - y;
+    p1.length_ = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+
+    // Calculate the error between the new distance "p0->p->p1" and the original
+    // one "p0->p1" and recursively divide the paths "p0->p" and "p->p1" when
+    // the error is greater than the limit. (This error is always positive
+    // because of the triangle inequality.)
+    var error = p.length_ + p1.length_ - length;
+    if (error > EPSILON) {
+      if (n1 - n0 >= 4) {
+        var n = (n1 - n0) >> 1;
+        points[n] = p;
+        stack.push(n0, n, n, n1);
+      }
     }
-    return true;
   }
+
+  // Add the lengths of all anchor points except the first one. (The length of
+  // the first anchor point is 0.)
+  var size = 0;
+  var length = 0;
+  var t0 = 0;
+  for (var i = 1; i < 17; ++i) {
+    var point = points[i];
+    if (point) {
+      point.t0_ = t0;
+      point.start_ = length;
+      point.length_ = point.length_;
+      point.scale_ = (point.t_ - t0) / point.length_;
+      length += point.length_;
+      t0 = point.t_;
+      this.points_[size] = point;
+      ++size;
+    }
+  }
+  this.length_ = length;
+  this.size_ = size;
+  return this.length_;
+};
+
+/**
+ * Calculates the interpolated point in this curve.
+ * @param {number} position
+ * @param {Array.<number>} points
+ * @param {number} index
+ * @param {number} angle
+ * @return {boolean}
+ * @const
+ */
+createjs.TweenMotion.Curve.prototype.interpolate =
+    function(position, points, index, angle) {
+  /// <param type="number" name="position"/>
+  /// <param type="Array" elementType="number" name="points"/>
+  /// <param type="number" name="index"/>
+  /// <param type="number" name="angle"/>
+  /// <returns type="boolean"/>
+  position -= this.start_;
+  for (var i = this.index_; i < this.size_; ++i) {
+    var point = this.points_[i];
+    var offset = position - point.start_;
+    if (offset < point.length_) {
+      // Write an interpolated point (and a rotation angle) when the input point
+      // is on the line from "this.points_[i - 1]" to "this.points_[i]".
+      var t = point.t0_ + offset * point.scale_;
+      var t_ = 1 - t;
+      var t0 = t_ * t_;
+      var t1 = 2 * t_ * t;
+      var t2 = t * t;
+      points[index] = t0 * this.x0_ + t1 * this.x1_ + t2 * this.x2_;
+      points[index + 1] = t0 * this.y0_ + t1 * this.y1_ + t2 * this.y2_;
+      if (this.rotation_) {
+        points[index + 2] = 1;
+        points[index + 3] = this.rotation_.interpolate(t, t_, angle);
+      } else {
+        points[index + 2] = 0;
+        points[index + 3] = 0;
+      }
+      this.index_ = i;
+      return true;
+    }
+  }
+  this.index_ = 0;
   return false;
+};
+
+/**
+ * Returns the last point.
+ * @param {Array.<number>} points
+ * @param {number} index
+ * @param {number} angle
+ * @const
+ */
+createjs.TweenMotion.Curve.prototype.getLast = function(points, index, angle) {
+  points[index] = this.x2_;
+  points[index + 1] = this.y2_;
+  if (this.rotation_) {
+    points[index + 2] = 1;
+    points[index + 3] = this.rotation_.getLast(angle);
+  } else {
+    points[index + 2] = 0;
+    points[index + 3] = 0;
+  }
 };
 
 /**
@@ -443,32 +612,13 @@ createjs.TweenMotion.prototype.text_ = '';
 createjs.TweenMotion.prototype.graphics_ = null;
 
 /**
- * The array of guides used by the motion-guide plug-in. (This array is an
- * internal object generated by from a 'guide' property.)
- * @type {Array.<createjs.TweenMotion.Guide>}
- * @private
- */
-createjs.TweenMotion.prototype.guides_ = null;
-
-/**
- * The multiplier that converts a normalized position [0,1) to a guide position.
- * @type {number}
- * @private
- */
-createjs.TweenMotion.prototype.guideScale_ = 1;
-
-/**
- * The offset angle of the guides.
- * @type {number}
- * @private
- */
-createjs.TweenMotion.prototype.guideAngle_ = 0;
-
-/**
+ * The points and rotation angles pre-calculated from a 'guide' property. Each
+ * pre-calculated point consists of four numbers (x, y, orientation, and angle),
+ * the index to the i-th point is "i * 4" (or "i << 2").
  * @type {Array.<number>}
  * @private
  */
-createjs.TweenMotion.prototype.guidePath_ = null;
+createjs.TweenMotion.prototype.points_ = null;
 
 /**
  * Returns the specified property.
@@ -883,14 +1033,16 @@ createjs.TweenMotion.prototype.copy = function(motion) {
   property = this.getProperty_(createjs.TweenMotion.ID.GRAPHICS);
   motion.graphics_ = property ? property.getEndGraphics() : this.graphics_;
 
-  // When this value has a guide, overwrite the clone properties with it.
-  if (this.guidePath_) {
-    var index = this.guidePath_.length - 2;
-    motion.values_[createjs.TweenMotion.ID.X] = this.guidePath_[index];
-    motion.values_[createjs.TweenMotion.ID.Y] = this.guidePath_[index + 1];
-  } else if (this.guides_) {
-    var guide = this.guides_[this.guides_.length - 1];
-    guide.copy(motion.values_);
+  // When this value has a guide, overwrite the clone properties with its end
+  // position and angle.
+  if (this.points_) {
+    var index = this.points_.length - 4;
+    motion.values_[createjs.TweenMotion.ID.X] = this.points_[index];
+    motion.values_[createjs.TweenMotion.ID.Y] = this.points_[index + 1];
+    if (this.points_[index + 2]) {
+      motion.values_[createjs.TweenMotion.ID.ROTATION] =
+          this.points_[index + 3];
+    }
   }
 
   // Copy the property mask of the source. (This motion will only add bits to
@@ -932,6 +1084,7 @@ createjs.TweenMotion.prototype.updateGuide =
   /// <param type="string" optional="true" name="opt_orientation"/>
   var start = opt_start || 0;
   var end = (opt_end == null) ? 1 : opt_end;
+  var angle = 0;
   var orientation;
   if (!opt_orientation || mask & (1 << createjs.TweenMotion.ID.ROTATION)) {
     orientation = createjs.TweenMotion.Orientation.NONE;
@@ -945,11 +1098,12 @@ createjs.TweenMotion.prototype.updateGuide =
     };
     orientation =
         ORIENT[opt_orientation] || createjs.TweenMotion.Orientation.FIXED;
+    angle = createjs.atan2(path[3] - path[1], path[2] - path[0]);
     this.mask_ |= (1 << createjs.TweenMotion.ID.X) |
                   (1 << createjs.TweenMotion.ID.Y) |
                   (1 << createjs.TweenMotion.ID.ROTATION);
   }
-  // A 'guide' property changes the 'x', 'y', and 'rotation' properties, i.e. it
+  // A 'guide' property always changes the 'x' and 'y' properties, i.e. it
   // changes number properties.
   this.noNumber_ = false;
 
@@ -960,54 +1114,68 @@ createjs.TweenMotion.prototype.updateGuide =
   // calculate its inverse function, the number of segments is equal to
   // 'Math.floor((path.length - 2) / 4)'.
   var segments = (path.length - 2) >> 2;
-  if (segments == this.duration_ && start == 0 && end == 1 && !this.ease_) {
-    // Store the input path and exit this method when the number of segments is
-    // equal to the duration of this motion, i.e. this 'guide' property does not
-    // need to interpolate its path. (Flash CC often generates such 'guide'
-    // properties.)
-    this.guidePath_ = path;
-    return;
+
+  // Calculate the Euclidean distance of whole this guide path. This method
+  // divides the distance by the duration of this motion so its target moves on
+  // the path in the same speed.
+  var length = 0;
+  var curves = [];
+  for (var i = 0; i < segments; ++i) {
+    // Creates a quadratic bezier curve consisting of six points (path[i * 4],
+    // path[i * 4 + 1], ..., path[i * 4 + 5]) and add its Euclidean distance.
+    var index = i << 2;
+    var curve = new createjs.TweenMotion.Curve(path, index, length);
+    if (orientation) {
+      curve.setRotation(orientation);
+    }
+    length += curve.getDistance();
+    curves[i] = curve;
   }
-  // Decompose the path of a 'guide' property into createjs.TweenMotio.Guide
-  // objects. If the path of a 'guide' property consists of two quadratic-bezier
-  // paths or more, divide it into sub-paths so each sub-path consists only of
-  // one quadratic-bezier path. For example, the following 'guide' property,
-  // which consists of two quadratic-bezier paths, is divided into two
-  // sub-paths.
-  //   { duration: 1,
-  //     guide: { path: [0, 0, 5, 0, 5, 5, 0, 5, 0, 0], start: 0, end: 0.75 }}
-  //   -> { duration: 1,
-  //        guide: { path: [0, 0, 5, 0, 5, 5], start: 0, end: 1 }}
-  //      { duration: 0.5,
-  //        guide: { path: [5, 5, 0, 5, 0, 0], start: 0, end: 0.5 }}
-  // The total duration of the decomposed createjs.TweenMotion.Guide objects is
-  // not equal to the normalized one (i.e. 1) as shown above.
-  this.guides_ = [];
-  start *= segments;
-  end *= segments;
-  this.guideScale_ = end - start;
-  if (orientation) {
-    this.guideAngle_ = createjs.atan2(path[3] - path[1], path[2] - path[0]);
-  }
-  if (start <= end) {
-    var ratio = 0;
-    var index = 0;
-    for (var i = 0; i < segments; ++i) {
-      if (start < 1) {
-        var guide =
-            new createjs.TweenMotion.Guide(path, index, ratio, start, end);
-        if (orientation) {
-          guide.rotation_ =
-              createjs.TweenMotion.Rotation.get(orientation, path, index);
-        }
-        this.guides_.push(guide);
-        ratio = guide.end_;
+
+  // For each frames from zero to the duration of this motion, calculate the
+  // position of its target at that time.
+  start *= length;
+  end *= length;
+  var scale = end - start;
+  var points = [
+    path[0], path[1], orientation, angle
+  ];
+  var step = 0;
+  var duration = this.duration_ - 1;
+  for (var frame = 1; frame < duration; ++frame) {
+    // Calculate the position in this guide path from the frame number. This
+    // conversion converts a frame number "[0,duration)" to a normalized ratio
+    // "[0,1)", and converts the normalized ratio to the position "[0,length)"
+    // as listed in the following table.
+    //   +----------+--------------+--------------------------------------+
+    //   | frame    | ratio        | position                             |
+    //   +----------+--------------+--------------------------------------+
+    //   | 0        | 0            | start * length                       |
+    //   | n        | n / duration | (start + n * (end - start)) * length |
+    //   | duration | 1            | end * length                         |
+    //   +----------+--------------+--------------------------------------+
+    var ratio = frame * this.scale_;
+    if (this.ease_) {
+      ratio = this.ease_.interpolate(ratio);
+    }
+    var position = start + ratio * scale;
+
+    // Find the curve that includes the position and set interpolated points.
+    var index = frame << 2;
+    for (var j = step; j < segments; ++j) {
+      var curve = curves[j];
+      if (curve.interpolate(position, points, index, angle)) {
+        step = j;
+        break;
       }
-      index += 4;
-      --start;
-      --end;
     }
   }
+  var index = duration << 2;
+  var curve = curves[segments - 1];
+  curve.getLast(points, index, angle);
+
+  // Save the calculated points.
+  this.points_ = points;
 };
 
 /**
@@ -1119,28 +1287,19 @@ createjs.TweenMotion.prototype.interpolate = function(time) {
 
   // Calculate the normalized position (a number in [0,1)) from an absolute
   // time (used by the caller tween) and apply an easing function to it.
-  var position = (time - this.start_) * this.scale_;
+  time -= this.start_;
+  var position = time * this.scale_;
   var ratio = this.ease_ ? this.ease_.interpolate(position) : position;
 
   // When this motion has guides, update them and copy their values to this
   // motion. (When a tween property has both a 'guide' property and a 'rotation'
   // one. This guide should use the value of the 'rotation' property.)
-  if (this.guidePath_) {
-    // This guide does not need interpolation. Calculate the index to the
-    // beginning of the 'time'-th segment and copy its start position. (This
-    // motion may have an easing function and this index should be calculated
-    // from the interpolated ratio.)
-    var index = (ratio * this.duration_) << 2;
-    this.values_[createjs.TweenMotion.ID.X] = this.guidePath_[index];
-    this.values_[createjs.TweenMotion.ID.Y] = this.guidePath_[index + 1];
-  } else if (this.guides_) {
-    var guideRatio = ratio * this.guideScale_;
-    var length = this.guides_.length;
-    for (var i = 0; i < length; ++i) {
-      var guide = this.guides_[i];
-      if (guide.interpolate(guideRatio, this.guideAngle_, this.values_)) {
-        break;
-      }
+  if (this.points_) {
+    var index = time << 2;
+    this.values_[createjs.TweenMotion.ID.X] = this.points_[index];
+    this.values_[createjs.TweenMotion.ID.Y] = this.points_[index + 1];
+    if (this.points_[index + 2]) {
+      this.values_[createjs.TweenMotion.ID.ROTATION] = this.points_[index + 3];
     }
   }
 
