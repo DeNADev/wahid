@@ -404,7 +404,7 @@ createjs.TweenMotion.Curve.prototype.getDistance = function() {
   // close to the total length of the lines.
   var EPSILON = 4;
   var stack = [0, 16];
-  while (stack.length > 0) {
+  do {
     // Retrieve the start point and the end point from the stack.
     var n1 = stack.pop();
     var n0 = stack.pop();
@@ -424,25 +424,25 @@ createjs.TweenMotion.Curve.prototype.getDistance = function() {
     var p = new createjs.TweenMotion.Point(
         x, y, t, Math.sqrt(dx0 * dx0 + dy0 * dy0));
 
-    // Save the original distance of the end point and update its distance.
-    var length = p1.length_;
+    // Calculate the distance "p->p1".
     var dx1 = p1.x_ - x;
     var dy1 = p1.y_ - y;
-    p1.length_ = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+    var length = Math.sqrt(dx1 * dx1 + dy1 * dy1);
 
     // Calculate the error between the new distance "p0->p->p1" and the original
     // one "p0->p1" and recursively divide the paths "p0->p" and "p->p1" when
     // the error is greater than the limit. (This error is always positive
     // because of the triangle inequality.)
-    var error = p.length_ + p1.length_ - length;
+    var error = p.length_ + length - p1.length_;
     if (error > EPSILON) {
       if (n1 - n0 >= 4) {
+        p1.length_ = length;
         var n = (n1 - n0) >> 1;
         points[n] = p;
         stack.push(n0, n, n, n1);
       }
     }
-  }
+  } while (stack.length > 0);
 
   // Add the lengths of all anchor points except the first one. (The length of
   // the first anchor point is 0.)
