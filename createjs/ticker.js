@@ -312,12 +312,15 @@ createjs.Ticker.getEvent_ = function(delta, paused, time, runTime) {
  */
 createjs.Ticker.tick_ = function(timestamp) {
   /// <param type="number" name="timestamp"/>
+  // Initialize the ticker timers lazily. Chrome does not use a monotonic timer
+  // to generate timestamps provided to requestAnimationFrame() callbacks, i.e.
+  // this timestamp value is incomparable with other timestamp values on Chrome.
   var ticker = createjs.Ticker.getInstance_();
   if (!ticker.startTime_) {
     ticker.startTime_ = timestamp;
+    ticker.lastTime_ = timestamp;
   }
   var elapsedTime = timestamp - ticker.lastTime_;
-  ticker.lastTime_ = timestamp;
   var paused = ticker.paused_;
   if (paused) {
     ticker.pausedTime_ += elapsedTime;
@@ -338,6 +341,10 @@ createjs.Ticker.tick_ = function(timestamp) {
       ticker.dispatchRawEvent(event);
     }
   }
+  // Update the ticker time when we finish updating all listeners. (Tweens use
+  // this value to update themselves, i.e. this ticker must update this value
+  // after it updates all its listeners.)
+  ticker.lastTime_ = timestamp;
 
   if (!ticker.times_) {
     ticker.times_ = new createjs.Ticker.PerformanceCounter();

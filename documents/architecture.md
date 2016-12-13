@@ -1490,6 +1490,183 @@ its position only when a tween changes its value.
 7. Calculate the global [affine transformation] of `movieclip5`;
 8. Calculate the global [affine transformation] of `bitmap6` and draw it.
 
+### Compiling a createjs.Tween object
+
+We compile a [createjs.Tween] object to a list of internal objects at run time
+to improve the speed of changing its position.
+
+Each [createjs.Tween] method can specify only the properties it changes as
+listed in the following snippet.
+
+```javascript
+  circle.set({ x: 0, y: 0, alpha: 1 });
+  var tween15 = createjs.Tween.get(circle, { loop: true, useTicks: true })
+      .to({ x: 150, y: 75, alpha: 0.1 }, 10)
+      .to({ x: 0 }, 10)
+      .to({ y: 150 })
+      .wait(10)
+      .to({ y: 0, alpha: 1 }, 10);
+```
+
+This tween changes the properties of its target [CreateJS] object as listed in
+the following table.
+
+<table>
+  <tr><th rowspan="2">position</th><th colspan="3">properties</th></tr>
+  <tr><th>x</th><th>y</th><th>alpha</th></tr>
+  <tr><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+  <tr><td>1</td><td>15</td><td>7.5</td><td>0.91</td></tr>
+  <tr><td>2</td><td>30</td><td>15</td><td>0.82</td></tr>
+  <tr><td>3</td><td>45</td><td>22.5</td><td>0.73</td></tr>
+  <tr><td>4</td><td>60</td><td>30</td><td>0.64</td></tr>
+  <tr><td>5</td><td>75</td><td>37.5</td><td>0.55</td></tr>
+  <tr><td>6</td><td>90</td><td>45</td><td>0.46</td></tr>
+  <tr><td>7</td><td>105</td><td>52.5</td><td>0.37</td></tr>
+  <tr><td>8</td><td>120</td><td>60</td><td>0.28</td></tr>
+  <tr><td>9</td><td>135</td><td>67.5</td><td>0.19</td></tr>
+  <tr><td>10</td><td>150</td><td>75</td><td>0.1</td></tr>
+  <tr><td>11</td><td>135</td><td>75</td><td>0.1</td></tr>
+  <tr><td>12</td><td>120</td><td>75</td><td>0.1</td></tr>
+  <tr><td>13</td><td>105</td><td>75</td><td>0.1</td></tr>
+  <tr><td>14</td><td>90</td><td>75</td><td>0.1</td></tr>
+  <tr><td>15</td><td>75</td><td>75</td><td>0.1</td></tr>
+  <tr><td>16</td><td>60</td><td>75</td><td>0.1</td></tr>
+  <tr><td>17</td><td>45</td><td>75</td><td>0.1</td></tr>
+  <tr><td>18</td><td>30</td><td>75</td><td>0.1</td></tr>
+  <tr><td>19</td><td>15</td><td>75</td><td>0.1</td></tr>
+  <tr><td>20</td><td>0</td><td>150</td><td>0.1</td></tr>
+  <tr><td>21</td><td>0</td><td>150</td><td>0.1</td></tr>
+  <tr><td>22</td><td>0</td><td>150</td><td>0.1</td></tr>
+  <tr><td>23</td><td>0</td><td>150</td><td>0.1</td></tr>
+  <tr><td>24</td><td>0</td><td>150</td><td>0.1</td></tr>
+  <tr><td>25</td><td>0</td><td>150</td><td>0.1</td></tr>
+  <tr><td>26</td><td>0</td><td>150</td><td>0.1</td></tr>
+  <tr><td>27</td><td>0</td><td>150</td><td>0.1</td></tr>
+  <tr><td>28</td><td>0</td><td>150</td><td>0.1</td></tr>
+  <tr><td>29</td><td>0</td><td>150</td><td>0.1</td></tr>
+  <tr><td>30</td><td>0</td><td>150</td><td>0.1</td></tr>
+  <tr><td>31</td><td>0</td><td>135</td><td>0.19</td></tr>
+  <tr><td>32</td><td>0</td><td>120</td><td>0.28</td></tr>
+  <tr><td>33</td><td>0</td><td>105</td><td>0.37</td></tr>
+  <tr><td>34</td><td>0</td><td>90</td><td>0.46</td></tr>
+  <tr><td>35</td><td>0</td><td>75</td><td>0.55</td></tr>
+  <tr><td>36</td><td>0</td><td>60</td><td>0.64</td></tr>
+  <tr><td>37</td><td>0</td><td>45</td><td>0.73</td></tr>
+  <tr><td>38</td><td>0</td><td>30</td><td>0.82</td></tr>
+  <tr><td>39</td><td>0</td><td>15</td><td>0.91</td></tr>
+  <tr><td>40</td><td>0</td><td>0</td><td>1</td></tr>
+</table>
+
+In general, it takes _O(n)_ time for a tween to calculate the property values of
+its target for Position #_n_, i.e. it is not so fast for a tween to change its
+position.
+
+To calculate the property values in _O(1)_ time, we scan these [createjs.Tween]
+method calls to complete their properties, e.g. the above _tween15_ adds `x`,
+`y`, and `alpha` properties as listed in the following snippet.
+
+```javascript
+  circle.set({ x: 0, y: 0, alpha: 1 });
+  var tween16 = createjs.Tween.get(circle, { loop: true, useTicks: true })
+      .to({ x: 150, y: 75, alpha: 0.1 }, 10)
+      .to({ x: 0, y: 75, alpha: 0.1 }, 10)
+      .to({ x: 0, y: 150, alpha: 0.1 }, 0)
+      .to({ x: 0, y: 150, alpha: 0.1 }, 10)
+      .to({ x: 0, y: 0, alpha: 1 }, 10);
+```
+
+We also converts these calls into a list of internal objects to calculate the
+property values faster.
+
+### Caching compiled createjs.Tween objects
+
+A class derived from [createjs.MovieClip] has a per-class cache of compiled
+[createjs.Tween] objects.
+
+A [createjs.Tween] object compiles its calls to a list of internal objects
+either when it is added to a [createjs.MovieClip] object or when it updates its
+target for the first time.
+A game often creates lots of [createjs.MovieClip] objects, each of which
+contains several [createjs.Tween] objects, at once and it often stalls for a
+long time.
+For example, the following class `lib.parent` consists of five `lib.child`
+objects and five [createjs.Tween] objects. A `lib.child` class consists of two
+[createjs.Bitmap] object and two [createjs.Tween] object.
+
+```javascript
+  lib.child = function() {
+    this.instance_00 = new createjs.Bitmap('test0.png');
+    var tween00 = createjs.Tween.Get(this.instance_0).
+        to({x: 10},10).
+        to({y: 100},10).
+        wait(10);
+    this.timeline.addTween(tween00);
+
+    this.instance_01 = new createjs.Bitmap('test1.png');
+    var tween01 = createjs.Tween.Get(this.instance_1).
+        to({y: 100},10).
+        to({alpha: 0},10).
+        wait(10);
+    this.timeline.addTween(tween01);
+  };
+  lib.child.prototype = new createjs.MovieClip();
+
+  lib.parent = function() {
+    this.instance_0 = new lib.child();
+    var tween0 = createjs.Tween.Get(this.instance_0).
+        to({_off: true}).
+        wait(50);
+    this.timeline.addTween(tween0);
+
+    this.instance_1 = new lib.child();
+    var tween1 = createjs.Tween.Get(this.instance_1).
+        wait(40).
+        to({_off: true}).
+        wait(10);
+    this.timeline.addTween(tween1);
+
+    this.instance_2 = new lib.child();
+    var tween2 = createjs.Tween.Get(this.instance_2).
+        wait(30).
+        to({_off: true}).
+        wait(20);
+    this.timeline.addTween(tween2);
+
+    this.instance_3 = new lib.child();
+    var tween3 = createjs.Tween.Get(this.instance_3).
+        wait(20).
+        to({_off: true}).
+        wait(30);
+    this.timeline.addTween(tween3);
+
+    this.instance_4 = new lib.child();
+    var tween4 = createjs.Tween.Get(this.instance_4).
+        wait(10).
+        to({_off: true}).
+        wait(40);
+    this.timeline.addTween(tween4);
+
+    this.instance_5 = new lib.child();
+    var tween5 = createjs.Tween.Get(this.instance_5).
+        wait(50).
+        to({_off: true});
+    this.timeline.addTween(tween5);
+  };
+  lib.parent.prototype = new createjs.MovieClip();
+```
+
+When a game creates an instance of the `lib.parent` class, the `lib.parent`
+class compiles _5 + 5 * 2 = 15_ [createjs.Tween] objects.
+
+To decrease the number of [createjs.Tween] objects compiled in creating
+instances of a [createjs.MovieClip]-derived class a [createjs.MovieClip] class
+has a per-class cache that caches compiled [createjs.Tween] objects. This cache
+allows the second instance of a [createjs.MovieClip]-derived class to copy the
+[createjs.Tween] objects compiled by the first instance, e.g. the above
+`instance_1` property can copy the [createjs.Tween] objects compiled by the
+`instance_0` property. To use this cache, an instance of the above `lib.parent`
+class needs to compile only _5 + 2 = 7_ [createjs.Tween] objects.
+
 ## Emulating PreloadJS
 
 Our resource loader has its own cache optimized for games.
