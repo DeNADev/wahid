@@ -203,7 +203,7 @@ createjs.TweenMotion.Point = function(x, y, t, length) {
   this.y_ = y;
 
   /**
-   * The curve ratio of this point.
+   * The interpolation ratio of this point.
    * @const {number}
    * @private
    */
@@ -225,25 +225,11 @@ createjs.TweenMotion.Point = function(x, y, t, length) {
   this.length_ = length;
 
   /**
-   * The ratio difference from the previous point.
+   * The interpolation ratio of the previous point.
    * @type {number}
    * @private
    */
-  this.dt_ = 0;
-
-  /**
-   * The x difference from the previous point.
-   * @type {number}
-   * @private
-   */
-  this.dx_ = 0;
-
-  /**
-   * The y difference from the previous point.
-   * @type {number}
-   * @private
-   */
-  this.dy_ = 0;
+  this.t0_ = 0;
 
   /**
    * The scale factor that normalize a position "[0,length)" to a number
@@ -442,16 +428,25 @@ createjs.TweenMotion.Curve.prototype.getDistance = function() {
     var dy1 = p1.y_ - y;
     var length = Math.sqrt(dx1 * dx1 + dy1 * dy1);
 
-    // Calculate the error between the new distance "p0->p->p1" and the original
-    // one "p0->p1" and recursively divide the paths "p0->p" and "p->p1" when
-    // the error is greater than the limit. (This error is always positive
-    // because of the triangle inequality.)
+    // Calculate a couple of values to recursively divide the paths "p0->p" and
+    // "p->p1".
+    // (1) An error between the new distance "p0->p->p1" and the original one
+    //     "p0->p1" to converge the total distance of lines to the one of this
+    //     curve, and;
+    // (2) A difference between a distance "p0->p" and "p->p1" to move this
+    //     curve at a constant speed.
+    // (This class uses linear interpolation to calculate an interpolation ratio
+    // of this curve from an Euclidean distance, i.e. this class assumes each
+    // path is sufficiently close to a line.)
     var error = p.length_ + length - p1.length_;
-    p1.length_ = length;
-    var n = (n1 - n0) >> 1;
-    points[n] = p;
-    if (error > EPSILON && n >= 2) {
-      stack.push(n0, n, n, n1);
+    var difference = Math.abs(length - p.length_);
+    if (error > EPSILON || difference > EPSILON) {
+      if (n1 - n0 >= 4) {
+        p1.length_ = length;
+        var n = n0 + ((n1 - n0) >> 1);
+        points[n] = p;
+        stack.push(n0, n, n, n1);
+      }
     }
   } while (stack.length > 0);
 
@@ -460,21 +455,15 @@ createjs.TweenMotion.Curve.prototype.getDistance = function() {
   var size = 0;
   var length = 0;
   var t0 = 0;
-  var x0 = this.x0_;
-  var y0 = this.y0_;
   for (var i = 1; i < 17; ++i) {
     var point = points[i];
     if (point) {
-      point.dt_ = t0 - point.t_;
-      point.dx_ = x0 - point.x_;
-      point.dy_ = y0 - point.y_;
+      point.t0_ = t0;
       point.start_ = length;
       point.length_ = point.length_;
-      point.scale_ = 1 / point.length_;
+      point.scale_ = (point.t_ - t0) / point.length_;
       length += point.length_;
       t0 = point.t_;
-      x0 = point.x_;
-      y0 = point.y_;
       this.points_[size] = point;
       ++size;
     }
@@ -505,15 +494,16 @@ createjs.TweenMotion.Curve.prototype.interpolate =
     var point = this.points_[i];
     var offset = position - point.start_;
     if (offset < point.length_) {
-      // Write a linear-interpolated point (and a rotation angle) when the input
-      // point is on the line from "this.points_[i - 1]" to "this.points_[i]".
-      var t = offset * point.scale_;
+      // Write an interpolated point (and a rotation angle) when the input point
+      // is on the curve from "this.points_[i - 1]" to "this.points_[i]".
+      var t = point.t0_ + offset * point.scale_;
       var t_ = 1 - t;
-      points[index] = point.x_ + t_ * point.dx_;
-      points[index + 1] = point.y_ + t_ * point.dy_;
+      var t0 = t_ * t_;
+      var t1 = 2 * t_ * t;
+      var t2 = t * t;
+      points[index] = t0 * this.x0_ + t1 * this.x1_ + t2 * this.x2_;
+      points[index + 1] = t0 * this.y0_ + t1 * this.y1_ + t2 * this.y2_;
       if (this.rotation_) {
-        t = point.t_ + t_ * point.dt_;
-        t_ = 1 - t;
         points[index + 2] = 1;
         points[index + 3] = this.rotation_.interpolate(t, t_, angle);
       } else {
