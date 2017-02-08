@@ -38,6 +38,29 @@ createjs.Transform = function() {
 };
 
 /**
+ * A flag representing this transformation has scale factors not equal to one,
+ * i.e. this.a != 1 or this.d != 1.
+ * @const {number}
+ * @protected
+ */
+createjs.Transform.DIRTY_SCALE = (1 << 0);
+
+/**
+ * A flag representing this transformation has non-zero skew factors, i.e.
+ * this.b != 0 or this.c != 0.
+ * @const {number}
+ * @protected
+ */
+createjs.Transform.DIRTY_SKEW = (1 << 1);
+
+/**
+ * A flag representing the type of this transformation.
+ * @type {number}
+ * @private
+ */
+createjs.Transform.prototype.dirty_ = 0;
+
+/**
  * The horizontal scale.
  * @type {number}
  */
@@ -103,10 +126,23 @@ createjs.Transform.prototype.prepend_ = function(transform) {
   var d = this.d;
   var tx = this.tx;
   var ty = this.ty;
-  this.a  = transform.a * a + transform.c * b;
-  this.b  = transform.b * a + transform.d * b;
-  this.c  = transform.a * c + transform.c * d;
-  this.d  = transform.b * c + transform.d * d;
+  if (!this.dirty_) {
+    // Copy the parent transform (including its dirty flag) to this transform
+    // when this transform is an identity one. (A dirty flag will be used in
+    // calculating a bounding box.)
+    this.a = transform.a;
+    this.b = transform.b;
+    this.c = transform.c;
+    this.d = transform.d;
+    this.invertible = transform.invertible;
+    this.dirty_ = transform.dirty_;
+  } else {
+    this.a = transform.a * a + transform.c * b;
+    this.b = transform.b * a + transform.d * b;
+    this.c = transform.a * c + transform.c * d;
+    this.d = transform.b * c + transform.d * d;
+    this.invertible = (this.a * this.d - this.b * this.c) ? 1 : 0;
+  }
   this.tx = transform.a * tx + transform.c * ty + transform.tx;
   this.ty = transform.b * tx + transform.d * ty + transform.ty;
 };
@@ -137,6 +173,7 @@ createjs.Transform.prototype.set =
   var b = 0;
   var c = 0;
   var d = scale.y;
+  this.dirty_ = (a != 1 || d != 1) ? createjs.Transform.DIRTY_SCALE : 0;
   if (rotation) {
     // Multiply a rotation matrix with a scale one as listed in the following
     // formula.
@@ -152,6 +189,7 @@ createjs.Transform.prototype.set =
     c = -sin * d;
     a = cos * a;
     d = cos * d;
+    this.dirty_ |= createjs.Transform.DIRTY_SKEW;
   }
   if (skew.x || skew.y) {
     // Multiply a skew matrix with a rotation one as listed in the following
@@ -174,6 +212,7 @@ createjs.Transform.prototype.set =
     b = b0 * a1 + d0 * b1;
     c = a0 * c1 + c0 * d1;
     d = b0 * c1 + d0 * d1;
+    this.dirty_ |= createjs.Transform.DIRTY_SKEW;
   }
   this.a = a;
   this.b = b;
@@ -200,6 +239,8 @@ createjs.Transform.prototype.copyTransform = function(transform) {
   this.d = transform.d;
   this.tx = transform.tx;
   this.ty = transform.ty;
+  this.invertible = transform.invertible;
+  this.dirty_ = transform.dirty_;
 };
 
 /**
@@ -223,7 +264,6 @@ createjs.Transform.prototype.appendTransform =
   /// <param type="createjs.Point" name="registration"/>
   this.set(position, scale, rotation, skew, registration);
   this.prepend_(transform);
-  this.invertible = (this.a * this.d - this.b * this.c) ? 1 : 0;
 };
 
 /**
@@ -290,7 +330,7 @@ createjs.Transform.prototype.transformBox = function(box, output) {
   var minY = box.minY;
   var maxX = box.maxX;
   var maxY = box.maxY;
-  if (!this.b && !this.c) {
+  if ((this.dirty_ & createjs.Transform.DIRTY_SKEW) == 0) {
     // This transform does not have skew factors and we can transform just the
     // top-left corner and the bottom-right one to get its transformed bounding
     // box.

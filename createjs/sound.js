@@ -219,6 +219,85 @@ createjs.WebAudioPlugin.source_ = null;
 createjs.WebAudioPlugin.buffer_ = null;
 
 /**
+ * Called when a user touches the host window. This method resumes the
+ * progression of the AudioContext object used by this plug-in when it is
+ * suspended.
+ * @param {Event} event
+ * @private
+ */
+createjs.WebAudioPlugin.handleTouch_ = function(event) {
+  /// <param type="Event" name="event"/>
+  // Stop listening the input event to avoid adding two listeners or more.
+  createjs.global.removeEventListener(
+      event.type, createjs.WebAudioPlugin.handleTouch_, false);
+
+  // Use the currentTime property (instead of using the state property) for
+  // backward compatibility.
+  var context = createjs.WebAudioPlugin['context'];
+  if (!context.currentTime) {
+    // Resume the progression of the AudioContext object used by this plug-in on
+    // iOS 10+ and on Chrome 49+.
+    if (context.resume) {
+      context.resume();
+    }
+    // Re-play all sounds played by the AudioContext object on Android. Chrome
+    // for Android (55 or later) does not resume the sounds played by an
+    // AudioContext object on resume <http://crbug.com/614115> as Mobile Safari
+    // does.
+    if (!createjs.UserAgent.isIPhone()) {
+      createjs.Sound.resume();
+    }
+    // Play an empty sound to resume the AudioContext object on browsers that
+    // do not have the AudioContext.prototype.resume() method.
+    createjs.WebAudioPlugin.playEmptySound_();
+  }
+};
+
+/**
+ * Called when the watchdog timer expires.
+ * @private
+ */
+createjs.WebAudioPlugin.handleTimeout_ = function() {
+  var context = createjs.WebAudioPlugin['context'];
+  console.log('> currentTime=' + context.currentTime);
+  if (!context.currentTime) {
+    // Choose the user-action event that re-plays an empty sound. Chrome and
+    // Mobile Safari on iOS 9.0 have to use 'touchend' events due to WebKit
+    // Bug 149367 <http://webkit.org/b/149367>.
+    var event;
+    if (createjs.UserAgent.isIPhone() && createjs.UserAgent.getVersion() != 9) {
+      event = 'touchstart';
+    } else {
+      event = 'touchend';
+    }
+    createjs.global.addEventListener(
+        event, createjs.WebAudioPlugin.handleTouch_, false);
+  }
+};
+
+/**
+ * Plays an empty sound to activate the AudioContext object used by this
+ * plug-in only if the AudioContext object needs to.
+ * @private
+ */
+createjs.WebAudioPlugin.playEmptySound_ = function() {
+  // Play an empty sound and start a watchdog timer only when this AudioContext
+  // object does not have the state property, i.e. the AudioContext object has
+  // the resume() method. (The resume() method is more trustworthy.)
+  var context = createjs.WebAudioPlugin['context'];
+  if (!context.state) {
+    var source = context.createBufferSource();
+    source.buffer = createjs.WebAudioPlugin.buffer_;
+    if (source.start) {
+      source.start(0);
+    } else {
+      source.noteOn(0);
+    }
+    setTimeout(createjs.WebAudioPlugin.handleTimeout_, 100);
+  }
+};
+
+/**
  * Retrieves the audio context.
  * @return {AudioContext} context
  * @private
@@ -228,17 +307,17 @@ createjs.WebAudioPlugin.getContext_ = function() {
   if (!createjs.WebAudioPlugin.initialized_) {
     createjs.WebAudioPlugin.initialized_ = true;
     if (createjs.AudioContext) {
-      // Attach a dummy object to the 'createjs.WebAudioPlugin.context' property
-      // when the createjs.Sound class uses FrameAudioPlayer objects (i.e. when
-      // it uses an <iframe> element to play sounds) to avoid creating an
-      // unnecessary AudioContent object.
-      if (createjs.USE_FRAME && createjs.Config.useFrame()) {
-        createjs.WebAudioPlugin['context'] = {
-          'currentTime': -1
-        };
-      } else {
-        var context = new createjs.AudioContext();
-        createjs.WebAudioPlugin['context'] = context;
+      var context = new createjs.AudioContext();
+      createjs.WebAudioPlugin['context'] = context;
+      createjs.WebAudioPlugin.buffer_ = context.createBuffer(1, 1, 22500);
+      if (!context.state) {
+        // This AudioContext object does not have the state property. Play an
+        // empty sound to activate it.
+        createjs.WebAudioPlugin.playEmptySound_();
+      } else if (context.state != 'running') {
+        // Listen a user-action when this AudioContext object is not running,
+        // i.e. it needs a user action to play sounds.
+        createjs.WebAudioPlugin.handleTimeout_();
       }
     }
   }
@@ -474,6 +553,12 @@ createjs.Sound.Player.prototype.setSprite_ = function(id, offset, duration) {
   /// <param type="string" name="id"/>
   /// <param type="number" name="offset"/>
   /// <param type="number" name="duration"/>
+};
+
+/**
+ * Resumes playing the sound associated with this player.
+ */
+createjs.Sound.Player.prototype.resume_ = function() {
 };
 
 /** @override */
@@ -741,6 +826,256 @@ createjs.inherits('Sound.BufferAudioPlayer',
                   createjs.Sound.BufferAudioPlayer,
                   createjs.Sound.Player);
 
+if (createjs.USE_FRAME) {
+  /**
+   * An inner class that encapsulates an <iframe> element used for decoding
+   * audio data.
+   * @implements {EventListener}
+   * @constructor
+   */
+  createjs.Sound.BufferAudioPlayer.Frame = function () {
+    var frame =
+        /** @type {HTMLIFrameElement} */ (document.createElement('iframe'));
+    frame.id = 'cjs-iframe';
+    var style = frame.style;
+    style.zIndex = -1;
+    style.position = 'absolute';
+    style.border = '0px';
+    style.top = '0px';
+    style.left = '0px';
+    style.width = '1px';
+    style.height = '1px';
+    createjs.global.addEventListener('message', this, false);
+    if (!createjs.DEBUG) {
+      frame.src =
+          createjs.Sound.BufferAudioPlayer.Frame.HEADER_ +
+          createjs.Sound.BufferAudioPlayer.Frame.SOURCE_MIN_ +
+          createjs.Sound.BufferAudioPlayer.Frame.FOOTER_;
+    } else {
+      frame.src =
+          createjs.Sound.BufferAudioPlayer.Frame.HEADER_ +
+          createjs.Sound.BufferAudioPlayer.Frame.SOURCE_DEBUG_ +
+          createjs.Sound.BufferAudioPlayer.Frame.FOOTER_;
+    }
+    document.body.appendChild(frame);
+
+    /**
+     * @type {HTMLIFrameElement}
+     * @private
+     */
+    this.frame_ = frame;
+
+    /**
+     * @type {Array.<Object>}
+     * @private
+     */
+    this.messages_ = [];
+
+    /**
+     * @type {Object.<string,createjs.Sound.BufferAudioPlayer>}
+     * @private
+     */
+    this.players_ = {};
+  };
+
+  /**
+   * The header of the source URL loaded by this <iframe> element.
+   * @const {string}
+   * @private
+   */
+  createjs.Sound.BufferAudioPlayer.Frame.HEADER_ =
+    'data:text/html,' +
+    '<html style="-webkit-user-select:none;">' +
+    '<head>' +
+    '<script type="text/javascript">';
+
+  /**
+   * The header of the source URL loaded by this <iframe> element.
+   * @const {string}
+   * @private
+   */
+  createjs.Sound.BufferAudioPlayer.Frame.FOOTER_ =
+    '</script>' +
+    '</head>' +
+    '<body>' +
+    '</body>' +
+    '</html>';
+
+  /**
+   * The optimized source code of this <iframe> element.
+   * @const {string}
+   * @private
+   */
+  createjs.Sound.BufferAudioPlayer.Frame.SOURCE_MIN_ =
+    'var e=window,f=e.webkitAudioContext||e.AudioContext,g=null,h=null;func' +
+    'tion k(){this.e={}}function l(a,b){this.h=a;this.g=b}l.prototype.e=nul' +
+    'l;l.prototype.f=function(a){this.e=a;for(var b=[],d=0;d<a.numberOfChan' +
+    'nels;++d)b.push(a.getChannelData(d));this.g.postMessage({a:6,b:this.h,' +
+    'c:a.sampleRate,d:b},"*")};k.prototype.handleEvent=function(a){if("mess' +
+    'age"==a.type){var b=a.data,d=b.b;if(0==b.a){var c=this.e[d];c?(c.g=a.s' +
+    'ource,c.f(c.e)):(c=new l(d,a.source),this.e[d]=c,a=c.f.bind(c),g.decod' +
+    'eAudioData(b.c,a,a))}}};e.onload=function(){g=new f;h=new k;e.addEvent' +
+    'Listener("message",h,!1);e.parent.postMessage({a:4},"*")};';
+
+  /**
+   * The source code of this <iframe> element used for debug.
+   * @const {string}
+   * @private
+   */
+  createjs.Sound.BufferAudioPlayer.Frame.SOURCE_DEBUG_ =
+    'var e=window,f=e.webkitAudioContext||e.AudioContext,g=null,h=null;func' +
+    'tion k(){this.e={}}function l(a,b){this.g=a;this.h=b}l.prototype.e=nul' +
+    'l;l.prototype.f=function(a){console.debug("decode="+this.g);this.e=a;f' +
+    'or(var b=[],c=0;c<a.numberOfChannels;++c)b.push(a.getChannelData(c));t' +
+    'his.h.postMessage({a:6,b:this.g,c:a.sampleRate,d:b},"*")};k.prototype.' +
+    'handleEvent=function(a){if("message"==a.type){var b=a.data,c=b.b;if(0=' +
+    '=b.a){console.debug("load="+c);var d=this.e[c];d?(d.h=a.source,d.f(d.e' +
+    ')):(d=new l(c,a.source),this.e[c]=d,a=d.f.bind(d),g.decodeAudioData(b.' +
+    'c,a,a))}}};e.onload=function(){g=new f;h=new k;e.addEventListener("mes' +
+    'sage",h,!1);e.parent.postMessage({a:4},"*")};';
+
+  /**
+   * The <iframe> element that decodes audio data.
+   * @type {HTMLIFrameElement}
+   * @private
+   */
+  createjs.Sound.BufferAudioPlayer.Frame.prototype.frame_ = null;
+
+  /**
+   * The messages queued to this frame. An <iframe> element drops messages
+   * until it finishes loading a page, i.e. this frame cannot send messages
+   * until it receives an INITIALIZE command. This array temporarily saves
+   * messages until the <iframe> element becomes ready to receive them.
+   * @type {Array.<Object>}
+   * @private
+   */
+  createjs.Sound.BufferAudioPlayer.Frame.prototype.messages_ = null;
+
+  /**
+   * The mapping table from a resource ID to a BufferAudioPlayer object. This
+   * table is used for dispatching messages received from the <iframe>
+   * element to BufferAudioPlayer objects.
+   * @type {Object.<string,createjs.Sound.BufferAudioPlayer>}
+   * @private
+   */
+  createjs.Sound.BufferAudioPlayer.Frame.prototype.players_ = null;
+
+  /**
+   * Loads the specified sound and decodes it.
+   * @param {string} id
+   * @param {ArrayBuffer} buffer
+   * @param {createjs.Sound.BufferAudioPlayer} player
+   * @param {boolean} complete
+   * @return {boolean}
+   * @const
+   */
+  createjs.Sound.BufferAudioPlayer.Frame.prototype.load =
+      function(id, buffer, player, complete) {
+    /// <param type="string" name="id"/>
+    /// <param type="ArrayBuffer" name="buffer"/>
+    /// <param type="createjs.Sound.BufferAudioPlayer" name="player"/>
+    /// <param type="boolean" name="complete"/>
+    /// <returns type="boolean"/>
+    if (this.players_[id]) {
+      return true;
+    }
+    this.players_[id] = player;
+    var message = {
+      'a': createjs.FrameCommand.LOAD,
+      'b': id,
+      'c': buffer
+    };
+    if (this.messages_) {
+      this.messages_.push(message);
+    } else {
+      var window = this.frame_.contentWindow;
+      if (window) {
+        window.postMessage(message, '*');
+      }
+    }
+    return complete;
+  };
+
+  /** @override */
+  createjs.Sound.BufferAudioPlayer.Frame.prototype.handleEvent =
+      function(event) {
+    /// <param type="MessageEvent" name="event"/>
+    var data = /** @type {Object} */ (/** @type{*} */ (event.data));
+    var command = /** @type {number} */ (data['a']);
+    if (command == createjs.FrameCommand.INITIALIZE) {
+      // This message is an INITIALIZE message, i.e. the <iframe> element
+      // becomes ready to receive messages. This message consists of one field
+      // listed below.
+      //   +-----+--------+-------------+
+      //   | key | type   | value       |
+      //   +-----+--------+-------------+
+      //   | a   | number | Command (4) |
+      //   +-----+--------+-------------+
+      // Dispatch the queued messages to the <iframe> element.
+      if (this.messages_) {
+        var window = this.frame_.contentWindow;
+        if (window) {
+          for (var i = 0; i < this.messages_.length; ++i) {
+            window.postMessage(this.messages_[i], '*');
+          }
+        }
+        this.messages_ = null;
+      }
+    } else if (command == createjs.FrameCommand.DECODE) {
+      // This message is a DECODE message, i.e. the <iframe> element has
+      // finished decoding audio data. This message consists of four fields
+      // listed below.
+      //   +-----+----------------------+-----------------------------------+
+      //   | key | type                 | value                             |
+      //   +-----+----------------------+-----------------------------------+
+      //   | a   | number               | Command (6)                       |
+      //   | b   | string               | Player ID                         |
+      //   | c   | number               | Frequency                         |
+      //   | d   | Array.<Float32Array> | PCM data associated with channels |
+      //   +-----+----------------------+-----------------------------------+
+      // Create an AudioBuffer object from the input data and dispatch it to the
+      // specified player.
+      var id = /** @type {string} */ (data['b']);
+      var player = this.players_[id];
+      if (player) {
+        var frequency = /** @type {number} */ (data['c']);
+        var channels = /** @type {Array.<Float32Array>} */ (data['d']);
+        var buffer = createjs.WebAudioPlugin.buffer_;
+        if (channels.length >= 1) {
+          var length = channels[0].length;
+          var context = createjs.WebAudioPlugin.getContext_();
+          buffer = context.createBuffer(channels.length, length, frequency);
+          for (var i = 0; i < channels.length; ++i) {
+            buffer.getChannelData(i).set(channels[i]);
+          }
+        }
+        player.handleDecode_(buffer);
+      }
+    }
+  };
+
+  /**
+   * The instance of an <iframe> element that decodes sounds.
+   * @type {createjs.Sound.BufferAudioPlayer.Frame}
+   * @private
+   */
+  createjs.Sound.BufferAudioPlayer.frame_ = null;
+
+  /**
+   * Retrieves the global BufferAudioPlayer object.
+   * @return {createjs.Sound.BufferAudioPlayer.Frame}
+   * @private
+   */
+  createjs.Sound.BufferAudioPlayer.getFrame_ = function() {
+    /// <returns type="createjs.Sound.BufferAudioPlayer.Frame"/>
+    if (!createjs.Sound.BufferAudioPlayer.frame_) {
+      createjs.Sound.BufferAudioPlayer.frame_ =
+          new createjs.Sound.BufferAudioPlayer.Frame();
+    }
+    return createjs.Sound.BufferAudioPlayer.frame_;
+  };
+}
+
 /**
  * The source node that plays audio with this player.
  * @type {AudioBufferSourceNode}
@@ -858,7 +1193,6 @@ createjs.Sound.BufferAudioPlayer.prototype.play_ =
   if (this.source_) {
     this.stop_();
   }
-  createjs.WebAudioPlugin.playDummySound_();
   this.playAudioBuffer_(/** @type {AudioBuffer} */ (this.item.resultObject));
 };
 
@@ -936,11 +1270,31 @@ createjs.Sound.BufferAudioPlayer.prototype.setSprite_ =
 };
 
 /** @override */
+createjs.Sound.BufferAudioPlayer.prototype.resume_ = function() {
+  if (this.source_) {
+    this.stop_();
+    this.playAudioBuffer_(/** @type {AudioBuffer} */ (this.item.resultObject));
+  }
+};
+
+/** @override */
 createjs.Sound.BufferAudioPlayer.prototype.handleLoad =
     function(loader, buffer) {
   /// <param type="createjs.Loader" name="loader"/>
   /// <param type="ArrayBuffer" name="buffer"/>
   if (buffer) {
+    if (createjs.USE_FRAME) {
+      // Dispatch this audio data to the <iframe> element to decode it there.
+      if (createjs.Config.useFrame()) {
+        var frame = createjs.Sound.BufferAudioPlayer.getFrame_();
+        var complete =
+            frame.load(this.item.id, buffer, this, !this.item.isSynchronous());
+        if (!complete) {
+          this.loader_ = loader;
+        }
+        return complete;
+      }
+    }
     var context = createjs.WebAudioPlugin.getContext_();
     var handleDecode =
         createjs.Sound.BufferAudioPlayer.prototype.handleDecode_.bind(this);
@@ -963,526 +1317,6 @@ createjs.Sound.BufferAudioPlayer.prototype['setMute'] =
     createjs.Sound.BufferAudioPlayer.prototype.setMute_;
 createjs.Sound.BufferAudioPlayer.prototype['setVolume'] =
     createjs.Sound.BufferAudioPlayer.prototype.setVolume_;
-
-/**
- * A class that implements the createjs.Sound.Player interface with the
- * WebAudio API and plays sounds on an <iframe> element.
- * @param {createjs.Loader.Item} item
- * @extends {createjs.Sound.Player}
- * @constructor
- */
-createjs.Sound.FrameAudioPlayer = function(item) {
-  /// <param type="cretejs.Loader.Item" name="item"/>
-  createjs.Sound.Player.call(this, item);
-
-  /**
-   * The ID assigned to a sound file or an audio sprite.
-   * @type {string}
-   * @private
-   */
-  this.id_ = item.id;
-};
-createjs.inherits('Sound.FrameAudioPlayer',
-                  createjs.Sound.FrameAudioPlayer,
-                  createjs.Sound.Player);
-
-/**
- * An inner class that encapsulates an <iframe> element.
- * @implements {EventListener}
- * @constructor
- */
-createjs.Sound.FrameAudioPlayer.Frame = function() {
-  var frame =
-      /** @type {HTMLIFrameElement} */ (document.createElement('iframe'));
-  frame.id = 'cjs-iframe';
-  var style = frame.style;
-  style.zIndex = 200000;
-  style.position = 'absolute';
-  style.border = '0px';
-  style.top = '0px';
-  style.left = '0px';
-  var parent = document.body;
-  var rectangle = parent.getBoundingClientRect();
-  style.width = rectangle.width + 'px';
-  style.height = rectangle.height + 'px';
-  window.addEventListener('message', this, false);
-  if (createjs.DEBUG) {
-    frame.src =
-        createjs.Sound.FrameAudioPlayer.Frame.HEADER_ +
-        createjs.Sound.FrameAudioPlayer.Frame.SOURCE_DEBUG_ +
-        createjs.Sound.FrameAudioPlayer.Frame.FOOTER_;
-  } else {
-    frame.src =
-        createjs.Sound.FrameAudioPlayer.Frame.HEADER_ +
-        createjs.Sound.FrameAudioPlayer.Frame.SOURCE_MIN_ +
-        createjs.Sound.FrameAudioPlayer.Frame.FOOTER_;
-  }
-  parent.appendChild(frame);
-
-  /**
-   * The <iframe> element that actually plays sounds.
-   * @type {HTMLIFrameElement}
-   * @private
-   */
-  this.frame_ = frame;
-
-  /**
-   * The messages queued to this frame. An <iframe> element drops messages until
-   * it finishes loading a page, i.e. this frame cannot send messages until it
-   * receives an INITIALIZE command. This array temporarily saves messages until
-   * the <iframe> element becomes ready to receive them.
-   * @type {Array.<Object>}
-   * @private
-   */
-  this.messages_ = [];
-
-  /**
-   * The mapping table from a resource ID to a FrameAudioPlayer object. This
-   * table is used for dispatching messages received from the <iframe> element
-   * to FrameAudioPlayer objects.
-   * @type {Object.<string,createjs.Sound.FrameAudioPlayer>}
-   * @private
-   */
-  this.players_ = {};
-};
-
-/**
- * @const {string}
- * @private
- */
-createjs.Sound.FrameAudioPlayer.Frame.HEADER_ =
-  'data:text/html,' +
-  '<html style="-webkit-user-select:none;">' +
-  '<head>' +
-  '<script type="text/javascript">';
-
-/**
- * @const {string}
- * @private
- */
-createjs.Sound.FrameAudioPlayer.Frame.FOOTER_ =
-  '</script>' +
-  '</head>' +
-  '<body>' +
-  '</body>' +
-  '</html>';
-  
-/**
- * The optimized source code of this <iframe> element.
- * @const {string}
- * @private
- */
-createjs.Sound.FrameAudioPlayer.Frame.SOURCE_MIN_ =
-  'var e,f=window,g=f.webkitAudioContext||f.AudioContext,h=null,k=null,l=' +
-  '!1;function m(){this.f={}}var n=1;function p(a,b){this.f=a;this.o=b}va' +
-  'r q=MouseEvent.WEBKIT_FORCE_AT_MOUSE_DOWN?"touchend":"touchstart";e=p.' +
-  'prototype;e.k=1;e.l=-1;e.n=0;e.i=0;e.p=0;e.h=null;e.g=null;e.m=null;e.' +
-  'j=null;e.q=function(a){this.g=a;this.o.postMessage({a:6,b:this.f},"*")' +
-  ';this.i&&(r(this,this.p,this.k),this.i=0);if(this.h){for(var b=0;b<thi' +
-  's.h.length;++b){var c=this.h[b];c.g=a;c.i&&(r(c,c.p,c.k),c.i=0)}this.h' +
-  '=null}};e.r=function(){s(this);this.o.postMessage({a:7,b:this.f},"*")}' +
-  ';function r(a,b,c){if(a.g){a.m&&s(a);a.k=c;var d=h;c=d.createGain?d.cr' +
-  'eateGain():d.createGainNode();c.connect(d.destination);c.gain.value=a.' +
-  'k;a.j=c;d=d.createBufferSource();d.connect(c);d.buffer=a.g;b?d.loop=!0' +
-  ':d.onended=a.r.bind(a);0<=a.l?d.start?d.start(0,a.l,a.n):d.noteGrainOn' +
-  '(0,a.l,a.n):d.start?d.start(0):d.noteOn(0);a.m=d}else a.i=1,a.p=b,a.k=' +
-  'c}function s(a){var b=a.m;b&&(3!=(b.playbackState||0)&&(b.stop?b.stop(' +
-  '0):b.noteOff(0)),b.disconnect(0),b.onended=null,l&&k&&(b.buffer=k),a.m' +
-  '=null,a.j.disconnect(0),a.j=null)}function t(){h.currentTime||!n?f.par' +
-  'ent.postMessage({a:5},"*"):(--n,f.addEventListener(q,u,!1))}function v' +
-  '(){var a=h.createBufferSource();a.buffer=k;a.start?a.start(0):a.noteOn' +
-  '(0);setTimeout(t,100)}m.prototype.handleEvent=function(a){var b=a.type' +
-  ';if("message"==b){var b=a.data,c=b.a,d=b.b;if(0==c)this.f[d]||(a=new p' +
-  '(d,a.source),this.f[d]=a,a=a.q.bind(a),h.decodeAudioData(b.c,a,a));els' +
-  'e if(a=this.f[d])1==c?r(a,b.c,b.d):2==c?s(a):3==c?(b=b.c,a.j&&(a.j.gai' +
-  'n.value=b)):8==c&&(c=new p(a.f,a.o),c.f=b.c,c.g=a.g,c.l=b.d,c.n=b.e,th' +
-  'is.f[b.c]=c,a.g||(a.h||(a.h=[]),a.h.push(c)))}else f.removeEventListen' +
-  'er(b,this,!1),v()};var u=null;f.onload=function(){h=new g;u=new m;k=h.' +
-  'createBuffer(1,1,22500);var a=navigator.platform;l="iPhone"==a||"iPad"' +
-  '==a;v();f.addEventListener("message",u,!1);f.parent.postMessage({a:4},' +
-  '"*")};';
-
-/**
- * The source code of this <iframe> element used for debug.
- * @const {string}
- * @private
- */
-createjs.Sound.FrameAudioPlayer.Frame.SOURCE_DEBUG_ =
-  'var e,f=window,g=f.webkitAudioContext||f.AudioContext;function h(a){co' +
-  'nsole.debug(a)}var k=null,l=null,m=!1;function n(){this.f={}}var p=1;f' +
-  'unction q(a,b){this.f=a;this.o=b}var r=MouseEvent.WEBKIT_FORCE_AT_MOUS' +
-  'E_DOWN?"touchend":"touchstart";e=q.prototype;e.k=1;e.l=-1;e.n=0;e.i=0;' +
-  'e.p=0;e.h=null;e.g=null;e.m=null;e.j=null;e.q=function(a){h("decode="+' +
-  'this.f);this.g=a;this.o.postMessage({a:6,b:this.f},"*");this.i&&(s(thi' +
-  's,this.p,this.k),this.i=0);if(this.h){for(var b=0;b<this.h.length;++b)' +
-  '{var c=this.h[b];c.g=a;c.i&&(s(c,c.p,c.k),c.i=0)}this.h=null}};e.r=fun' +
-  'ction(){h("ended="+this.f);t(this);this.o.postMessage({a:7,b:this.f},"' +
-  '*")};function s(a,b,c){h("play="+a.f+","+b+","+c);if(a.g){a.m&&t(a);a.' +
-  'k=c;var d=k;c=d.createGain?d.createGain():d.createGainNode();c.connect' +
-  '(d.destination);c.gain.value=a.k;a.j=c;d=d.createBufferSource();d.conn' +
-  'ect(c);d.buffer=a.g;b?d.loop=!0:d.onended=a.r.bind(a);0<=a.l?d.start?d' +
-  '.start(0,a.l,a.n):d.noteGrainOn(0,a.l,a.n):d.start?d.start(0):d.noteOn' +
-  '(0);a.m=d}else a.i=1,a.p=b,a.k=c}function t(a){h("stop="+a.f);var b=a.' +
-  'm;b&&(3!=(b.playbackState||0)&&(b.stop?b.stop(0):b.noteOff(0)),b.disco' +
-  'nnect(0),b.onended=null,m&&l&&(b.buffer=l),a.m=null,a.j.disconnect(0),' +
-  'a.j=null)}function u(){h("> currentTime="+k.currentTime);k.currentTime' +
-  '||!p?f.parent.postMessage({a:5},"*"):(--p,f.addEventListener(r,v,!1))}' +
-  'function w(){var a=k.createBufferSource();a.buffer=l;a.start?a.start(0' +
-  '):a.noteOn(0);setTimeout(u,100)}n.prototype.handleEvent=function(a){va' +
-  'r b=a.type;if("message"==b){var b=a.data,c=b.a,d=b.b;if(0==c)h("load="' +
-  '+d),this.f[d]||(a=new q(d,a.source),this.f[d]=a,a=a.q.bind(a),k.decode' +
-  'AudioData(b.c,a,a));else if(a=this.f[d])1==c?s(a,b.c,b.d):2==c?t(a):3=' +
-  '=c?(b=b.c,h("volume="+a.f+","+b),a.j&&(a.j.gain.value=b)):8==c&&(h("cl' +
-  'one="+b.c+","+b.d+","+b.e),c=new q(a.f,a.o),c.f=b.c,c.g=a.g,c.l=b.d,c.' +
-  'n=b.e,this.f[b.c]=c,a.g||(a.h||(a.h=[]),a.h.push(c)))}else h("> type="' +
-  '+b),f.removeEventListener(b,this,!1),w()};var v=null;f.onload=function' +
-  '(){k=new g;v=new n;l=k.createBuffer(1,1,22500);var a=navigator.platfor' +
-  'm;m="iPhone"==a||"iPad"==a;w();f.addEventListener("message",v,!1);f.pa' +
-  'rent.postMessage({a:4},"*")};';
-
-/**
- * Loads the specified sound and decodes it.
- * @param {string} id
- * @param {ArrayBuffer} buffer
- * @const
- */
-createjs.Sound.FrameAudioPlayer.Frame.prototype.load_ = function(id, buffer) {
-  /// <param type="string" name="id"/>
-  /// <param type="ArrayBuffer" name="buffer"/>
-  var window = this.frame_.contentWindow;
-  if (window) {
-    window.postMessage({
-      'a': createjs.FrameCommand.LOAD,
-      'b': id,
-      'c': buffer
-    }, '*');
-  }
-};
-
-/**
- * Starts loading the specified sound.
- * @param {string} id
- * @param {ArrayBuffer} buffer
- * @param {createjs.Sound.FrameAudioPlayer} player
- * @return {boolean}
- * @const
- */
-createjs.Sound.FrameAudioPlayer.Frame.prototype.load =
-    function(id, buffer, player) {
-  /// <param type="string" name="id"/>
-  /// <param type="ArrayBuffer" name="buffer"/>
-  /// <param type="createjs.Sound.FrameAudioPlayer" name="player"/>
-  /// <returns type="boolean"/>
-  if (this.players_[id]) {
-    return true;
-  }
-  this.players_[id] = player;
-  var message = {
-    'a': createjs.FrameCommand.LOAD,
-    'b': id,
-    'c': buffer
-  };
-  if (this.messages_) {
-    this.messages_.push(message);
-  } else {
-    var window = this.frame_.contentWindow;
-    if (window) {
-      window.postMessage(message, '*');
-    }
-  }
-  return false;
-};
-
-/**
- * Starts playing the specified sound.
- * @param {string} id
- * @param {number} loop
- * @param {number} volume
- * @const
- */
-createjs.Sound.FrameAudioPlayer.Frame.prototype.play =
-    function(id, loop, volume) {
-  /// <param type="string" name="id"/>
-  /// <param type="number" name="loop"/>
-  var window = this.frame_.contentWindow;
-  if (window) {
-    window.postMessage({
-      'a': createjs.FrameCommand.PLAY,
-      'b': id,
-      'c': loop,
-      'd': volume
-  }, '*');
-  }
-};
-
-/**
- * Stops playing the specified sound.
- * @param {string} id
- * @const
- */
-createjs.Sound.FrameAudioPlayer.Frame.prototype.stop = function(id) {
-  /// <param type="string" name="id"/>
-  var window = this.frame_.contentWindow;
-  if (window) {
-    window.postMessage({
-      'a': createjs.FrameCommand.STOP,
-      'b': id
-    }, '*');
-  }
-};
-
-/**
- * Changes the volume of the specified sound.
- * @param {string} id
- * @param {number} volume
- * @const
- */
-createjs.Sound.FrameAudioPlayer.Frame.prototype.setVolume =
-    function(id, volume) {
-  /// <param type="string" name="id"/>
-  /// <param type="number" name="volume"/>
-  var window = this.frame_.contentWindow;
-  if (window) {
-    window.postMessage({
-      'a': createjs.FrameCommand.SET_VOLUME,
-      'b': id,
-      'c': volume
-    }, '*');
-  }
-};
-
-/**
- * Creates a clone of the specified sound.
- * @param {string} id
- * @param {string} clone
- * @param {number} offset
- * @param {number} duration
- * @param {createjs.Sound.FrameAudioPlayer} player
- * @const
- */
-createjs.Sound.FrameAudioPlayer.Frame.prototype.clone =
-    function(id, clone, offset, duration, player) {
-  /// <param type="string" name="id"/>
-  /// <param type="string" name="clone"/>
-  /// <param type="number" name="offset"/>
-  /// <param type="number" name="duration"/>
-  /// <param type="createjs.Sound.FrameAudioPlayer" name="player"/>
-  var window = this.frame_.contentWindow;
-  if (window) {
-    var message = {
-      'a': createjs.FrameCommand.CLONE,
-      'b': id,
-      'c': clone,
-      'd': offset,
-      'e': duration
-    };
-    if (this.messages_) {
-      this.messages_.push(message);
-    } else {
-      window.postMessage(message, '*');
-    }
-    this.players_[clone] = player;
-  }
-};
-
-/**
- * Destroys this player. This player destroys the <iframe> element to delete
- * all its resources, e.g. AudioBuffers, BufferSourceNodes, etc.
- * @const
- */
-createjs.Sound.FrameAudioPlayer.Frame.prototype.destroy = function() {
-  window.removeEventListener('message', this, false);
-  document.body.removeChild(this.frame_);
-  this.frame_ = null;
-};
-
-/** @override */
-createjs.Sound.FrameAudioPlayer.Frame.prototype.handleEvent = function(event) {
-  /// <param type="MessageEvent" name="event"/>
-  var data = /** @type {Object} */ (/** @type{*} */ (event.data));
-  var command = /** @type {number} */ (data['a']);
-  if (command == createjs.FrameCommand.INITIALIZE) {
-    if (this.messages_) {
-      var window = this.frame_.contentWindow;
-      if (window) {
-        for (var i = 0; i < this.messages_.length; ++i) {
-          window.postMessage(this.messages_[i], '*');
-        }
-      }
-      this.messages_ = null;
-    }
-    return;
-  }
-  if (command == createjs.FrameCommand.TOUCH) {
-    var style = this.frame_.style;
-    style.zIndex = -1;
-    return;
-  }
-  var id = /** @type {string} */ (data['b']);
-  var player = this.players_[id];
-  if (!player) {
-    return;
-  }
-  if (command == createjs.FrameCommand.DECODE) {
-    player.handleDecode();
-  } else if (command == createjs.FrameCommand.END) {
-    player.handleEnd();
-  }
-};
-
-/**
- * The player that actually plays sounds in an <iframe> element.
- * @type {createjs.Sound.FrameAudioPlayer.Frame}
- * @private
- */
-createjs.Sound.FrameAudioPlayer.frame_ = null;
-
-/**
- * Whether this player is in the mute state.
- * @type {boolean}
- * @private
- */
-createjs.Sound.FrameAudioPlayer.prototype.mute_ = false;
-
-/**
- * The createjs.Loader object that loads the sound associated with this
- * player.
- * @type {createjs.Loader}
- * @private
- */
-createjs.Sound.FrameAudioPlayer.prototype.loader_ = null;
-
-/**
- * The ID assigned to an audio sprite.
- * @type {string}
- * @private
- */
-createjs.Sound.FrameAudioPlayer.prototype.id_ = '';
-
-/**
- * Retrieves the global FrameAudioPlayer object.
- * @private
- */
-createjs.Sound.FrameAudioPlayer.getFrame_ = function() {
-  /// <returns type="createjs.Sound.FrameAudioPlayer.Frame"/>
-  if (!createjs.Sound.FrameAudioPlayer.frame_) {
-    createjs.Sound.FrameAudioPlayer.frame_ =
-        new createjs.Sound.FrameAudioPlayer.Frame();
-  }
-  return createjs.Sound.FrameAudioPlayer.frame_;
-};
-
-/**
- * Destroys the global resources used by FrameAudioPlayer objects.
- * @private
- */
-createjs.Sound.FrameAudioPlayer.destroy_ = function() {
-  var frame = createjs.Sound.FrameAudioPlayer.frame_;
-  if (frame) {
-    frame.destroy();
-    createjs.Sound.FrameAudioPlayer.frame_ = null;
-  }
-};
-
-/** @override */
-createjs.Sound.FrameAudioPlayer.prototype.play_ =
-    function(interrupt, delay, offset, loop, volume, pan) {
-  /// <param type="number" name="interrupt"/>
-  /// <param type="number" name="delay"/>
-  /// <param type="number" name="offset"/>
-  /// <param type="number" name="loop"/>
-  /// <param type="number" name="volume"/>
-  /// <param type="number" name="pan"/>
-  createjs.Sound.FrameAudioPlayer.superClass_.play_.call(
-      this, interrupt, delay, offset, loop, volume, pan);
-  var frame = createjs.Sound.FrameAudioPlayer.getFrame_();
-  frame.play(this.id_, this.loop, this.volume);
-};
-
-/** @override */
-createjs.Sound.FrameAudioPlayer.prototype.stop_ = function() {
-  createjs.Sound.FrameAudioPlayer.superClass_.stop_.call(this);
-  var frame = createjs.Sound.FrameAudioPlayer.getFrame_();
-  frame.stop(this.id_);
-};
-
-/** @override */
-createjs.Sound.FrameAudioPlayer.prototype.setMute_ = function(mute) {
-  /// <param type="boolean" name="mute"/>
-  var volume = mute ? 0 : this.volume;
-  var frame = createjs.Sound.FrameAudioPlayer.getFrame_();
-  frame.setVolume(this.id_, volume);
-};
-
-/** @override */
-createjs.Sound.FrameAudioPlayer.prototype.setVolume_ = function(volume) {
-  /// <param type="number" name="volume"/>
-  if (this.volume != volume) {
-    this.volume = volume;
-    var frame = createjs.Sound.FrameAudioPlayer.getFrame_();
-    frame.setVolume(this.id_, volume);
-  }
-};
-
-/** @override */
-createjs.Sound.FrameAudioPlayer.prototype.setSprite_ =
-    function(id, offset, duration) {
-  /// <param type="string" name="id"/>
-  /// <param type="number" name="offset"/>
-  /// <param type="number" name="duration"/>
-  this.id_ = id;
-  this.offset = offset * 0.001;
-  this.duration = duration * 0.001;
-  var frame = createjs.Sound.FrameAudioPlayer.getFrame_();
-  frame.clone(this.item.id, id, this.offset, this.duration, this);
-};
-
-/** @override */
-createjs.Sound.FrameAudioPlayer.prototype.handleLoad =
-    function(loader, buffer) {
-  /// <param type="createjs.Loader" name="loader"/>
-  /// <param type="ArrayBuffer" name="buffer"/>
-  if (buffer) {
-    var frame = createjs.Sound.FrameAudioPlayer.getFrame_();
-    var result = frame.load(this.item.id, buffer, this);
-    if (!result && this.item.isSynchronous()) {
-      this.loader_ = loader;
-      return false;
-    }
-  }
-  return true;
-};
-
-/**
- * Called when the createjs.Sound.FrameAudioPlayer.Frame object finishes
- * decoding a sound.
- * @const
- */
-createjs.Sound.FrameAudioPlayer.prototype.handleDecode = function() {
-  if (this.loader_) {
-    this.loader_.sendFileComplete(false, null);
-    this.loader_ = null;
-  }
-};
-
-/**
- * Called when the createjs.Sound.FrameAudioPlayer.Frame object finishes
- * playing a sound.
- * @const
- */
-createjs.Sound.FrameAudioPlayer.prototype.handleEnd = function() {
-  this.dispatchNotification('complete');
-};
-
-// Export overridden methods.
-createjs.Sound.FrameAudioPlayer.prototype['play'] =
-    createjs.Sound.FrameAudioPlayer.prototype.play_;
-createjs.Sound.FrameAudioPlayer.prototype['stop'] =
-    createjs.Sound.FrameAudioPlayer.prototype.stop_;
-createjs.Sound.FrameAudioPlayer.prototype['setMute'] =
-    createjs.Sound.FrameAudioPlayer.prototype.setMute_;
-createjs.Sound.FrameAudioPlayer.prototype['setVolume'] =
-    createjs.Sound.FrameAudioPlayer.prototype.setVolume_;
 
 /**
  * A class that intermediates a createjs.LoadQueue object and a createjs.Sound
@@ -1520,9 +1354,6 @@ createjs.Sound.prototype.createPlayer_ = function(item) {
   /// <returns type="createjs.Sound.Player"/>
   var context = createjs.WebAudioPlugin.getContext_();
   if (context) {
-    if (createjs.Config.useFrame()) {
-      return new createjs.Sound.FrameAudioPlayer(item);
-    }
     return new createjs.Sound.BufferAudioPlayer(item);
   }
   createjs.assert(!createjs.UserAgent.isIPhone());
@@ -1977,8 +1808,19 @@ createjs.Sound.reset = function(opt_destroy) {
       }
     }
     createjs.WebAudioPlugin.reset_();
-    if (createjs.Config.useFrame()) {
-      createjs.Sound.FrameAudioPlayer.destroy_();
+  }
+};
+
+/**
+ * Resumes playing all sounds played by this context.
+ * @const
+ */
+createjs.Sound.resume = function() {
+  var instance = createjs.Sound.getInstance_();
+  for (var key in instance.players_) {
+    var player = instance.players_[key];
+    if (player) {
+      player.resume_();
     }
   }
 };

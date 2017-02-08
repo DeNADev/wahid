@@ -835,6 +835,24 @@ AudioContext.prototype.currentTime;
 AudioContext.prototype.listener;
 
 /**
+ * @see http://www.w3.org/TR/webaudio/#attributes-AudioContext
+ * @type {number}
+ */
+AudioContext.prototype.sampleRate;
+
+/**
+ * @see http://www.w3.org/TR/webaudio/#attributes-AudioContext
+ * @type {string}
+ */
+AudioContext.prototype.state;
+
+/**
+ * @see http://www.w3.org/TR/webaudio/#attributes-AudioContext
+ * @type {Function}
+ */
+AudioContext.prototype.onstatechange;
+
+/**
  * @see http://www.w3.org/TR/webaudio/#methodsandparams-AudioContext
  * @param {number} numberOfChannels
  * @param {number} length
@@ -990,6 +1008,20 @@ AudioContext.prototype.createOscillator = function() {
  * @return {PeriodicWave}
  */
 AudioContext.prototype.createPeriodicWave = function(real, imag) {
+};
+
+/**
+ * @see http://www.w3.org/TR/webaudio/#methodsandparams-AudioContext
+ * @return {Object}
+ */
+AudioContext.prototype.suspend = function() {
+};
+
+/**
+ * @see http://www.w3.org/TR/webaudio/#methodsandparams-AudioContext
+ * @return {Object}
+ */
+AudioContext.prototype.resume = function() {
 };
 
 /**

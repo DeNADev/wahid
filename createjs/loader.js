@@ -1215,7 +1215,8 @@ createjs.Loader.IndexedDB.getInstance = function() {
   // Disable the Indexed Database cache on Android browsers. Even though some
   // Android browsers (e.g. SO-04E) provides the Indexed Database API, it throws
   // exceptions.
-  if (!createjs.global.indexedDB || createjs.UserAgent.isAndroidBrowser()) {
+  if (!createjs.global.indexedDB ||
+      (createjs.UserAgent.isAndroid() && !createjs.UserAgent.isChrome())) {
     return null;
   }
   return new createjs.Loader.IndexedDB();
@@ -1578,7 +1579,6 @@ createjs.Loader.IndexedDB.handleOpenSuccess_ = function(event) {
 createjs.Loader.IndexedDB.handleOpenError_ = function(event) {
   /// <param type="Event" name="event"/>
   createjs.Loader.instance_ = null;
-  createjs.Loader.IndexedDB.handleGetError_(event);
 };
 
 /**
@@ -1599,15 +1599,11 @@ createjs.Loader.IndexedDB.handleUpgradeNeeded_ = function(event) {
 
 /**
  * Creates an open request to open the database used by this object.
- * @param {createjs.Loader.Cache.Listener} listener
- * @param {string} key
  * @param {number} version
  * @return {IDBRequest}
  * @private
  */
-createjs.Loader.IndexedDB.open_ = function(listener, key, version) {
-  /// <param type="createjs.Loader.Cache.Listener" name="listener"/>
-  /// <param type="string" name="key"/>
+createjs.Loader.IndexedDB.open_ = function(version) {
   /// <param type="number" name="version"/>
   /// <returns type="IDBRequest"/>
   createjs.assert(!!createjs.global.indexedDB);
@@ -1617,58 +1613,8 @@ createjs.Loader.IndexedDB.open_ = function(listener, key, version) {
     request.onerror = createjs.Loader.IndexedDB.handleOpenError_;
     request.onsuccess = createjs.Loader.IndexedDB.handleOpenSuccess_;
     request.onupgradeneeded = createjs.Loader.IndexedDB.handleUpgradeNeeded_;
-    createjs.Loader.IndexedDB.setListener_(request, listener);
-    createjs.Loader.IndexedDB.setKey_(request, key);
   }
   return request;
-};
-
-/**
- * Called when a browser finishes deleting a database either successfully or
- * not.
- * @param {Event} event
- * @private
- */
-createjs.Loader.IndexedDB.handleDelete_ = function(event) {
-  /// <param type="Event" name="event"/>
-  // Create and open a new cache database.
-  var request = createjs.Loader.IndexedDB.getRequest_(event);
-  createjs.Loader.IndexedDB.open_(
-      createjs.Loader.IndexedDB.getListener_(request),
-      createjs.Loader.IndexedDB.getKey_(request),
-      1);
-};
-
-/**
- * Creates a connection to the cache database. If this method is called with a
- * non-positive version number, it deletes the cache database and re-creates
- * another one.
- * @param {createjs.Loader.Cache.Listener} listener
- * @param {string} key
- * @param {number} version
- * @return {IDBRequest}
- * @private
- */
-createjs.Loader.IndexedDB.create_ = function(listener, key, version) {
-  /// <param type="createjs.Loader.Cache.Listener" name="listener"/>
-  /// <param type="string" name="key"/>
-  /// <param type="number" name="version"/>
-  /// <returns type="IDBRequest"/>
-  // Send a delete request to wait until a browser finishes deleting the
-  // database. (Chrome does not allow sending another request while it processes
-  // a delete request.)
-  if (version <= 0) {
-    var request =
-        createjs.global.indexedDB.deleteDatabase(createjs.CACHE_DATABASE);
-    if (request) {
-      request.onerror = createjs.Loader.IndexedDB.handleDelete_;
-      request.onsuccess = createjs.Loader.IndexedDB.handleDelete_;
-      createjs.Loader.IndexedDB.setListener_(request, listener);
-      createjs.Loader.IndexedDB.setKey_(request, key);
-    }
-    return request;
-  }
-  return createjs.Loader.IndexedDB.open_(listener, key, version);
 };
 
 /**
@@ -1699,19 +1645,13 @@ createjs.Loader.IndexedDB.prototype.get = function(listener, key) {
   /// <param type="createjs.Loader.Cache.Listener" name="listener"/>
   /// <param type="string" name="key"/>
   /// <returns type="boolean"/>
+  // Return false so the createjs.Loader object can load the specified resource
+  // from the server when this cache is not opened, including while it is being
+  // opened.
   if (!this.isOpened()) {
-    // Retrieve the version number provided by an application. When it is a
-    // negative number, delete the existing database and re-create a new one.
-    // (A negative version number represents a non-persistent database.)
-    var version = createjs.Config.getCacheVersion();
-    var request = createjs.Loader.IndexedDB.create_(listener, key, version);
-    if (!request) {
-      createjs.Loader.instance_ = null;
-      return false;
-    }
-  } else {
-    createjs.Loader.IndexedDB.get_(listener, key);
+    return false;
   }
+  createjs.Loader.IndexedDB.get_(listener, key);
   return true;
 };
 
@@ -1758,6 +1698,23 @@ createjs.Loader.getCache = function() {
     createjs.Loader.instance_ = createjs.Loader.IndexedDB.getInstance();
   }
   return createjs.Loader.instance_;
+};
+
+/**
+ * Opens the cache. This method creates a database when the browser does not
+ * have one or upgrades it when its version is less than the specified one.
+ * (The input version must be a positive integer less than Math.pow(2, 64).)
+ * @param {number} version
+ * @const
+ */
+createjs.Loader.openCache = function(version) {
+  /// <param type="number" name="version"/>
+  if (createjs.USE_CACHE) {
+    var cache = createjs.Loader.getCache();
+    if (cache) {
+      createjs.Loader.IndexedDB.open_(version);
+    }
+  }
 };
 
 /**

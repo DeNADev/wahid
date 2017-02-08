@@ -62,6 +62,13 @@ createjs.UserAgent = function(userAgent, platform) {
    */
   this.agent_ =
       createjs.UserAgent.getAgent_(userAgent, this.isWebKit_, this.platform_);
+
+  /**
+   * The OS version.
+   * @const {number}
+   * @private
+   */
+  this.verion_ = createjs.UserAgent.getVersion_(userAgent, this.platform_);
 };
 
 /**
@@ -185,6 +192,28 @@ createjs.UserAgent.getPlatform_ = function(userAgent, platform) {
 };
 
 /**
+ * Parses a user-agent string and returns the OS version.
+ * @param {string} userAgent
+ * @param {number} platform
+ * @return {number}
+ * @private
+ */
+createjs.UserAgent.getVersion_ = function(userAgent, platform) {
+  if (platform == createjs.UserAgent.Platform.IPHONE) {
+    var match = userAgent.match(/OS ([0-9]+)_([0-9]+)/);
+    if (match) {
+      return (match[1] * 1) + (match[2] * 0.1);
+    }
+  } else if (platform == createjs.UserAgent.Platform.ANDROID) {
+    var match = userAgent.match(/Android ([0-9]+)\.([0-9]+)/);
+    if (match) {
+      return (match[1] * 1) + (match[2] * 0.1);
+    }
+  }
+  return 0;
+};
+
+/**
  * Returns the instance of the createjs.userAgent object.
  * @return {createjs.UserAgent}
  * @private
@@ -231,6 +260,15 @@ createjs.UserAgent.comparePlatform_ = function(platform) {
 createjs.UserAgent.getUserAgent = function() {
   /// <returns type="string"/>
   return createjs.UserAgent.getInstance_().userAgent_;
+};
+
+/**
+ * Returns the OS version.
+ * @return {number}
+ */
+createjs.UserAgent.getVersion = function() {
+  /// <returns type="number"/>
+  return createjs.UserAgent.getInstance_().verion_;
 };
 
 /**

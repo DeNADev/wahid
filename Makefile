@@ -84,8 +84,8 @@ EASELJS_SOURCES = createjs/point.js \
 # The source file of our sound player.
 SOUNDJS_SOURCES = createjs/sound.js
 
-# The source file of our <iframe> player.
-FRAME_PLAYER_SOURCES = createjs/frame_player.js
+# The source file of our <iframe> decoder.
+FRAME_DECODER_SOURCES = createjs/frame_decoder.js
 
 # The source files of our resource loader.
 PRELOADJS_SOURCES = createjs/error_event.js \
@@ -152,7 +152,7 @@ createjs-dbg.js: $(SOURCES) $(WRAPPER_FILE)
 		--externs $(EXTERNS) \
 		--js $(SOURCES)
 
-frame-player-min.js: $(FRAME_PLAYER_SOURCES)
+frame-decoder-min.js: $(FRAME_DECODER_SOURCES)
 	$(JAVA) -jar $(CLOSURE_COMPIER) \
 		--define='createjs.COMPILED=true' \
 		--define='createjs.DEBUG=false' \
@@ -163,7 +163,7 @@ frame-player-min.js: $(FRAME_PLAYER_SOURCES)
 		--externs $(EXTERNS) \
 		--js $(FRAME_PLAYER_SOURCES)
 
-frame-player-dbg.js: $(FRAME_PLAYER_SOURCES)
+frame-decoder-dbg.js: $(FRAME_DECODER_SOURCES)
 	$(JAVA) -jar $(CLOSURE_COMPIER) \
 		--define='createjs.COMPILED=true' \
 		--define='createjs.DEBUG=true' \

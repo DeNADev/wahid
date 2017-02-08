@@ -84,6 +84,10 @@ createjs.Config.setCacheVersion = function(version) {
   /// <param type="number" name="version"/>
   if (createjs.USE_CACHE) {
     createjs.Config.cacheVersion_ = version;
+    // Open the cache database in advance so it becomes ready when the
+    // createjs.Loader class uses it. (Dispatching a request to a database
+    // being opened sometimes causes a dead lock on iOS.)
+    createjs.Loader.openCache(version);
   }
 };
 
@@ -122,10 +126,10 @@ createjs.Config.useFrame = function() {
   if (!createjs.USE_FRAME) {
     return false;
   }
-  // Android browsers (on Android 4.3 or earlier) cannot send ArrayBuffer
-  // objects with the postMessage() method and it is impossible to use the
-  // FrameAudioPlayer class on them.
-  return !createjs.UserAgent.isAndroidBrowser();
+  // Use an <iframe> element to decode audio data on Chrome for Android, which
+  // uses a software decoder. (It is pretty fast to decode audio data on other
+  // browsers, which use hardware decoders.)
+  return createjs.UserAgent.isAndroid() && createjs.UserAgent.isChrome();
 };
 
 /**

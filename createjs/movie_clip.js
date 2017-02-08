@@ -69,6 +69,13 @@ createjs.MovieClip = function(opt_mode, opt_position, opt_loop, opt_labels) {
    */
   this.timeline_ = new createjs.MovieClip.Timeline(this);
 
+  /**
+   * Target objects of the tweens added to this clip.
+   * @type {Array.<createjs.TweenTarget>}
+   * @private
+   */
+  this.targets_ = [];
+
   // Initialize the play mode of the tweens to be added to this clip.
   this.setPlayMode(createjs.MovieClip.getMode_(opt_mode));
 };
@@ -462,8 +469,11 @@ createjs.MovieClip.prototype.goto_ = function(paused, value) {
     }
   }
   // Changes the position of all tweens attached to this clip only when its
-  // position is not equal to the current one.
-  if (paused || position != this.getCurrentFrame()) {
+  // position is not equal to the current one. (This code also change the
+  // position when the new position is 0 or 1 due to an incompatibility with the
+  // original CreateJS.)
+  // TODO(hbono): investigate why this 'position <= 1' check is necessary.
+  if (paused || position <= 1 || position != this.getCurrentFrame()) {
     this.setTweenPosition(position);
   }
 };
@@ -569,9 +579,6 @@ createjs.MovieClip.prototype.gotoAndStop = function(value) {
  */
 createjs.MovieClip.prototype.addTween = function(tween) {
   /// <returns type="createjs.TweenObject" name="tween"/>
-  if (!this.targets_) {
-    this.targets_ = [];
-  }
   // Create a tween cache to the PROTOTYPE object of this class. (This cache is
   // a per-class cache, it is shared by all instances of each Flash-generated
   // class.)
@@ -690,19 +697,19 @@ createjs.MovieClip.prototype.updateTweens = function(time) {
     this.updated_ = false;
   }
   createjs.MovieClip.superClass_.updateTweens.call(this, time);
-  if (this.targets_) {
-    // Add the targets of the tweens (except masks) belonging to this clip. A
-    // clip may have a tween that changes a mask. This clip does not have to
-    // render masks and it filters them out. (Applications may override the
-    // exported 'addChild()' method and this 'addChild()' call should use the
-    // exported one.)
-    var targets = this.targets_;
-    for (var i = 0; i < targets.length; ++i) {
+  var targets = this.targets_;
+  if (targets) {
+    // Add the target display objects of the tweens (except masks) added by the
+    // createjs.MovieClip.prototype.addTween() method to this clip. (This loop
+    // calls the exported 'addChild()' method to avoid a bug of the Closure
+    // compiler.)
+    var length = targets.length;
+    for (var i = 0; i < length; ++i) {
       if (!targets[i].getOwners()) {
-        this['addChild'](targets[i]);
+        this['addChild'](/** @type {createjs.DisplayObject} */ (targets[i]));
       }
     }
-    this.targets_ = null;
+    this.targets_ = [];
   }
 };
 
