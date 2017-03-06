@@ -2505,8 +2505,12 @@ createjs.WebGLRenderer.Program.prototype.drawPartial =
   /// <param type="number" name="width"/>
   /// <param type="number" name="height"/>
   this.position_.set(x, y, width, height);
-  var scaleX = 1 / image.width;
-  var scaleY = 1 / image.height;
+  if (!image.scaleX_) {
+    image.scaleX_ = 1 / image.width;
+    image.scaleY_ = 1 / image.height;
+  }
+  var scaleX = image.scaleX_;
+  var scaleY = image.scaleY_;
   this.texture_.set(
       srcX * scaleX, srcY * scaleY, srcWidth * scaleX, srcHeight * scaleY);
 

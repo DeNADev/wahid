@@ -41,6 +41,12 @@ createjs.MovieClip = function(opt_mode, opt_position, opt_loop, opt_labels) {
   createjs.Container.call(this);
 
   /**
+   * The timeline object for this clip.
+   * @type {createjs.MovieClip.Timeline}
+   */
+  this['timeline'] = new createjs.MovieClip.Timeline(this);
+
+  /**
    * The first frame to play in this clip. (Its default value is used for
    * preventing an infinite loop and it must be 0 for now.)
    * @type {number}
@@ -61,13 +67,6 @@ createjs.MovieClip = function(opt_mode, opt_position, opt_loop, opt_labels) {
    * @private
    */
   this.labels_ = opt_labels || {};
-
-  /**
-   * The timeline object for this clip.
-   * @type {createjs.MovieClip.Timeline}
-   * @private
-   */
-  this.timeline_ = new createjs.MovieClip.Timeline(this);
 
   /**
    * Target objects of the tweens added to this clip.
@@ -310,6 +309,12 @@ createjs.MovieClip.getMode_ = function(mode) {
 };
 
 /**
+ * The timeline object for this clip.
+ * @type {createjs.MovieClip.Timeline}
+ */
+createjs.MovieClip.prototype['timeline'] = null;
+
+/**
  * The first frame to play in this clip.
  * @type {number}
  * @private
@@ -329,13 +334,6 @@ createjs.MovieClip.prototype.loop_ = true;
  * @private
  */
 createjs.MovieClip.prototype.labels_ = null;
-
-/**
- * The timeline object for this clip.
- * @type {createjs.MovieClip.Timeline}
- * @private
- */
-createjs.MovieClip.prototype.timeline_ = null;
 
 /**
  * The total duration of this clip in milliseconds.
@@ -476,16 +474,6 @@ createjs.MovieClip.prototype.goto_ = function(paused, value) {
   if (paused || position <= 1 || position != this.getCurrentFrame()) {
     this.setTweenPosition(position);
   }
-};
-
-/**
- * Returns the createjs.Timeline object associated with this object.
- * @return {createjs.MovieClip.Timeline}
- * @const
- */
-createjs.MovieClip.prototype.getTimeline = function() {
-  /// <returns type="createjs.MovieClip.Timeline"/>
-  return this.timeline_;
 };
 
 /**
@@ -680,7 +668,7 @@ createjs.MovieClip.prototype.getCurrentLabel = function() {
 /** @override */
 createjs.MovieClip.prototype.removeAllChildren = function(opt_destroy) {
   this.resetTweens();
-  this.timeline_ = null;
+  this['timeline'] = null;
   this.labels_ = null;
   this.labelList_ = null;
   createjs.MovieClip.superClass_.removeAllChildren.call(this, opt_destroy);
@@ -761,13 +749,10 @@ createjs.MovieClip.prototype.setTweenMotion = function(motion, mask, proxy) {
   createjs.MovieClip.superClass_.setTweenMotion.call(this, motion, mask, proxy);
 };
 
-// Add getters for applications to read internal variables.
+// Add a getter for applications to read internal variables.
 Object.defineProperties(createjs.MovieClip.prototype, {
   'currentFrame': {
     get: createjs.MovieClip.prototype.getPosition
-  },
-  'timeline': {
-    get: createjs.MovieClip.prototype.getTimeline
   }
 });
 

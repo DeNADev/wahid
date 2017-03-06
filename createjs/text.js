@@ -873,7 +873,8 @@ createjs.Text.prototype.getMeasuredHeight = function() {
   if (this.textDirty_ && this.text_) {
     this.paintCache_();
   }
-  return this.lineAdvance_ * this.lines_.length;
+  var length = this.lines_ ? this.lines_.length : 0;
+  return this.lineAdvance_ * length;
 };
   
 /** @override */

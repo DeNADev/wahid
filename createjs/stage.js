@@ -778,6 +778,16 @@ createjs.Stage.prototype.enableTouchEvents = function(enable, preventDefault) {
     } else {
       this.addListeners_(canvas, createjs.Stage.Event.TOUCH);
     }
+    // Stop listening mouse events on Android to avoid redundant hit-testing.
+    // Chrome 55+ dispatches mouse events even when this stage prevents the
+    // the default actions of touch events, i.e. this stage has to hit-test
+    // its children four times (i.e. on "touchstart", "touchend", "mousedown",
+    // and "mouseup") when a user taps its <canvas> element. This method stop
+    // listening mouse events to hit-test its children only twice (i.e. on
+    // "touchstart" end "touchend").
+    if (createjs.UserAgent.isAndroid()) {
+      this.removeListeners_(canvas, createjs.Stage.Event.MOUSE);
+    }
   }
 };
 
@@ -845,6 +855,13 @@ createjs.Stage.prototype.handleTick = function(time) {
 /** @override */
 createjs.Stage.prototype.handleEvent = function(event) {
   /// <param type="Event" name="event"/>
+  if (createjs.Config.isPreventedEvent(event, this.domEvents_)) {
+    // Kick the global ticker and try updating this stage on Android Chrome,
+    // which does not call a setInterval() callback (including the
+    // createjs.Ticker.handleTimeout() method) while it sends touch events.
+    createjs.Ticker.kick();
+    return;
+  }
   var TOUCH_MASK = 1 << createjs.Stage.Event.TOUCH;
   var POINTER_MASK = 1 << createjs.Stage.Event.POINTER;
   var MOUSE_MASK = 1 << createjs.Stage.Event.MOUSE;

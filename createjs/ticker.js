@@ -562,6 +562,9 @@ createjs.Ticker.getMeasuredFPS = function(opt_ticks) {
   /// <param type="number" optional="true" name="opt_ticks"/>
   /// <returns type="number"/>
   var ticker = createjs.Ticker.getInstance_();
+  if (!ticker.times_) {
+    return 0;
+  }
   return ticker.times_.getFPS();
 };
 

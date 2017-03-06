@@ -55,6 +55,27 @@ createjs.Config.useAndroidWorkarounds_ = {};
 createjs.Config.canPlayInline_ = -1;
 
 /**
+ * The event interval.
+ * @type {number}
+ * @private
+ */
+createjs.Config.interval_ = 0;
+
+/**
+ * The time-stamp of the previously-handled event.
+ * @type {number}
+ * @private
+ */
+createjs.Config.timestamp_ = 0;
+
+/**
+ * Whether to disable events.
+ * @type {boolean}
+ * @private
+ */
+createjs.Config.disable_ = false;
+
+/**
  * Deletes all files in the cache.
  * @const
  */
@@ -156,6 +177,75 @@ createjs.Config.canPlayInline = function() {
 };
 
 /**
+ * Returns whether the specified event is prevented the createjs.Stage class
+ * from handling it.
+ * @param {Event} event
+ * @param {number} mask
+ * @return {boolean}
+ * @const
+ */
+createjs.Config.isPreventedEvent = function(event, mask) {
+  /// <param type="Event" name="event"/>
+  /// <param type="number" name="mask"/>
+  /// <returns type="boolean"/>
+  var MOUSE_MASK = 1 << 0;
+  var TOUCH_MASK = 1 << 1;
+  var POINTER_MASK = 1 << 2;
+  if (mask & TOUCH_MASK) {
+    if (event.type == 'touchstart') {
+      // Filter out this event (and 'touchmove' events and a 'touchend' one
+      // associated with it) when its elapsed time since the previously-handled
+      // 'touchstart' event is less than the specified interval.
+      var elapsed = event.timeStamp - createjs.Config.timestamp_;
+      createjs.Config.disable_ = elapsed < createjs.Config.interval_;
+      if (!createjs.Config.disable_) {
+        createjs.Config.timestamp_ = event.timeStamp;
+      }
+      return createjs.Config.disable_;
+    } else if (event.type == 'touchend' || event.type == 'touchmove') {
+      // Filter out this event if this method has discarded the 'touchstart'
+      // event associated with it to avoid dispatching stray events.
+      return createjs.Config.disable_;
+    }
+  } else if (mask & POINTER_MASK) {
+    if (event.type == 'pointerdown') {
+      var elapsed = event.timeStamp - createjs.Config.timestamp_;
+      createjs.Config.disable_ = elapsed < createjs.Config.interval_;
+      if (!createjs.Config.disable_) {
+        createjs.Config.timestamp_ = event.timeStamp;
+      }
+      return createjs.Config.disable_;
+    } else if (event.type == 'pointerup' || event.type == 'pointermove') {
+      return createjs.Config.disable_;
+    }
+  }
+  if (mask & MOUSE_MASK) {
+    if (event.type == 'mousedown') {
+      var elapsed = event.timeStamp - createjs.Config.timestamp_;
+      createjs.Config.disable_ = elapsed < createjs.Config.interval_;
+      if (!createjs.Config.disable_) {
+        createjs.Config.timestamp_ = event.timeStamp;
+        }
+      return createjs.Config.disable_;
+    } else if (event.type == 'mouseup' || event.type == 'mousemove') {
+      return createjs.Config.disable_;
+    }
+  }
+  return false;
+};
+
+/**
+ * Sets the event interval. This method sets the period of time when the
+ * createjs.Stage class discards events after it handles an event.
+ * @param {number} milliseconds
+ * @const
+ */
+createjs.Config.setEventInterval = function(milliseconds) {
+  /// <param type="number" name="milliseconds"/>
+  createjs.Config.interval_ = milliseconds;
+};
+
+/**
  * A table of exported functions.
  * @type {Object}
  * @const
@@ -163,5 +253,6 @@ createjs.Config.canPlayInline = function() {
 createjs.Config.exports = createjs.exportStatic('createjs.Config', {
   'clearCache': createjs.Config.clearCache,
   'setCacheVersion': createjs.Config.setCacheVersion,
-  'setUseAndroidWorkarounds': createjs.Config.setUseAndroidWorkarounds
+  'setUseAndroidWorkarounds': createjs.Config.setUseAndroidWorkarounds,
+  'setEventInterval': createjs.Config.setEventInterval
 });
