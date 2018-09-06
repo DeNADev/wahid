@@ -47,7 +47,7 @@ createjs.inherits('ColorMatrix',
 /**
  * The color matrix. Even though this is a 5x5 matrix, this class actually
  * uses its 4x5 sub-matrix.
- * @type {Array.<number>}
+ * @type {Float32Array}
  * @private
  */
 createjs.ColorMatrix.prototype.matrix_ = null;
@@ -78,13 +78,13 @@ createjs.ColorMatrix.prototype.setColor =
  */
 createjs.ColorMatrix.prototype.reset = function() {
   /// <returns type="createjs.ColorMatrix"/>
-  this.matrix_ = [
+  this.matrix_ = new Float32Array([
     1, 0, 0, 0, 0,
     0, 1, 0, 0, 0,
     0, 0, 1, 0, 0,
     0, 0, 0, 1, 0,
     0, 0, 0, 0, 1
-  ];
+  ]);
   return this;
 };
 
@@ -366,11 +366,11 @@ createjs.ColorMatrix.prototype.copyArray = function(matrix) {
 
 /**
  * Returns the color matrix.
- * @return {Array.<number>}
+ * @return {Float32Array}
  * @const
  */
 createjs.ColorMatrix.prototype.toArray = function() {
-  /// <returns type="Array" elementType="number"/>
+  /// <returns type="Float32Array"/>
   return this.matrix_;
 };
 

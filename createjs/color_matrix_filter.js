@@ -66,10 +66,10 @@ createjs.ColorMatrixFilter.get = function(filter) {
 
 /**
  * Returns the color matrix as an array.
- * @return {Array.<number>}
+ * @return {Float32Array}
  */
 createjs.ColorMatrixFilter.prototype.getMatrix = function() {
-  /// <returns type="Array" elementType="number"/>
+  /// <returns type="Float32Array"/>
   return this.matrix_.toArray();
 };
 

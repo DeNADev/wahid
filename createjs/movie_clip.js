@@ -24,8 +24,6 @@
 
 /// <reference path="base.js"/>
 /// <reference path="container.js"/>
-/// <reference path="tween_object.js"/>
-/// <reference path="tween_target.js"/>
 
 /**
  * A class that associates a createjs.Timeline object with a createjs.Container
@@ -38,6 +36,10 @@
  * @constructor
  */
 createjs.MovieClip = function(opt_mode, opt_position, opt_loop, opt_labels) {
+  /// <param type="string" optional="true" name="opt_mode"/>
+  /// <param type="number" optional="true" name="opt_position/>
+  /// <param type="boolean" optional="true" name="opt_loop"/>
+  /// <param type="Object" name="opt_labels"/>
   createjs.Container.call(this);
 
   /**
@@ -47,21 +49,6 @@ createjs.MovieClip = function(opt_mode, opt_position, opt_loop, opt_labels) {
   this['timeline'] = new createjs.MovieClip.Timeline(this);
 
   /**
-   * The first frame to play in this clip. (Its default value is used for
-   * preventing an infinite loop and it must be 0 for now.)
-   * @type {number}
-   * @private
-   */
-  this.startPosition_ = opt_position || 0;
-
-  /**
-   * Whether this clip loops when it reaches its end.
-   * @type {boolean}
-   * @private
-   */
-  this.loop_ = (opt_loop == null) ? true : !!opt_loop;
-
-  /**
    * The label set, i.e. a mapping table from a string to a frame number.
    * @type {Object.<string,number>}
    * @private
@@ -69,14 +56,18 @@ createjs.MovieClip = function(opt_mode, opt_position, opt_loop, opt_labels) {
   this.labels_ = opt_labels || {};
 
   /**
-   * Target objects of the tweens added to this clip.
-   * @type {Array.<createjs.TweenTarget>}
+   * The display objects added to this clip by tweens.
+   * @type {Array.<createjs.DisplayObject>}
    * @private
    */
   this.targets_ = [];
 
   // Initialize the play mode of the tweens to be added to this clip.
-  this.setPlayMode(createjs.MovieClip.getMode_(opt_mode));
+  this.setValue(createjs.Property.START_POSITION, (opt_position | 0));
+  this.setValue(createjs.Property.LOOP,
+                (opt_loop == null ? 1 : (opt_loop | 0)));
+  this.setValue(createjs.Property.PLAY_MODE,
+                createjs.MovieClip.getMode_(opt_mode));
 };
 createjs.inherits('MovieClip', createjs.MovieClip, createjs.Container);
 
@@ -88,12 +79,14 @@ createjs.inherits('MovieClip', createjs.MovieClip, createjs.Container);
  */
 createjs.MovieClip.Label = function(label, position) {
   /**
+   * The label name.
    * @const {string}
    * @private
    */
   this['label'] = label;
 
   /**
+   * The frame position.
    * @const {number}
    * @private
    */
@@ -148,38 +141,38 @@ createjs.MovieClip.Timeline.prototype.getPosition = function() {
 
 /**
  * Adds one or more tweens (or timelines) to this timeline.
- * @param {...createjs.TweenObject} var_args
- * @return {createjs.TweenObject}
+ * @param {...createjs.Tween} var_args
+ * @return {createjs.Tween}
  * @private
  */
 createjs.MovieClip.Timeline.prototype.addTween = function(var_args) {
-  /// <param type="createjs.TweenObject" name="var_args"/>
-  /// <returns type="createjs.TweenObject"/>
+  /// <param type="createjs.Tween" name="var_args"/>
+  /// <returns type="createjs.Tween"/>
   var args = arguments;
   var length = args.length;
   if (length == 0) {
     return null;
   }
   for (var i = 0; i < length; ++i) {
-    this.clip_.addTween(args[i]);
+    this.clip_.addTween(/** @type {createjs.Tween} */ (args[i]));
   }
   return args[0];
 };
 
 /**
  * Removes one or more tweens from this timeline.
- * @param {...createjs.TweenObject} var_args
+ * @param {...createjs.Tween} var_args
  * @return {boolean}
  * @private
  */
 createjs.MovieClip.Timeline.prototype.removeTween = function(var_args) {
-  /// <param type="createjs.TweenObject" name="var_args"/>
+  /// <param type="createjs.Tween" name="var_args"/>
   /// <returns type="boolean"/>
   var removed = false;
   var args = arguments;
   var length = args.length;
   for (var i = 0; i < length; ++i) {
-    var tween = /** @type {createjs.TweenObject} */ (args[i]);
+    var tween = /** @type {createjs.Tween} */ (args[i]);
     if (this.clip_.removeTween(tween)) {
       removed = true;
     }
@@ -301,11 +294,11 @@ createjs.MovieClip.getMode_ = function(mode) {
   /// <param type="string" name="mode"/>
   /// <returns type="number"/>
   if (mode == 'single') {
-    return createjs.TweenTarget.PlayMode.SINGLE;
+    return createjs.PlayMode.SINGLE;
   } else if (mode == 'synched') {
-    return createjs.TweenTarget.PlayMode.SYNCHED;
+    return createjs.PlayMode.SYNCHED;
   }
-  return createjs.TweenTarget.PlayMode.INDEPENDENT;
+  return createjs.PlayMode.INDEPENDENT;
 };
 
 /**
@@ -313,20 +306,6 @@ createjs.MovieClip.getMode_ = function(mode) {
  * @type {createjs.MovieClip.Timeline}
  */
 createjs.MovieClip.prototype['timeline'] = null;
-
-/**
- * The first frame to play in this clip.
- * @type {number}
- * @private
- */
-createjs.MovieClip.prototype.startPosition_ = 0;
-
-/**
- * Whether this clip loops when it reaches its end.
- * @type {boolean}
- * @private
- */
-createjs.MovieClip.prototype.loop_ = true;
 
 /**
  * A mapping table from a label name to its position.
@@ -350,8 +329,8 @@ createjs.MovieClip.prototype.duration_ = 0;
 createjs.MovieClip.prototype.labelList_ = null;
 
 /**
- * Target objects of the tweens added to this clip.
- * @type {Array.<createjs.TweenTarget>}
+ * The display objects added to this clip by tweens.
+ * @type {Array.<createjs.DisplayObject>}
  * @private
  */
 createjs.MovieClip.prototype.targets_ = null;
@@ -374,7 +353,7 @@ createjs.MovieClip.prototype.tweenId_ = 0;
  * from this class always adds its tweens in the same order. This array caches
  * compiled tweens for the first time when the Flash-generated class creates its
  * instance to re-use their compiled data next times.
- * @type {Array.<createjs.TweenObject>}
+ * @type {Array.<createjs.Tween>}
  */
 createjs.MovieClip.prototype.cache_ = null;
 
@@ -388,16 +367,14 @@ createjs.MovieClip.prototype.setStartPosition_ = function(startPosition) {
   // Flash somehow generates code that has 'startPosition' properties with their
   // values 'undefined' (i.e. '{ startPosition: undefined }'). CreateJS treats
   // these 'undefined' values as 0 and this code emulates it.
-  startPosition = startPosition || 0;
-  createjs.assert(createjs.isNumber(startPosition));
+  var value = startPosition | 0;
   // Truncate the frame position to an integral number for consistency with a
   // frame position used by tweens and change the positions of its tweens only
   // when the truncated position is not equal to the current position. (Changing
   // the position of a tween resets the parameters of its target and over-writes
   // the other parameters being changed by the tween.)
-  startPosition = createjs.truncate(startPosition);
-  if (this.startPosition_ != startPosition) {
-    this.startPosition_ = startPosition;
+  if (this.getValue(createjs.Property.START_POSITION) != value) {
+    this.setValue(createjs.Property.START_POSITION, value);
     this.updated_ = true;
   }
 };
@@ -413,12 +390,9 @@ createjs.MovieClip.prototype.setLoop_ = function(loop) {
   // Flash somehow generates code that has 'loop' properties with their values
   // 'undefined' (i.e. '{ loop: undefined }'). CreateJS it treats these
   // 'undefined' values as true and this code emulates it.
-  if (loop == null) {
-    loop = true;
-  }
-  createjs.assert(createjs.isBoolean(loop));
-  if (this.loop_ != loop) {
-    this.loop_ = loop;
+  var value = loop == null ? 1 : (loop | 0);
+  if (this.getValue(createjs.Property.LOOP) != value) {
+    this.setValue(createjs.Property.LOOP, value);
     this.updated_ = true;
   }
 };
@@ -426,17 +400,17 @@ createjs.MovieClip.prototype.setLoop_ = function(loop) {
 /**
  * Sets the play mode of all tweens attached to this clip.
  * @param {string} value
- * @param {createjs.TweenTarget} proxy
+ * @param {createjs.DisplayObject} proxy
  * @private
  */
 createjs.MovieClip.prototype.setMode_ = function(value, proxy) {
   /// <param type="string" name="value"/>
-  /// <param type="createjs.TweenTarget" name="proxy"/>
+  /// <param type="createjs.DisplayObject" name="proxy"/>
   var mode = createjs.MovieClip.getMode_(value);
-  if (this.getPlayMode() != mode) {
-    this.setPlayMode(mode);
+  if (this.getValue(createjs.Property.PLAY_MODE) != mode) {
+    this.setValue(createjs.Property.PLAY_MODE, mode);
     if (proxy) {
-      proxy.synchronize(this, mode == createjs.TweenTarget.PlayMode.SYNCHED);
+      proxy.synchronize(this, mode == createjs.PlayMode.SYNCHED);
     }
     this.updated_ = true;
   }
@@ -503,7 +477,6 @@ createjs.MovieClip.prototype.getPosition = function() {
  */
 createjs.MovieClip.prototype.setPaused = function(value) {
   /// <param type="boolean" name="value"/>
-  /// <returns type="createjs.TweenObject"/>
   var paused = !!value;
   var time = createjs.Ticker.getRunTime();
   if (paused) {
@@ -563,10 +536,11 @@ createjs.MovieClip.prototype.gotoAndStop = function(value) {
   
 /**
  * Adds a tween to this clip.
- * @param {createjs.TweenObject} tween
+ * @param {createjs.Tween} tween
+ * @const
  */
 createjs.MovieClip.prototype.addTween = function(tween) {
-  /// <returns type="createjs.TweenObject" name="tween"/>
+  /// <param type="createjs.Tween" name="tween"/>
   // Create a tween cache to the PROTOTYPE object of this class. (This cache is
   // a per-class cache, it is shared by all instances of each Flash-generated
   // class.)
@@ -590,16 +564,20 @@ createjs.MovieClip.prototype.addTween = function(tween) {
   if (this.duration_ < duration) {
     this.duration_ = duration;
   }
-  var single = this.getPlayMode() == createjs.TweenTarget.PlayMode.SINGLE;
-  tween.setProperties(this.loop_, this.startPosition_, single);
+  var loop = this.getValue(createjs.Property.LOOP);
+  var startPosition = this.getValue(createjs.Property.START_POSITION);
+  var playMode = this.getValue(createjs.Property.PLAY_MODE);
+  var single = playMode == createjs.PlayMode.SINGLE;
+  tween.setProperties(loop, startPosition, single);
 };
 
 /**
  * Removes a tween from this clip.
- * @param {createjs.TweenObject} tween
+ * @param {createjs.Tween} tween
+ * @const
  */
 createjs.MovieClip.prototype.removeTween = function(tween) {
-  /// <returns type="boolean"/>
+  /// <param type="createjs.Tween" name="tween"/>
   createjs.notImplemented();
 };
 
@@ -607,6 +585,7 @@ createjs.MovieClip.prototype.removeTween = function(tween) {
  * Adds a label that can be used with the gotoAndPlay() method.
  * @param {string} label
  * @param {number} position
+ * @const
  */
 createjs.MovieClip.prototype.addLabel = function(label, position) {
   /// <param type="string" name="label"/>
@@ -618,6 +597,7 @@ createjs.MovieClip.prototype.addLabel = function(label, position) {
 /**
  * Sets labels for this timeline.
  * @param {Object.<string,number>} labels
+ * @const
  */
 createjs.MovieClip.prototype.setLabels = function(labels) {
   /// <param type="Object" name="labels"/>
@@ -628,6 +608,7 @@ createjs.MovieClip.prototype.setLabels = function(labels) {
 /**
  * Returns the sorted list of the labels added to this timeline.
  * @return {Array.<createjs.MovieClip.Label>}
+ * @const
  */
 createjs.MovieClip.prototype.getLabels = function() {
   /// <returns type="Array" elementType="createjs.MovieClip.Label"/>
@@ -646,6 +627,7 @@ createjs.MovieClip.prototype.getLabels = function() {
 /**
  * Returns the name of the label on or immediately before the current position.
  * @return {string}
+ * @const
  */
 createjs.MovieClip.prototype.getCurrentLabel = function() {
   /// <returns type="string"/>
@@ -665,6 +647,22 @@ createjs.MovieClip.prototype.getCurrentLabel = function() {
   return label['label'];
 };
 
+/**
+ * Draws this movie clip to a <canvas> element. (The createjs.SpriteSheetBuilder
+ * class uses this method to create a sprite sheet from a movie clip.)
+ * @param {createjs.Renderer} renderer
+ * @param {createjs.DisplayObject} parent
+ * @param {number} dirty
+ * @param {number} time
+ * @param {number} draw
+ * @const
+ */
+createjs.DisplayObject.prototype.drawFrame =
+    function(renderer, parent, dirty, time, draw) {
+  this.updateTweens(time);
+  this.layout(renderer, parent, dirty, time, draw);
+};
+
 /** @override */
 createjs.MovieClip.prototype.removeAllChildren = function(opt_destroy) {
   this.resetTweens();
@@ -680,8 +678,11 @@ createjs.MovieClip.prototype.updateTweens = function(time) {
   // Update the tween properties before updating tweens when another tween
   // changes the properties of this clip to prevent updating each tween twice.
   if (this.updated_) {
-    var single = this.getPlayMode() == createjs.TweenTarget.PlayMode.SINGLE;
-    this.setTweenProperties(this.loop_, this.startPosition_, single);
+    var loop = this.getValue(createjs.Property.LOOP);
+    var startPosition = this.getValue(createjs.Property.START_POSITION);
+    var playMode = this.getValue(createjs.Property.PLAY_MODE);
+    var single = playMode == createjs.PlayMode.SINGLE;
+    this.setTweenProperties(loop, startPosition, single);
     this.updated_ = false;
   }
   createjs.MovieClip.superClass_.updateTweens.call(this, time);
@@ -702,46 +703,32 @@ createjs.MovieClip.prototype.updateTweens = function(time) {
 };
 
 /** @override */
-createjs.MovieClip.prototype.getTweenMotion = function(motion) {
-  /// <param type="createjs.TweenMotion" name="motion"/>
-  /// <returns type="boolean"/>
-  if (!createjs.MovieClip.superClass_.getTweenMotion.call(this, motion)) {
-    return false;
-  }
-  motion.setStartPosition(this.startPosition_);
-  motion.setLoop(this.loop_);
-  motion.setPlayMode(this.getPlayMode());
-  return true;
-};
-
-/** @override */
 createjs.MovieClip.prototype.setTweenMotion = function(motion, mask, proxy) {
   /// <param type="createjs.TweenMotion" name="motion"/>
   /// <param type="number" name="mask"/>
   /// <param type="createjs.TweenTarget" name="proxy"/>
-  if (mask & (1 << createjs.TweenMotion.ID.START_POSITION)) {
-    var startPosition = motion.getStartPosition();
+  if (mask & (1 << createjs.Property.START_POSITION)) {
+    var startPosition = createjs.truncate(motion.getStartPosition());
     if (startPosition >= 0) {
-      startPosition = createjs.truncate(startPosition);
-      if (this.startPosition_ != startPosition) {
-        this.startPosition_ = startPosition;
+      if (this.getValue(createjs.Property.START_POSITION) != startPosition) {
+        this.setValue(createjs.Property.START_POSITION, startPosition);
         this.updated_ = true;
       }
     }
   }
-  if (mask & (1 << createjs.TweenMotion.ID.LOOP)) {
+  if (mask & (1 << createjs.Property.LOOP)) {
     var loop = motion.getLoop();
-    if (this.loop_ != loop) {
-      this.loop_ = loop;
+    if (this.getValue(createjs.Property.LOOP) != loop) {
+      this.setValue(createjs.Property.LOOP, loop);
       this.updated_ = true;
     }
   }
-  if (mask & (1 << createjs.TweenMotion.ID.PLAY_MODE)) {
+  if (mask & (1 << createjs.Property.PLAY_MODE)) {
     var mode = motion.getPlayMode();
-    if (this.getPlayMode() != mode) {
-      this.setPlayMode(mode);
+    if (this.getValue(createjs.Property.PLAY_MODE) != mode) {
+      this.setValue(createjs.Property.PLAY_MODE, mode);
       if (proxy) {
-        proxy.synchronize(this, mode == createjs.TweenTarget.PlayMode.SYNCHED);
+        proxy.synchronize(this, mode == createjs.PlayMode.SYNCHED);
       }
       this.updated_ = true;
     }

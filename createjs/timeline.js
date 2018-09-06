@@ -26,12 +26,11 @@
 /// <reference path="event_dispatcher.js"/>
 /// <reference path="tick_listener.js"/>
 /// <reference path="ticker.js"/>
-/// <reference path="tween_object.js"/>
 
 /**
  * A class that contains multiple createjs.Tween objects and updates them
  * synchronously.
- * @param {Array.<createjs.TweenObject>} tweens
+ * @param {Array.<createjs.Tween>} tweens
  * @param {Object.<string,number>} labels
  * @param {Object.<string,boolean|number>=} opt_properties
  * @extends {createjs.EventDispatcher}
@@ -39,11 +38,14 @@
  * @constructor
  */
 createjs.Timeline = function(tweens, labels, opt_properties) {
+  /// <param type="Array" elementType="createjs.Tween" name="tweens"/>
+  /// <param type="Object" name="labels"/>
+  /// <param type="Object" optional="true" name="opt_properties"/>
   createjs.EventDispatcher.call(this);
 
   /**
    * The tweens controlled by this timeline.
-   * @type {Array.<createjs.TweenObject>}
+   * @type {Array.<createjs.Tween>}
    * @private
    */
   this.tweens_ = [];
@@ -56,7 +58,7 @@ createjs.Timeline = function(tweens, labels, opt_properties) {
   this.labels_ = labels;
 
   if (opt_properties) {
-    this.loop_ = !!opt_properties['loop'];
+    this.loop_ = opt_properties['loop'] | 0;
     this.paused_ = !!opt_properties['paused'];
     this.position_ = /** @type {number} */ (opt_properties['position']) || -1;
   }
@@ -81,7 +83,7 @@ createjs.Timeline.prototype['duration'] = 0;
 
 /**
  * The tweens controlled by this timeline.
- * @type {Array.<createjs.TweenObject>}
+ * @type {Array.<createjs.Tween>}
  * @private
  */
 createjs.Timeline.prototype.tweens_ = null;
@@ -95,10 +97,10 @@ createjs.Timeline.prototype.labels_ = null;
 
 /**
  * Whether this timeline loops when it reaches its end.
- * @type {boolean}
+ * @type {number}
  * @private
  */
-createjs.Timeline.prototype.loop_ = false;
+createjs.Timeline.prototype.loop_ = 0;
 
 /**
  * Whether this timeline is playing its tweens.
@@ -109,12 +111,12 @@ createjs.Timeline.prototype.paused_ = false;
 
 /**
  * Adds an array tweens to this timeline.
- * @param {Array.<createjs.TweenObject>} tweens
+ * @param {Array.<createjs.Tween>} tweens
  * @param {number} length
  * @private
  */
 createjs.Timeline.prototype.addTweens_ = function(tweens, length) {
-  /// <param type="Array" elementType="createjs.TweenObject" name="tweens"/>
+  /// <param type="Array" elementType="createjs.Tween" name="tweens"/>
   /// <param type="number" name="length"/>
   var targets = [];
   for (var i = 0; i < length; ++i) {
@@ -138,30 +140,30 @@ createjs.Timeline.prototype.addTweens_ = function(tweens, length) {
 
 /**
  * Adds one or more tweens to this timeline.
- * @param {...createjs.TweenObject} var_args
- * @return {createjs.TweenObject}
+ * @param {...createjs.Tween} var_args
+ * @return {createjs.Tween}
  * @const
  */
 createjs.Timeline.prototype.addTween = function(var_args) {
-  /// <param type="createjs.TweenObject" name="var_args"/>
-  /// <returns type="createjs.TweenObject"/>
+  /// <param type="createjs.Tween" name="var_args"/>
+  /// <returns type="createjs.Tween"/>
   var args = arguments;
   var length = args.length;
   createjs.assert(length > 0);
   this.addTweens_(
-      /** @type {Array.<createjs.TweenObject>} */ (/** @type {*} */ (args)),
+      /** @type {Array.<createjs.Tween>} */ (/** @type {*} */ (args)),
       length);
   return args[0];
 };
 
 /**
  * Removes one or more tweens from this timeline.
- * @param {...createjs.TweenObject} var_args
+ * @param {...createjs.Tween} var_args
  * @return {boolean}
  * @const
  */
 createjs.Timeline.prototype.removeTween = function(var_args) {
-  /// <param type="createjs.TweenObject" name="var_args"/>
+  /// <param type="createjs.Tween" name="var_args"/>
   /// <returns type="boolean"/>
   createjs.notImplemented();
   return false;
@@ -261,7 +263,7 @@ createjs.Timeline.prototype.handleTick = function(time) {
   var playing = 0;
   for (var i = 0; i < this.tweens_.length; ++i) {
     var tween = this.tweens_[i];
-    tween.updateTween(time, createjs.TweenTarget.PlayMode.INDEPENDENT, -1);
+    tween.updateTween(time, createjs.PlayMode.INDEPENDENT, -1);
     playing |= tween.isEnded() ? 0 : 1;
   }
   if (!playing) {

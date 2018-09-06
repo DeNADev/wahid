@@ -44,6 +44,7 @@
 /// <reference path="sound.js"/>
 /// <reference path="sprite.js"/>
 /// <reference path="sprite_sheet.js"/>
+/// <reference path="sprite_sheet_builder.js"/>
 /// <reference path="stage.js"/>
 /// <reference path="text.js"/>
 /// <reference path="ticker.js"/>
@@ -78,6 +79,7 @@ if (createjs.SUPPORT_AMD) {
     'Sound': createjs.Sound.exports,
     'Sprite': createjs.Sprite,
     'SpriteSheet': createjs.SpriteSheet,
+    'SpriteSheetBuilder': createjs.SpriteSheetBuilder,
     'Stage': createjs.Stage,
     'Text': createjs.Text,
     'Ticker': createjs.Ticker.exports,

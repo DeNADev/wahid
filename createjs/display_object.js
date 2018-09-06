@@ -30,7 +30,6 @@
 /// <reference path="color_matrix_filter.js"/>
 /// <reference path="event_dispatcher.js"/>
 /// <reference path="filter.js"/>
-/// <reference path="object_list"/>
 /// <reference path="point.js"/>
 /// <reference path="rectangle.js"/>
 /// <reference path="renderer.js"/>
@@ -38,9 +37,7 @@
 /// <reference path="ticker.js"/>
 /// <reference path="transform.js"/>
 /// <reference path="tween_motion.js"/>
-/// <reference path="tween_object.js"/>
 /// <reference path="tween_property.js"/>
-/// <reference path="tween_target.js"/>
 
 /**
  * A base class for all drawable objects. This class consists of five
@@ -57,104 +54,141 @@
  * update a tween only once/frame.)
  * @extends {createjs.EventDispatcher}
  * @implements {createjs.Renderer.RenderObject}
- * @implements {createjs.TweenTarget}
  * @constructor
  */
 createjs.DisplayObject = function() {
   createjs.EventDispatcher.call(this);
-
-  /**
-   * The object ID. This ID is used by tweens to distinguish their targets, i.e.
-   * this ID is unique only among display objects.
-   * @type {number}
-   * @private
-   */
-  this.targetId_ = createjs.DisplayObject.targetId_++;
-
-  /**
-   * The rendering state of this object, a set of the variables having used by
-   * the createjs.Renderer interface to render this object.
-   * @type {createjs.DisplayObject.RenderState}
-   * @private
-   */
-  this.state_ = new createjs.DisplayObject.RenderState();
-
-  /**
-   * The position of this display object.
-   * @type {createjs.Point}
-   * @private
-   */
-  this.position_ = new createjs.Point(0, 0);
-
-  /**
-   * The scaling factor to stretch this display object.
-   * @type {createjs.Point}
-   * @private
-   */
-  this.scale_ = new createjs.Point(1, 1);
-
-  /**
-   * The factor to skew this display object.
-   * @type {createjs.Point}
-   * @private
-   */
-  this.skew_ = new createjs.Point(0, 0);
-
-  /**
-   * The registration point of this display object.
-   * @type {createjs.Point}
-   * @private
-   */
-  this.registration_ = new createjs.Point(0, 0);
-
-  /**
-   * The bounding box of this object in the local coordinate system. (The
-   * createjs.DisplayObject.RenderState class translates this box to the global
-   * coordinate system.)
-   * @type {createjs.BoundingBox}
-   * @private
-   */
-  this.box_ = new createjs.BoundingBox();
+  this.initialize_();
 };
 createjs.inherits('DisplayObject',
                   createjs.DisplayObject,
                   createjs.EventDispatcher);
-  
+
 /**
  * The inner class that controls the tweens attached to this object.
- * @extends {createjs.ObjectList}
+ * @param {createjs.Tween} tween
  * @constructor
  */
-createjs.DisplayObject.ObjectList = function() {
-  createjs.ObjectList.call(this);
+createjs.DisplayObject.TweenList = function(tween) {
+  /// <param type="createjs.Tween" name="tween"/>
+  /**
+   * The list of tweens in this list.
+   * @type {Array.<createjs.Tween>}
+   * @private
+   */
+  this.tweens_ = [tween];
+
+  /**
+   * The clone of the tween list. This clone is used for adding tweens when the
+   * tween list is locked.
+   * @type {Array.<createjs.Tween>}
+   * @private
+   */
+  this.clone_ = null;
+
+  /**
+   * Whether this list is locked.
+   * @type {boolean}
+   * @private
+   */
+  this.locked_ = false;
+
+  /**
+   * The next position of the tweens in this list. This property saves the
+   * position set by an action while this clip while it is updating its tweens.
+   * @type {number}
+   * @private
+   */
+  this.next_ = -1;
+
+  /**
+   * The last time when the owner object updates this list.
+   * @type {number}
+   * @private
+   */
+  this.lastTime_ = -1;
 };
-createjs.inherits('DisplayObject.ObjectList',
-                  createjs.DisplayObject.ObjectList,
-                  createjs.ObjectList);
 
 /**
- * The next position of the tweens in this list. This property saves the
- * position set by an action while this clip while it is updating its tweens.
- * @type {number}
+ * Retrieves the editable items of this list.
+ * @return {Array.<createjs.Tween>}
  * @private
+ * @const
  */
-createjs.DisplayObject.ObjectList.prototype.next_ = -1;
+createjs.DisplayObject.TweenList.prototype.getTweens_ = function() {
+  /// <returns type="Array" elementType="createjs.Tween"/>
+  if (!this.locked_) {
+    return this.tweens_;
+  }
+  if (!this.clone_) {
+    this.clone_ = this.tweens_.slice();
+  }
+  return this.clone_;
+};
 
 /**
- * The last time when the owner object updates this list.
- * @type {number}
- * @private
+ * Returns the number of items in this list.
+ * @return {number}
+ * @const
  */
-createjs.DisplayObject.ObjectList.prototype.lastTime_ = -1;
+createjs.DisplayObject.TweenList.prototype.getLength_ = function() {
+  /// <returns type="number"/>
+  return this.tweens_.length;
+};
+
+/**
+ * Locks this list for iteration. This method changes the state of this list to
+ * 'locked' to apply succeeding add operations and remove ones to its clone.
+ * @return {Array.<createjs.Tween>}
+ * @private
+ * @const
+ */
+createjs.DisplayObject.TweenList.prototype.lock_ = function() {
+  /// <returns type="Array" elementType="createjs.Tween"/>
+  this.locked_ = true;
+  return this.tweens_;
+};
+
+/**
+ * Unlocks this list. This method changes the stage of this list to 'unlocked'
+ * and copies its clone if an application edits the list while it is locked.
+ * @private
+ * @const
+ */
+createjs.DisplayObject.TweenList.prototype.unlock_ = function() {
+  this.locked_ = false;
+  if (this.clone_) {
+    this.tweens_ = this.clone_;
+    this.clone_ = null;
+  }
+};
+
+/**
+ * Removes a tween from this list.
+ * @param {createjs.Tween} tween
+ * @private
+ * @const
+ */
+createjs.DisplayObject.TweenList.prototype.removeTween_ = function(tween) {
+  /// <param type="createjs.Tween" name="tween"/>
+  var list = this.getTweens_();
+  for (var i = list.length - 1; i >= 0; --i) {
+    if (list[i] === tween) {
+      list.splice(i, 1);
+      return;
+    }
+  }
+};
 
 /**
  * Starts playing the tweens in this target.
  * @param {number} time
  * @private
+ * @const
  */
-createjs.DisplayObject.ObjectList.prototype.playTweens_ = function(time) {
+createjs.DisplayObject.TweenList.prototype.playTweens_ = function(time) {
   /// <param type="number" name="time"/>
-  var tweens = /** @type {Array.<createjs.TweenObject>} */ (this.getItems());
+  var tweens = this.getTweens_();
   var length = tweens.length;
   for (var i = length - 1; i >= 0; --i) {
     tweens[i].playTween(time);
@@ -165,10 +199,11 @@ createjs.DisplayObject.ObjectList.prototype.playTweens_ = function(time) {
  * Stops playing the tweens in this target.
  * @param {number} time
  * @private
+ * @const
  */
-createjs.DisplayObject.ObjectList.prototype.stopTweens_ = function(time) {
+createjs.DisplayObject.TweenList.prototype.stopTweens_ = function(time) {
   /// <param type="number" name="time"/>
-  var tweens = /** @type {Array.<createjs.TweenObject>} */ (this.getItems());
+  var tweens = this.getTweens_();
   var length = tweens.length;
   for (var i = length - 1; i >= 0; --i) {
     tweens[i].stopTween(time);
@@ -180,18 +215,19 @@ createjs.DisplayObject.ObjectList.prototype.stopTweens_ = function(time) {
  * @param {number} time
  * @param {number} flag
  * @return {number}
+ * @const
  */
-createjs.DisplayObject.ObjectList.prototype.updateTweens_ =
+createjs.DisplayObject.TweenList.prototype.updateTweens_ =
     function(time, flag) {
   /// <param type="number" name="time"/>
   /// <param type="number" name="flag"/>
   /// <returns type="number"/>
-  var tweens = /** @type {Array.<createjs.TweenObject>} */ (this.lock());
+  var tweens = this.lock_();
   var length = tweens.length;
   createjs.assert(length > 0);
   var position = -1;
-  if (this.next_ >= 0 && flag == createjs.TweenTarget.PlayMode.SYNCHED) {
-    flag |= createjs.TweenObject.Flag.UPDATE;
+  if (this.next_ >= 0 && flag == createjs.PlayMode.SYNCHED) {
+    flag |= createjs.TweenFlag.UPDATE;
   }
   for (var i = length - 1; i >= 0; --i) {
     var next = this.next_;
@@ -201,13 +237,13 @@ createjs.DisplayObject.ObjectList.prototype.updateTweens_ =
     // succeeding updateTween() calls will change the position of all succeeding
     // tweens to the specified one.)
     if (this.next_ != next) {
-      flag |= createjs.TweenObject.Flag.UPDATE;
+      flag |= createjs.TweenFlag.UPDATE;
       for (var j = length - 1; j >= i; --j) {
         tweens[j].setPosition(this.next_, 1);
       }
     }
   }
-  this.unlock();
+  this.unlock_();
   this.next_ = -1;
   this.lastTime_ = time;
   return position;
@@ -219,19 +255,20 @@ createjs.DisplayObject.ObjectList.prototype.updateTweens_ =
  * @param {number} position
  * @param {boolean} paused
  * @private
+ * @const
  */
-createjs.DisplayObject.ObjectList.prototype.setPositions_ =
+createjs.DisplayObject.TweenList.prototype.setPositions_ =
     function(time, position, paused) {
   /// <param type="number" name="time"/>
   /// <param type="number" name="position"/>
   /// <param type="boolean" name="paused"/>
-  if (this.isLocked() || (!paused && this.lastTime_ < time)) {
+  if (this.locked_ || (!paused && this.lastTime_ < time)) {
     // Save the given position when this list is being updated so the
     // 'updateTween()' method can use this position.
     this.next_ = position;
     return;
   }
-  var tweens = /** @type {Array.<createjs.TweenObject>} */ (this.getItems());
+  var tweens = this.getTweens_();
   var length = tweens.length;
   for (var i = length - 1; i >= 0; --i) {
     tweens[i].setPosition(position, 1);
@@ -243,18 +280,20 @@ createjs.DisplayObject.ObjectList.prototype.setPositions_ =
 
 /**
  * Sets the play offsets of all tweens in this list.
- * @param {createjs.TweenTarget} target
- * @param {boolean} loop
+ * @param {createjs.DisplayObject} target
+ * @param {number} loop
  * @param {number} position
  * @param {boolean} single
  * @private
+ * @const
  */
-createjs.DisplayObject.ObjectList.prototype.setProperties_ =
+createjs.DisplayObject.TweenList.prototype.setProperties_ =
     function(target, loop, position, single) {
-  /// <param type="boolean" name="loop"/>
+  /// <param type="createjs.DisplayObject" name="target"/>
+  /// <param type="number" name="loop"/>
   /// <param type="number" name="position"/>
   /// <param type="boolean" name="single"/>
-  var tweens = /** @type {Array.<createjs.TweenObject>} */ (this.getItems());
+  var tweens = this.getTweens_();
   var length = tweens.length;
   for (var i = length - 1; i >= 0; --i) {
     tweens[i].setProperties(loop, position, single);
@@ -274,26 +313,10 @@ createjs.DisplayObject.ObjectList.prototype.setProperties_ =
  */
 createjs.DisplayObject.RenderState = function() {
   createjs.Transform.call(this);
-
-  /**
-   * The bounding box of the owner. This bounding box is in the <canvas>
-   * coordinate.
-   * @type {createjs.BoundingBox}
-   * @private
-   */
-  this.box_ = new createjs.BoundingBox();
 };
 createjs.inherits('DisplayObject.RenderState',
                   createjs.DisplayObject.RenderState,
                   createjs.Transform);
-
-/**
- * The absolute alpha transparency, i.e. an alpha transparency multiplied with
- * the ancestor ones.
- * @type {number}
- * @private
- */
-createjs.DisplayObject.RenderState.prototype.alpha_ = 1;
 
 /**
  * The shadow applied to the owner.
@@ -301,14 +324,6 @@ createjs.DisplayObject.RenderState.prototype.alpha_ = 1;
  * @private
  */
 createjs.DisplayObject.RenderState.prototype.shadow_ = null;
-
-/**
- * The color composition applied to the owner.
- * @type {number}
- * @private
- */
-createjs.DisplayObject.RenderState.prototype.composition_ =
-    createjs.Renderer.Composition.SOURCE_OVER;
 
 /**
  * The mask applied to the owner.
@@ -324,6 +339,13 @@ createjs.DisplayObject.RenderState.prototype.clip_ = null;
  * @private
  */
 createjs.DisplayObject.RenderState.prototype.box_ = null;
+
+/**
+ * Whether this state has to calculate its bounding box.
+ * @type {number}
+ * @private
+ */
+createjs.DisplayObject.RenderState.prototype.dirtyBox_ = 1;
 
 /**
  * Retrieves the clipping information.
@@ -342,7 +364,7 @@ createjs.DisplayObject.RenderState.prototype.getClip = function() {
  */
 createjs.DisplayObject.RenderState.prototype.getAlpha = function() {
   /// <returns type="number"/>
-  return this.alpha_;
+  return this.m[6];
 };
 
 /**
@@ -374,8 +396,7 @@ createjs.DisplayObject.RenderState.prototype.getShadow = function() {
 };
 
 /**
- * Returns whether this state represents an empty state, i.e. the hosting
- * display object is not 
+ * Returns whether this state represents an empty state, i.e. the
  * createjs.Renderer objects cannot render the hosting display object.
  * @return {boolean}
  * @const
@@ -393,7 +414,7 @@ createjs.DisplayObject.RenderState.prototype.isEmpty = function() {
  */
 createjs.DisplayObject.RenderState.prototype.contain = function(point) {
   /// <returns type="createjs.Point"/>
-  return this.box_.contain(point.x, point.y);
+  return this.box_.contain(point.v[0], point.v[1]);
 };
 
 /**
@@ -403,9 +424,9 @@ createjs.DisplayObject.RenderState.prototype.contain = function(point) {
  */
 createjs.DisplayObject.RenderState.prototype.copyProperties = function(state) {
   /// <param type="createjs.DisplayObject.RenderState" name="state"/>
-  this.alpha_ = state.alpha_;
+  this.m[6] = state.m[6];
   this.shadow_ = state.shadow_;
-  this.composition_ = state.composition_;
+  this.m[7] = state.m[7];
 };
 
 /**
@@ -414,19 +435,17 @@ createjs.DisplayObject.RenderState.prototype.copyProperties = function(state) {
  * @param {number} alpha
  * @param {createjs.Shadow} shadow
  * @param {number} composition
- * @param {boolean} visible
  * @const
  */
 createjs.DisplayObject.RenderState.prototype.appendProperties =
-    function(state, alpha, shadow, composition, visible) {
+    function(state, alpha, shadow, composition) {
   /// <param type="createjs.DisplayObject.RenderState" name="state"/>
   /// <param type="number" name="alpha"/>
   /// <param type="createjs.Shadow" name="shadow"/>
   /// <param type="number" name="composition"/>
-  /// <param type="boolean" name="visible"/>
-  this.alpha_ = state.alpha_ * alpha;
+  this.m[6] = state.m[6] * alpha;
   this.shadow_ = shadow || state.shadow_;
-  this.composition_ = composition || state.composition_;
+  this.m[7] = composition || state.m[7];
 };
 
 /**
@@ -449,6 +468,9 @@ createjs.DisplayObject.RenderState.prototype.appendClip =
  */
 createjs.DisplayObject.RenderState.prototype.updateBox = function(box) {
   /// <param type="createjs.BoundingBox" name="box"/>
+  if (!this.box_) {
+    this.box_ = new createjs.BoundingBox();
+  }
   this.transformBox(box, this.box_);
 };
 
@@ -470,7 +492,7 @@ createjs.DisplayObject.RenderState.prototype.inflateBox = function(state) {
  */
 createjs.DisplayObject.RenderState.prototype.isVisible = function() {
   /// <returns type="boolean"/>
-  return this.alpha_ > 0;
+  return this.m[6] > 0;
 };
 
 /**
@@ -541,6 +563,12 @@ createjs.DisplayObject.prototype['_off'] = false;
 createjs.DisplayObject.prototype['name'] = '';
 
 /**
+ * The z-index used for sorting display objects.
+ * @type {number}
+ */
+createjs.DisplayObject.prototype['zIndex'] = 0;
+
+/**
  * The object ID. This ID is used by tweens to distinguish their targets, i.e.
  * this ID is unique only among display objects.
  * @type {number}
@@ -572,36 +600,33 @@ createjs.DisplayObject.prototype.dirty = 0;
 createjs.DisplayObject.prototype.isStage = false;
 
 /**
- * The position of this display object, relative to its parent.
- * @type {createjs.Point}
+ * The property values that can be animated by tweens. A display object
+ * currently has 17 properties that can be animated.
+ *   +----+---------------+---------+
+ *   | id | property      | type    |
+ *   +----+---------------+---------+
+ *   | 0  | x             | number  |
+ *   | 1  | y             | number  |
+ *   | 2  | scaleX        | number  |
+ *   | 3  | scaleY        | number  |
+ *   | 4  | skewX         | number  |
+ *   | 5  | skewY         | number  |
+ *   | 6  | regX          | number  |
+ *   | 7  | regY          | number  |
+ *   | 8  | rotation      | number  |
+ *   | 9  | alpha         | number  |
+ *   | 10 | startPosition | integer |
+ *   | 11 | playMode      | integer |
+ *   | 12 | _off          | boolean |
+ *   | 13 | visible       | boolean |
+ *   | 14 | loop          | boolean |
+ *   | 15 | text          | string  |
+ *   | 16 | graphics      | Object  |
+ *   +----+---------------+---------+
+ * @type {Float32Array}
  * @private
  */
-createjs.DisplayObject.prototype.position_ = null;
-
-/**
- * The scaling factor to stretch this display object. For example, setting
- * scale_.x to 2 will stretch the display object to twice its nominal width.
- * To flip an object, set the scale to a negative number.
- * @type {createjs.Point}
- * @private
- */
-createjs.DisplayObject.prototype.scale_ = null;
-
-/**
- * The factor to skew this display object horizontally.
- * @type {createjs.Point}
- * @private
- */
-createjs.DisplayObject.prototype.skew_ = null;
-
-/**
- * The registration point of this display object. For example, to make a
- * 100x100px Bitmap rotate around its center, you would set regX and the
- * DisplayObject.regY property to 50.
- * @type {createjs.Point}
- * @private
- */
-createjs.DisplayObject.prototype.registration_ = null;
+createjs.DisplayObject.prototype.values_ = null;
 
 /**
  * The bounding box of this object in the local coordinate system.
@@ -609,27 +634,6 @@ createjs.DisplayObject.prototype.registration_ = null;
  * @private
  */
 createjs.DisplayObject.prototype.box_ = null;
-
-/**
- * The rotation in degrees for this display object.
- * @type {number}
- * @private
- */
-createjs.DisplayObject.prototype.rotation_ = 0;
-
-/**
- * Whether this display object should be rendered.
- * @type {boolean}
- * @private
- */
-createjs.DisplayObject.prototype.visible_ = true;
-
-/**
- * The alpha (transparency) value of this display object.
- * @type {number}
- * @private
- */
-createjs.DisplayObject.prototype.alpha_ = 1;
 
 /**
  * The composite operation used in rendering this object.
@@ -677,7 +681,7 @@ createjs.DisplayObject.prototype.clip_ = null;
 
 /**
  * The color multiplier used for composing this object.
- * @type {Array.<number>}
+ * @type {Float32Array}
  * @private
  */
 createjs.DisplayObject.prototype.colorMatrix_ = null;
@@ -691,7 +695,7 @@ createjs.DisplayObject.prototype.alphaMapFilter_ = null;
 
 /**
  * A list of tweens attached to this object.
- * @type {createjs.DisplayObject.ObjectList}
+ * @type {createjs.DisplayObject.TweenList}
  * @private
  */
 createjs.DisplayObject.prototype.tweens_ = null;
@@ -718,16 +722,8 @@ createjs.DisplayObject.prototype.seek_ = false;
 createjs.DisplayObject.prototype.currentFrame_ = -1;
 
 /**
- * The play mode of the tweens attached to this object.
- * @type {number}
- * @private
- */
-createjs.DisplayObject.prototype.playMode_ =
-    createjs.TweenTarget.PlayMode.INDEPENDENT;
-
-/**
  * A list of tween targets synchronized with this object.
- * @type {Array.<createjs.TweenTarget>}
+ * @type {Array.<createjs.DisplayObject>}
  * @private
  */
 createjs.DisplayObject.prototype.synchronized_ = null;
@@ -738,6 +734,33 @@ createjs.DisplayObject.prototype.synchronized_ = null;
  * @private
  */
 createjs.DisplayObject.prototype.rectangle_ = null;
+
+/**
+ * Initializes this object.
+ * @private
+ */
+createjs.DisplayObject.prototype.initialize_ = function() {
+  this.targetId_ = createjs.DisplayObject.targetId_++;
+  this.state_ = new createjs.DisplayObject.RenderState();
+  this.values_ = createjs.createFloat32Array([
+    createjs.Value.X,
+    createjs.Value.Y,
+    createjs.Value.SCALE_X,
+    createjs.Value.SCALE_Y,
+    createjs.Value.SKEW_X,
+    createjs.Value.SKEW_Y,
+    createjs.Value.REG_X,
+    createjs.Value.REG_Y,
+    createjs.Value.ROTATION,
+    createjs.Value.ALPHA,
+    createjs.Value.START_POSITION,
+    createjs.Value.PLAY_MODE,
+    createjs.Value.OFF,
+    createjs.Value.VISIBLE,
+    createjs.Value.LOOP
+  ]);
+  this.box_ = new createjs.BoundingBox();
+};
 
 /**
  * Updates the clipping rectangle of this object.
@@ -759,28 +782,6 @@ createjs.DisplayObject.prototype.updateClip_ = function(parent) {
 };
 
 /**
- * Returns the dirty state of this object.
- * @return {number}
- * @protected
- * @const
- */
-createjs.DisplayObject.prototype.getDirty = function() {
-  /// <returns type="number"/>
-  return this.dirty;
-};
-
-/**
- * Sets the dirty state of this object.
- * @param {number} dirty
- * @protected
- * @const
- */
-createjs.DisplayObject.prototype.setDirty = function(dirty) {
-  /// <param type="number" name="dirty"/>
-  this.dirty |= dirty;
-};
-
-/**
  * A rectangle automatically generated by Flash. Even though this library does
  * not use this rectangle, we add its placeholder to prevent Flash from
  * extending the DisplayObject object.
@@ -795,7 +796,7 @@ createjs.DisplayObject.prototype.nominalBounds = null;
  */
 createjs.DisplayObject.prototype.getX = function() {
   /// <returns type="number"/>
-  return this.position_.x;
+  return this.values_[createjs.Property.X];
 };
 
 /**
@@ -806,9 +807,9 @@ createjs.DisplayObject.prototype.getX = function() {
 createjs.DisplayObject.prototype.setX = function(x) {
   /// <param type="number" name="x"/>
   x = createjs.getNumber(x);
-  if (!createjs.isNaN(x) && this.position_.x != x) {
-    this.position_.x = x;
-    this.setDirty(createjs.DisplayObject.DIRTY_TRANSFORM);
+  if (!createjs.isNaN(x) && this.values_[createjs.Property.X] != x) {
+    this.values_[createjs.Property.X] = x;
+    this.dirty |= createjs.DisplayObject.DIRTY_TRANSFORM;
   }
 };
 
@@ -819,7 +820,7 @@ createjs.DisplayObject.prototype.setX = function(x) {
  */
 createjs.DisplayObject.prototype.getY = function() {
   /// <returns type="number"/>
-  return this.position_.y;
+  return this.values_[createjs.Property.Y];
 };
 
 /**
@@ -830,9 +831,9 @@ createjs.DisplayObject.prototype.getY = function() {
 createjs.DisplayObject.prototype.setY = function(y) {
   /// <param type="number" name="y"/>
   y = createjs.getNumber(y);
-  if (!createjs.isNaN(y) && this.position_.y != y) {
-    this.position_.y = y;
-    this.setDirty(createjs.DisplayObject.DIRTY_TRANSFORM);
+  if (!createjs.isNaN(y) && this.values_[createjs.Property.Y] != y) {
+    this.values_[createjs.Property.Y] = y;
+    this.dirty |= createjs.DisplayObject.DIRTY_TRANSFORM;
   }
 };
 
@@ -843,7 +844,7 @@ createjs.DisplayObject.prototype.setY = function(y) {
  */
 createjs.DisplayObject.prototype.getScaleX = function() {
   /// <returns type="number"/>
-  return this.scale_.x;
+  return this.values_[createjs.Property.SCALE_X];
 };
 
 /**
@@ -854,9 +855,9 @@ createjs.DisplayObject.prototype.getScaleX = function() {
 createjs.DisplayObject.prototype.setScaleX = function(scaleX) {
   /// <param type="number" name="scaleX"/>
   scaleX = createjs.getNumber(scaleX);
-  if (this.scale_.x != scaleX) {
-    this.scale_.x = scaleX;
-    this.setDirty(createjs.DisplayObject.DIRTY_TRANSFORM);
+  if (this.values_[createjs.Property.SCALE_X] != scaleX) {
+    this.values_[createjs.Property.SCALE_X] = scaleX;
+    this.dirty |= createjs.DisplayObject.DIRTY_TRANSFORM;
   }
 };
 
@@ -867,7 +868,7 @@ createjs.DisplayObject.prototype.setScaleX = function(scaleX) {
  */
 createjs.DisplayObject.prototype.getScaleY = function() {
   /// <returns type="number"/>
-  return this.scale_.y;
+  return this.values_[createjs.Property.SCALE_Y];
 };
 
 /**
@@ -878,9 +879,9 @@ createjs.DisplayObject.prototype.getScaleY = function() {
 createjs.DisplayObject.prototype.setScaleY = function(scaleY) {
   /// <param type="number" name="scaleY"/>
   scaleY = createjs.getNumber(scaleY);
-  if (this.scale_.y != scaleY) {
-    this.scale_.y = scaleY;
-    this.setDirty(createjs.DisplayObject.DIRTY_TRANSFORM);
+  if (this.values_[createjs.Property.SCALE_Y] != scaleY) {
+    this.values_[createjs.Property.SCALE_Y] = scaleY;
+    this.dirty |= createjs.DisplayObject.DIRTY_TRANSFORM;
   }
 };
 
@@ -891,7 +892,7 @@ createjs.DisplayObject.prototype.setScaleY = function(scaleY) {
  */
 createjs.DisplayObject.prototype.getSkewX = function() {
   /// <returns type="number"/>
-  return this.skew_.x;
+  return this.values_[createjs.Property.SKEW_X];
 };
 
 /**
@@ -902,9 +903,9 @@ createjs.DisplayObject.prototype.getSkewX = function() {
 createjs.DisplayObject.prototype.setSkewX = function(skewX) {
   /// <param type="number" name="skewX"/>
   skewX = createjs.getNumber(skewX);
-  if (this.skew_.x != skewX) {
-    this.skew_.x = skewX;
-    this.setDirty(createjs.DisplayObject.DIRTY_TRANSFORM);
+  if (this.values_[createjs.Property.SKEW_X] != skewX) {
+    this.values_[createjs.Property.SKEW_X] = skewX;
+    this.dirty |= createjs.DisplayObject.DIRTY_TRANSFORM;
   }
 };
 
@@ -915,7 +916,7 @@ createjs.DisplayObject.prototype.setSkewX = function(skewX) {
  */
 createjs.DisplayObject.prototype.getSkewY = function() {
   /// <returns type="number"/>
-  return this.skew_.y;
+  return this.values_[createjs.Property.SKEW_Y];
 };
 
 /**
@@ -926,9 +927,9 @@ createjs.DisplayObject.prototype.getSkewY = function() {
 createjs.DisplayObject.prototype.setSkewY = function(skewY) {
   /// <param type="number" name="skewY"/>
   skewY = createjs.getNumber(skewY);
-  if (this.skew_.y != skewY) {
-    this.skew_.y = skewY;
-    this.setDirty(createjs.DisplayObject.DIRTY_TRANSFORM);
+  if (this.values_[createjs.Property.SKEW_Y] != skewY) {
+    this.values_[createjs.Property.SKEW_Y] = skewY;
+    this.dirty |= createjs.DisplayObject.DIRTY_TRANSFORM;
   }
 };
 
@@ -939,7 +940,7 @@ createjs.DisplayObject.prototype.setSkewY = function(skewY) {
  */
 createjs.DisplayObject.prototype.getRegX = function() {
   /// <returns type="number"/>
-  return this.registration_.x;
+  return this.values_[createjs.Property.REG_X];
 };
 
 /**
@@ -950,9 +951,9 @@ createjs.DisplayObject.prototype.getRegX = function() {
 createjs.DisplayObject.prototype.setRegX = function(regX) {
   /// <param type="number" name="regX"/>
   regX = createjs.getNumber(regX);
-  if (this.registration_.x != regX) {
-    this.registration_.x = regX;
-    this.setDirty(createjs.DisplayObject.DIRTY_TRANSFORM);
+  if (this.values_[createjs.Property.REG_X] != regX) {
+    this.values_[createjs.Property.REG_X] = regX;
+    this.dirty |= createjs.DisplayObject.DIRTY_TRANSFORM;
   }
 };
 
@@ -963,7 +964,7 @@ createjs.DisplayObject.prototype.setRegX = function(regX) {
  */
 createjs.DisplayObject.prototype.getRegY = function() {
   /// <returns type="number"/>
-  return this.registration_.y;
+  return this.values_[createjs.Property.REG_Y];
 };
 
 /**
@@ -974,9 +975,9 @@ createjs.DisplayObject.prototype.getRegY = function() {
 createjs.DisplayObject.prototype.setRegY = function(regY) {
   /// <param type="number" name="regY"/>
   regY = createjs.getNumber(regY);
-  if (this.registration_.y != regY) {
-    this.registration_.y = regY;
-    this.setDirty(createjs.DisplayObject.DIRTY_TRANSFORM);
+  if (this.values_[createjs.Property.REG_Y] != regY) {
+    this.values_[createjs.Property.REG_Y] = regY;
+    this.dirty |= createjs.DisplayObject.DIRTY_TRANSFORM;
   }
 };
 
@@ -987,7 +988,7 @@ createjs.DisplayObject.prototype.setRegY = function(regY) {
  */
 createjs.DisplayObject.prototype.getRotation = function() {
   /// <returns type="number"/>
-  return this.rotation_;
+  return this.values_[createjs.Property.ROTATION];
 };
 
 /**
@@ -998,9 +999,9 @@ createjs.DisplayObject.prototype.getRotation = function() {
 createjs.DisplayObject.prototype.setRotation = function(rotation) {
   /// <param type="number" name="rotation"/>
   rotation = createjs.getNumber(rotation);
-  if (this.rotation_ != rotation) {
-    this.rotation_ = rotation;
-    this.setDirty(createjs.DisplayObject.DIRTY_TRANSFORM);
+  if (this.values_[createjs.Property.ROTATION] != rotation) {
+    this.values_[createjs.Property.ROTATION] = rotation;
+    this.dirty |= createjs.DisplayObject.DIRTY_TRANSFORM;
   }
 };
 
@@ -1011,7 +1012,7 @@ createjs.DisplayObject.prototype.setRotation = function(rotation) {
  */
 createjs.DisplayObject.prototype.getVisible = function() {
   /// <returns type="boolean"/>
-  return this.visible_;
+  return !!this.values_[createjs.Property.VISIBLE];
 };
 
 /**
@@ -1021,10 +1022,10 @@ createjs.DisplayObject.prototype.getVisible = function() {
  */
 createjs.DisplayObject.prototype.setVisible = function(visible) {
   /// <param type="boolean" name="visible"/>
-  visible = !!visible;
-  if (this.visible_ != visible) {
-    this.visible_ = visible;
-    this.setDirty(createjs.DisplayObject.DIRTY_ALL);
+  var value = visible | 0;
+  if (this.values_[createjs.Property.VISIBLE] != value) {
+    this.values_[createjs.Property.VISIBLE] = value;
+    this.dirty = createjs.DisplayObject.DIRTY_ALL;
   }
 };
 
@@ -1035,7 +1036,7 @@ createjs.DisplayObject.prototype.setVisible = function(visible) {
  */
 createjs.DisplayObject.prototype.getAlpha = function() {
   /// <returns type="number"/>
-  return this.alpha_;
+  return this.values_[createjs.Property.ALPHA];
 };
 
 /**
@@ -1046,10 +1047,10 @@ createjs.DisplayObject.prototype.getAlpha = function() {
 createjs.DisplayObject.prototype.setAlpha = function(alpha) {
   /// <param type="number" name="alpha"/>
   alpha = createjs.getNumber(alpha);
-  if (this.alpha_ != alpha) {
-    this.alpha_ = alpha;
-    this.setDirty(!alpha ? createjs.DisplayObject.DIRTY_ALL :
-        createjs.DisplayObject.DIRTY_PROPERTIES);
+  if (this.values_[createjs.Property.ALPHA] != alpha) {
+    this.values_[createjs.Property.ALPHA] = alpha;
+    this.dirty |= !alpha ? createjs.DisplayObject.DIRTY_ALL :
+        createjs.DisplayObject.DIRTY_PROPERTIES;
   }
 };
 
@@ -1079,7 +1080,7 @@ createjs.DisplayObject.prototype.setShadow = function(shadow) {
     }
   }
   this.shadow_ = shadow;
-  this.setDirty(createjs.DisplayObject.DIRTY_PROPERTIES);
+  this.dirty |= createjs.DisplayObject.DIRTY_PROPERTIES;
 };
 
 /**
@@ -1102,7 +1103,7 @@ createjs.DisplayObject.prototype.setComposition = function(value) {
   var composition = createjs.Renderer.getCompositionKey(value);
   if (this.composition_ != composition) {
     this.composition_ = composition;
-    this.setDirty(createjs.DisplayObject.DIRTY_PROPERTIES);
+    this.dirty |= createjs.DisplayObject.DIRTY_PROPERTIES;
   }
 };
 
@@ -1129,12 +1130,12 @@ createjs.DisplayObject.prototype.getAlphaMapFilter = function() {
 
 /**
  * Returns the color filter attached to this object.
- * @return {Array.<number>}
+ * @return {Float32Array}
  * @protected
  * @const
  */
 createjs.DisplayObject.prototype.getColorMatrix = function() {
-  /// <returns type="Array" elementType="number"/>
+  /// <returns type="Float32Array"/>
   return this.colorMatrix_;
 };
 
@@ -1157,13 +1158,13 @@ createjs.DisplayObject.prototype.setFilters = function(filters) {
       var colorFilter = createjs.ColorFilter.get(filter);
       var multiplier = colorFilter.multiplier;
       var offset = colorFilter.offset;
-      colorMatrix = [
+      colorMatrix = new Float32Array([
         multiplier.getRed(), 0, 0, 0, offset.getRed(),
         0, multiplier.getGreen(), 0, 0, offset.getGreen(),
         0, 0, multiplier.getBlue(), 0, offset.getBlue(),
         0, 0, 0, 1, 0,
         0, 0, 0, 0, 1
-      ];
+      ]);
     } else if (type == createjs.Filter.Type.ALPHA_MAP) {
       alphaFilter = createjs.AlphaMapFilter.get(filter);
     } else if (type == createjs.Filter.Type.COLOR_MATRIX) {
@@ -1177,7 +1178,7 @@ createjs.DisplayObject.prototype.setFilters = function(filters) {
   }
   this.alphaMapFilter_ = alphaFilter;
   this.colorMatrix_ = colorMatrix;
-  this.setDirty(createjs.DisplayObject.DIRTY_SHAPE);
+  this.dirty |= createjs.DisplayObject.DIRTY_SHAPE;
 
   // Apply an alpha-map filter to this object and cache the filtered image to a
   // memory <canvas> element.
@@ -1188,6 +1189,7 @@ createjs.DisplayObject.prototype.setFilters = function(filters) {
 /**
  * Retrieves the masking path.
  * @return {createjs.DisplayObject}
+ * @protected
  * @const
  */
 createjs.DisplayObject.prototype.getMask = function() {
@@ -1198,16 +1200,15 @@ createjs.DisplayObject.prototype.getMask = function() {
 /**
  * Sets the masking path.
  * @param {createjs.DisplayObject} mask
+ * @protected
  * @const
  */
 createjs.DisplayObject.prototype.setMask = function(mask) {
   /// <param name="mask" type="createjs.DisplayObject"/>
-  // Over-write the '_off' property of this mask so the 'layout()' method can
-  // calculate its bounding box. (It does not have to be drawable, though.)
+  // Attach the given mask to this object and choose a composition method.
+  // Use the scissor test to apply the given mask to this object when the MASK
+  // (not this object) has its '_scissor' property true.
   mask['_off'] = false;
-
-  // Add this object to an owner of this mask so the mask can set its dirty
-  // flag when it has its createjs.Graphics object changed by a tween.
   if (!mask.owners_) {
     mask.owners_ = [];
   }
@@ -1217,18 +1218,15 @@ createjs.DisplayObject.prototype.setMask = function(mask) {
     }
   }
   mask.owners_.push(this);
-
-  // Set the composition command to draw this object over the mask.
+  var type;
   mask.composition_ = createjs.Renderer.Mask.COMPOSE;
-  mask.state_.composition_ = createjs.Renderer.Composition.DESTINATION_IN;
+  mask.state_.m[7] = createjs.Renderer.Composition.DESTINATION_IN;
   this.composition_ = createjs.Renderer.Composition.SOURCE_OVER;
-
-  // Draw the mask onto a memory <canvas> element.
-  var type = 2;
+  type = 2;
   mask.handleAttach(type);
   this.mask_ = mask;
   this.clip_ = null;
-  this.setDirty(createjs.DisplayObject.DIRTY_MASK);
+  this.dirty |= createjs.DisplayObject.DIRTY_MASK;
 };
 
 /**
@@ -1244,6 +1242,32 @@ createjs.DisplayObject.prototype.getOwners = function() {
 };
 
 /**
+ * Retrieves the raw value of the specified property.
+ * @param {number} id
+ * @return {number}
+ * @protected
+ * @const
+ */
+createjs.DisplayObject.prototype.getValue = function(id) {
+  /// <param type="number" name="id"/>
+  /// <returns type="number"/>
+  return this.values_[id];
+};
+
+/**
+ * Sets the raw value of the specified property.
+ * @param {number} id
+ * @param {number} value
+ * @protected
+ * @const
+ */
+createjs.DisplayObject.prototype.setValue = function(id, value) {
+  /// <param type="number" name="id"/>
+  /// <param type="number" name="value"/>
+  this.values_[id] = value;
+};
+
+/**
  * Retrieves the ID of the composite operation.
  * @return {number}
  * @protected
@@ -1255,9 +1279,21 @@ createjs.DisplayObject.prototype.getCompositionId = function() {
 };
 
 /**
+ * Retrieves the sort order of this object.
+ * @return {number}
+ * @protected
+ * @const
+ */
+createjs.DisplayObject.prototype.getZ = function() {
+  /// <returns type="number"/>
+  return (this['zIndex'] << 10) + (this.getY() | 0);
+};
+
+/**
  * Retrieves the parent of this object.
  * @return {createjs.DisplayObject}
  * @protected
+ * @const
  */
 createjs.DisplayObject.prototype.getParent = function() {
   /// <returns type="createjs.DisplayObject"/>
@@ -1268,6 +1304,7 @@ createjs.DisplayObject.prototype.getParent = function() {
  * Returns a set of parameters used for rendering this object.
  * @return {createjs.DisplayObject.RenderState}
  * @protected
+ * @const
  */
 createjs.DisplayObject.prototype.getState = function() {
   /// <returns type="createjs.DisplayObject.RenderState"/>
@@ -1279,6 +1316,7 @@ createjs.DisplayObject.prototype.getState = function() {
  * the global coordination to a point in the coordination of this object.
  * @return {createjs.Transform}
  * @protected
+ * @const
  */
 createjs.DisplayObject.prototype.getInverse = function() {
   /// <returns type="createjs.Transform"/>
@@ -1292,6 +1330,7 @@ createjs.DisplayObject.prototype.getInverse = function() {
  * Sets the horizontal position.
  * @param {createjs.DisplayObject} parent
  * @protected
+ * @const
  */
 createjs.DisplayObject.prototype.setParent = function(parent) {
   createjs.assert(parent != this);
@@ -1302,6 +1341,7 @@ createjs.DisplayObject.prototype.setParent = function(parent) {
  * Returns the bounding box of this object.
  * @return {createjs.BoundingBox}
  * @protected
+ * @const
  */
 createjs.DisplayObject.prototype.getBoundingBox = function() {
   /// <returns type="createjs.BoundingBox"/>
@@ -1315,16 +1355,17 @@ createjs.DisplayObject.prototype.getBoundingBox = function() {
  * @param {number} maxX
  * @param {number} maxY
  * @protected
+ * @const
  */
 createjs.DisplayObject.prototype.setBoundingBox =
     function(minX, minY, maxX, maxY) {
-  if (this.box_.minX != minX || this.box_.minY != minY ||
-      this.box_.maxX != maxX || this.box_.maxY != maxY) {
-    this.box_.minX = minX;
-    this.box_.minY = minY;
-    this.box_.maxX = maxX;
-    this.box_.maxY = maxY;
-    this.setDirty(createjs.DisplayObject.DIRTY_BOX);
+  if (this.box_.b[0] != minX || this.box_.b[1] != minY ||
+      this.box_.b[2] != maxX || this.box_.b[3] != maxY) {
+    this.box_.b[0] = minX;
+    this.box_.b[1] = minY;
+    this.box_.b[2] = maxX;
+    this.box_.b[3] = maxY;
+    this.dirty |= createjs.DisplayObject.DIRTY_BOX;
   }
 };
 
@@ -1332,6 +1373,7 @@ createjs.DisplayObject.prototype.setBoundingBox =
  * Retrieves the width of this object.
  * @return {number}
  * @protected
+ * @const
  */
 createjs.DisplayObject.prototype.getBoxWidth = function() {
   /// <returns type="number"/>
@@ -1342,6 +1384,7 @@ createjs.DisplayObject.prototype.getBoxWidth = function() {
  * Retrieves the height of this object.
  * @return {number}
  * @protected
+ * @const
  */
 createjs.DisplayObject.prototype.getBoxHeight = function() {
   /// <returns type="number"/>
@@ -1352,6 +1395,7 @@ createjs.DisplayObject.prototype.getBoxHeight = function() {
  * Returns the current position of the tweens attached to this object.
  * @return {number}
  * @protected
+ * @const
  */
 createjs.DisplayObject.prototype.getCurrentFrame = function() {
   /// <returns type="number"/>
@@ -1362,6 +1406,7 @@ createjs.DisplayObject.prototype.getCurrentFrame = function() {
  * Sets the current position of the tweens attached to this object.
  * @param {number} frame
  * @protected
+ * @const
  */
 createjs.DisplayObject.prototype.setCurrentFrame = function(frame) {
   /// <param type="number" name="frame"/>
@@ -1372,6 +1417,7 @@ createjs.DisplayObject.prototype.setCurrentFrame = function(frame) {
  * Returns whether this object is playing its tweens or its sprite sheet.
  * @return {boolean}
  * @protected
+ * @const
  */
 createjs.DisplayObject.prototype.isPaused = function() {
   /// <returns type="boolean"/>
@@ -1382,6 +1428,7 @@ createjs.DisplayObject.prototype.isPaused = function() {
  * Sets the current playing status of its tweens or its sprite sheet.
  * @param {boolean} paused
  * @protected
+ * @const
  */
 createjs.DisplayObject.prototype.setIsPaused = function(paused) {
   /// <param type="boolean" name="paused"/>
@@ -1394,13 +1441,6 @@ createjs.DisplayObject.prototype.setIsPaused = function(paused) {
  * @const
  */
 createjs.DisplayObject.prototype.destroy = function() {
-  for (var key in this) {
-    var value = this[key];
-    if (value && createjs.isObject(value)) {
-      this[key] = null;
-    }
-  }
-  this.visible_ = false;
 };
 
 /**
@@ -1500,8 +1540,17 @@ createjs.DisplayObject.prototype.hitTestObject =
   // do not obviously contain it.
   var state = this.getState();
   var clip = state.getClip();
-  var box = clip ? clip.getBox() : state.box_;
-  if (!this.isVisible() || !box.contain(point.x, point.y)) {
+  var box;
+  if (clip) {
+    box = clip.getBox();
+  } else {
+    if (state.dirtyBox_) {
+      state.updateBox(this.box_);
+      state.dirtyBox_ = 0;
+    }
+    box = state.box_;
+  }
+  if (!this.isVisible() || !box.contain(point.v[0], point.v[1])) {
     return null;
   }
   // The above bounding box becomes equal to the frame rectangle of this object
@@ -1510,14 +1559,14 @@ createjs.DisplayObject.prototype.hitTestObject =
   // the local coordinate of this object and tests whether the translated point
   // is in the frame rectangle.
   var transform = clip ? clip.getTransform() : state;
-  if (transform.b || transform.c) {
+  if (transform.hasSkew()) {
     var region = clip ? clip.getRectangle() : this.getBoundingBox();
     if (!transform.invertible || region.isEmpty()) {
       return null;
     }
-    var local = new createjs.Point(point.x, point.y);
+    var local = new createjs.Point(point.v[0], point.v[1]);
     transform.getInverse().transformPoint(local);
-    if (!region.contain(local.x, local.y)) {
+    if (!region.contain(local.v[0], local.v[1])) {
       return null;
     }
   }
@@ -1560,20 +1609,14 @@ createjs.DisplayObject.prototype.updateLayout = function(parent, dirty) {
   }
   var state = this.state_;
   if (dirty & createjs.DisplayObject.DIRTY_TRANSFORM) {
-    state.appendTransform(parent.state_,
-                          this.position_,
-                          this.scale_,
-                          this.rotation_,
-                          this.skew_,
-                          this.registration_);
+    state.appendTransform(parent.state_, this.values_);
     this.inverse_ = null;
   }
   if (dirty & createjs.DisplayObject.DIRTY_PROPERTIES) {
     state.appendProperties(parent.state_,
-                           this.alpha_,
+                           this.values_[createjs.Property.ALPHA],
                            this.shadow_,
-                           this.composition_,
-                           this.visible_);
+                           this.composition_);
   }
   if (dirty & createjs.DisplayObject.DIRTY_MASK) {
     if (this.mask_ && !this.mask_.box_.isEmpty()) {
@@ -1611,18 +1654,9 @@ createjs.DisplayObject.prototype.layout =
     this.updateLayout(parent, dirty);
     var DIRTY_BOX = createjs.DisplayObject.DIRTY_TRANSFORM |
                     createjs.DisplayObject.DIRTY_BOX;
-    if (!state.getClip() && (dirty & DIRTY_BOX)) {
-      state.updateBox(this.box_);
-    }
+    state.dirtyBox_ = dirty & DIRTY_BOX;
   }
-  // Render this object if the renderer can render it. (The WebGL renderer
-  // cannot render this object as expected when its affine transformation is not
-  // invertible, i.e. its affine-transformed shape is not a rectangle.)
-  draw &= state.invertible;
-  if (draw) {
-    renderer.addObject(this);
-  }
-  parent.state_.inflateBox(state);
+  renderer.addObject(this);
   return this.getEventTypes();
 };
 
@@ -1652,12 +1686,7 @@ createjs.DisplayObject.prototype.getClip = function() {
 createjs.DisplayObject.prototype.beginPaintObject = function(renderer) {
   /// <param type="createjs.Renderer" name="renderer"/>
   this.dirty = 0;
-  var state = this.state_;
-  createjs.assert(!!state.invertible);
-  renderer.setTransformation(
-      state.a, state.b, state.c, state.d, state.tx, state.ty);
-  renderer.setAlpha(state.alpha_);
-  renderer.setComposition(state.composition_);
+  renderer.setProperties(this.state_.m);
 };
 
 /** @override */
@@ -1671,7 +1700,11 @@ createjs.DisplayObject.prototype.paintObject = function(renderer) {
  */
 createjs.DisplayObject.prototype.isVisible = function() {
   /// <returns type="boolean"/>
-  return this.visible_ && !!this.alpha_ && !!this.scale_.x && !!this.scale_.y;
+  var visible = this.values_[createjs.Property.VISIBLE];
+  var alpha = this.values_[createjs.Property.ALPHA];
+  var scaleX = this.values_[createjs.Property.SCALE_X];
+  var scaleY = this.values_[createjs.Property.SCALE_Y];
+  return (visible && alpha && scaleX && scaleY) ? true : false;
 };
 
 /**
@@ -1864,26 +1897,55 @@ createjs.DisplayObject.prototype.set = function(properties) {
   /// <param type="Object" name="properties"/>
   /// <returns type="createjs.DisplayObject"/>
   var KEYS = {
-    'x': createjs.DisplayObject.prototype.setX,
-    'y': createjs.DisplayObject.prototype.setY,
-    'scaleX': createjs.DisplayObject.prototype.setScaleX,
-    'scaleY': createjs.DisplayObject.prototype.setScaleY,
-    'skewX': createjs.DisplayObject.prototype.setSkewX,
-    'skewY': createjs.DisplayObject.prototype.setSkewY,
-    'regX': createjs.DisplayObject.prototype.setRegX,
-    'regY': createjs.DisplayObject.prototype.setRegY,
-    'rotation': createjs.DisplayObject.prototype.setRotation,
-    'visible': createjs.DisplayObject.prototype.setVisible,
-    'alpha': createjs.DisplayObject.prototype.setAlpha,
-    '_off': createjs.DisplayObject.prototype.setOff,
-    'compositeOperation': createjs.DisplayObject.prototype.setComposition
+    'x': createjs.Property.X + 1,
+    'y': createjs.Property.Y + 1,
+    'scaleX': createjs.Property.SCALE_X + 1,
+    'scaleY': createjs.Property.SCALE_Y + 1,
+    'skewX': createjs.Property.SKEW_X + 1,
+    'skewY': createjs.Property.SKEW_Y + 1,
+    'regX': createjs.Property.REG_X + 1,
+    'regY': createjs.Property.REG_Y + 1,
+    'rotation': createjs.Property.ROTATION + 1,
+    'alpha': createjs.Property.ALPHA + 1
   };
+  var mask = 0;
   for (var key in properties) {
-    var setter = KEYS[key];
-    if (setter) {
-      var value = properties[key];
-      setter.call(this, value);
+    var value = properties[key];
+    if (key == '_off') {
+      this.setOff(!!value);
+    } else if (key == 'compositeOperation') {
+      this.setComposition(createjs.castString(value));
+    } else {
+      var id = KEYS[key];
+      if (id) {
+        --id;
+        var numberValue = +value;
+        if (this.values_[id] != numberValue) {
+          this.values_[id] = numberValue;
+          mask = 1 << id;
+        }
+      }
     }
+  }
+  var kTransformMask = (1 << createjs.Property.X) |
+                       (1 << createjs.Property.Y) |
+                       (1 << createjs.Property.SCALE_X) |
+                       (1 << createjs.Property.SCALE_Y) |
+                       (1 << createjs.Property.SKEW_X) |
+                       (1 << createjs.Property.SKEW_Y) |
+                       (1 << createjs.Property.REG_X) |
+                       (1 << createjs.Property.REG_Y) |
+                       (1 << createjs.Property.ROTATION);
+  if (mask & kTransformMask) {
+    this.dirty |= createjs.DisplayObject.DIRTY_TRANSFORM;
+  }
+  if (mask & (1 << createjs.Property.ALPHA)) {
+    var alpha = this.values_[createjs.Property.ALPHA];
+    this.dirty |= !alpha ? createjs.DisplayObject.DIRTY_ALL :
+        createjs.DisplayObject.DIRTY_PROPERTIES;
+  }
+  if (mask & (1 << createjs.Property.VISIBLE)) {
+    this.dirty |= createjs.DisplayObject.DIRTY_ALL;
   }
   return this;
 };
@@ -1937,17 +1999,24 @@ createjs.DisplayObject.prototype.setBounds = function(x, y, width, height) {
   /// <param type="number" name="height"/>
 };
 
-/** @override */
+/**
+ * Registers a tween to this object.
+ * @param {createjs.Tween} tween
+ * @const
+ */
 createjs.DisplayObject.prototype.registerTween = function(tween) {
-  /// <param type="createjs.TweenObject" name="tween"/>
+  /// <param type="createjs.Tween" name="tween"/>
   if (!this.tweens_) {
-    this.tweens_ = new createjs.DisplayObject.ObjectList();
+    this.tweens_ = new createjs.DisplayObject.TweenList(tween);
   } else {
-    if (this.tweens_.findItem(tween) >= 0) {
-      return;
+    var list = this.tweens_.getTweens_();
+    for (var i = list.length - 1; i >= 0; --i) {
+      if (list[i] === tween) {
+        return;
+      }
     }
+    list.unshift(tween);
   }
-  this.tweens_.unshiftItem(tween);
 
   // Start playing the tweens attached to this object without changing the
   // status of the other tweens, i.e. registering a tween should not play the
@@ -1955,15 +2024,22 @@ createjs.DisplayObject.prototype.registerTween = function(tween) {
   this.paused_ = false;
 };
 
-/** @override */
+/**
+ * Unregisters a tween registered to this object.
+ * @param {createjs.Tween} tween
+ * @const
+ */
 createjs.DisplayObject.prototype.unregisterTween = function(tween) {
-  /// <param type="createjs.TweenObject" name="tween"/>
+  /// <param type="createjs.Tween" name="tween"/>
   if (this.tweens_) {
-    this.tweens_.removeItem(tween);
+    this.tweens_.removeTween_(tween);
   }
 };
 
-/** @override */
+/**
+ * Removes all tweens registered to this object.
+ * @const
+ */
 createjs.DisplayObject.prototype.resetTweens = function() {
   if (this.tweens_) {
     this.tweens_.stopTweens_(0);
@@ -1972,7 +2048,11 @@ createjs.DisplayObject.prototype.resetTweens = function() {
   this.synchronized_ = null;
 };
 
-/** @override */
+/**
+ * Starts playing the tweens registered to this object.
+ * @param {number} time
+ * @const
+ */
 createjs.DisplayObject.prototype.playTweens = function(time) {
   /// <param type="number" name="time"/>
   if (this.paused_ || this.synchronized_) {
@@ -1986,7 +2066,11 @@ createjs.DisplayObject.prototype.playTweens = function(time) {
   }
 };
 
-/** @override */
+/**
+ * Stops playing the tweens registered to this object.
+ * @param {number} time
+ * @const
+ */
 createjs.DisplayObject.prototype.stopTweens = function(time) {
   /// <param type="number" name="time"/>
   // Immediately stop all tweens attached to this display object and being
@@ -2002,24 +2086,36 @@ createjs.DisplayObject.prototype.stopTweens = function(time) {
   }
 };
 
-/** @override */
+/**
+ * Updates the tweens registered to this object.
+ * @param {number} time
+ */
 createjs.DisplayObject.prototype.updateTweens = function(time) {
   /// <param type="number" name="time"/>
   if (this.hasTweens()) {
     if (!this.paused_ || this.seek_) {
       this.seek_ = false;
-      this.currentFrame_ = this.tweens_.updateTweens_(time, this.getPlayMode());
+      this.currentFrame_ = this.tweens_.updateTweens_(time,
+          this.getValue(createjs.Property.PLAY_MODE));
     }
   }
 };
 
-/** @override */
+/**
+ * Returns whether this object has tweens.
+ * @return {boolean}
+ * @const
+ */
 createjs.DisplayObject.prototype.hasTweens = function() {
   /// <returns type="boolean"/>
-  return !!this.tweens_ && !!this.tweens_.getLength();
+  return !!this.tweens_ && !!this.tweens_.getLength_();
 };
 
-/** @override */
+/**
+ * Sets the position of all tweens registered to this object.
+ * @param {number} position
+ * @const
+ */
 createjs.DisplayObject.prototype.setTweenPosition = function(position) {
   /// <param type="number" name="number"/>
   if (this.tweens_) {
@@ -2034,10 +2130,16 @@ createjs.DisplayObject.prototype.setTweenPosition = function(position) {
   this.seek_ = true;
 };
 
-/** @override */
+/**
+ * Sets the properties of all tweens registered to this object.
+ * @param {number} loop
+ * @param {number} position
+ * @param {boolean} single
+ * @const
+ */
 createjs.DisplayObject.prototype.setTweenProperties =
     function(loop, position, single) {
-  /// <param type="boolean" name="loop"/>
+  /// <param type="number" name="loop"/>
   /// <param type="number" name="position"/>
   /// <param type="boolean" name="single"/>
   if (this.tweens_) {
@@ -2045,39 +2147,42 @@ createjs.DisplayObject.prototype.setTweenProperties =
   }
 };
 
-/** @override */
-createjs.DisplayObject.prototype.getOff = function() {
-  /// <returns type="boolean"/>
-  return this['_off'];
-};
-
-/** @override */
+/**
+ * Attaches this object to its parent virtually or detaches it.
+ * @param {boolean} off
+ * @const
+ */
 createjs.DisplayObject.prototype.setOff = function(off) {
   /// <param type="boolean" name="off"/>
-  if (this.getOff() != off) {
+  if (this['_off'] != off) {
     this['_off'] = off;
-    this.setDirty(createjs.DisplayObject.DIRTY_ALL);
+    this.values_[createjs.Property.OFF] = off | 0;
+    this.dirty = createjs.DisplayObject.DIRTY_ALL;
     if (off) {
       this.setTweenPosition(0);
     }
   }
 };
 
-/** @override */
+/**
+ * Returns the current play mode of the tweens registered to this object.
+ * @return {number}
+ * @const
+ */
 createjs.DisplayObject.prototype.getPlayMode = function() {
   /// <returns type="number"/>
-  return this.playMode_;
+  return this.values_[createjs.Property.PLAY_MODE];
 };
 
-/** @override */
-createjs.DisplayObject.prototype.setPlayMode = function(mode) {
-  /// <param type="number" name="mode"/>
-  this.playMode_ = mode;
-};
-
-/** @override */
+/**
+ * Starts synchronizing the tweens of the specified objects with this object or
+ * stops it.
+ * @param {createjs.DisplayObject} target
+ * @param {boolean} synchronize
+ * @const
+ */
 createjs.DisplayObject.prototype.synchronize = function(target, synchronize) {
-  /// <param type="createjs.TweenTarget" name="target"/>
+  /// <param type="createjs.DisplayObject" name="target"/>
   /// <param type="boolean" name="synchronize"/>
   if (!this.synchronized_) {
     if (!synchronize) {
@@ -2097,90 +2202,80 @@ createjs.DisplayObject.prototype.synchronize = function(target, synchronize) {
   this.synchronized_.push(target);
 };
 
-/** @override */
+/**
+ * Attaches a createjs.Graphics object to this object.
+ * @param {createjs.Graphics} graphics
+ */
 createjs.DisplayObject.prototype.addGraphics = function(graphics) {
   /// <param type="createjs.Graphics" name="graphics"/>
 };
 
-/** @override */
+/**
+ * Returns the ID of this object.
+ * @return {number}
+ * @const
+ */
 createjs.DisplayObject.prototype.getTargetId = function() {
   return this.targetId_;
 }
 
-/** @override */
+/**
+ * Copies the property values of this object to the specified tween motion.
+ * @param {createjs.TweenMotion} motion
+ * @return {boolean}
+ */
 createjs.DisplayObject.prototype.getTweenMotion = function(motion) {
   /// <param type="createjs.TweenMotion" name="motion"/>
   /// <returns type="boolean"/>
-  if (!this.position_) {
+  if (!this.values_) {
     return false;
   }
-  motion.setOff(this.getOff());
-  motion.setX(this.position_.x);
-  motion.setY(this.position_.y);
-  motion.setScaleX(this.scale_.x);
-  motion.setScaleY(this.scale_.y);
-  motion.setSkewX(this.skew_.x);
-  motion.setSkewY(this.skew_.y);
-  motion.setRegX(this.registration_.x);
-  motion.setRegY(this.registration_.y);
-  motion.setRotation(this.rotation_);
-  motion.setVisible(this.visible_);
-  motion.setAlpha(this.alpha_);
+  this.values_[createjs.Property.OFF] = this['_off'] | 0;
+  for (var id = createjs.Property.X; id <= createjs.Property.LOOP; ++id) {
+    motion.setValue(id, this.values_[id]);
+  }
   return true;
 };
 
-/** @override */
+/**
+ * Copies the property values of the specified motion to this object.
+ * @param {createjs.TweenMotion} motion
+ * @param {number} mask
+ * @param {createjs.DisplayObject} proxy
+ */
 createjs.DisplayObject.prototype.setTweenMotion =
     function(motion, mask, proxy) {
   /// <param type="createjs.TweenMotion" name="motion"/>
   /// <param type="number" name="mask"/>
-  /// <param type="createjs.TweenTarget" name="proxy"/>
+  /// <param type="createjs.DisplayObject" name="proxy"/>
+  if (!mask) {
+    return;
+  }
   var flag = createjs.DisplayObject.DIRTY_TRANSFORM;
-  if (mask & (1 << createjs.TweenMotion.ID.OFF)) {
-    this.setOff(motion.getOff());
-  }
-  if (mask & (1 << createjs.TweenMotion.ID.X)) {
-    this.position_.x = motion.getX();
-  }
-  if (mask & (1 << createjs.TweenMotion.ID.Y)) {
-    this.position_.y = motion.getY();
-  }
-  if (mask & (1 << createjs.TweenMotion.ID.SCALE_X)) {
-    this.scale_.x = motion.getScaleX();
-  }
-  if (mask & (1 << createjs.TweenMotion.ID.SCALE_Y)) {
-    this.scale_.y = motion.getScaleY();
-  }
-  if (mask & (1 << createjs.TweenMotion.ID.SKEW_X)) {
-    this.skew_.x = motion.getSkewX();
-  }
-  if (mask & (1 << createjs.TweenMotion.ID.SKEW_Y)) {
-    this.skew_.y = motion.getSkewY();
-  }
-  if (mask & (1 << createjs.TweenMotion.ID.REG_X)) {
-    this.registration_.x = motion.getRegX();
-  }
-  if (mask & (1 << createjs.TweenMotion.ID.REG_Y)) {
-    this.registration_.y = motion.getRegY();
-  }
-  if (mask & (1 << createjs.TweenMotion.ID.ROTATION)) {
-    this.rotation_ = motion.getRotation();
-  }
-  if (mask & (1 << createjs.TweenMotion.ID.VISIBLE)) {
-    if (this.visible_ != motion.getVisible()) {
-      flag |= createjs.DisplayObject.DIRTY_ALL;
-      this.visible_ = motion.getVisible();
+  for (var id = createjs.Property.X; id <= createjs.Property.ROTATION; ++id) {
+    if (mask & (1 << id)) {
+      this.values_[id] = motion.getValue(id);
     }
   }
-  if (mask & (1 << createjs.TweenMotion.ID.ALPHA)) {
+  if (mask & (1 << createjs.Property.ALPHA)) {
     var alpha = motion.getAlpha();
-    if (this.alpha_ != alpha) {
+    if (this.values_[createjs.Property.ALPHA] != alpha) {
       flag |= !alpha ? createjs.DisplayObject.DIRTY_ALL :
           createjs.DisplayObject.DIRTY_PROPERTIES;
-      this.alpha_ = alpha;
+      this.values_[createjs.Property.ALPHA] = alpha;
     }
   }
-  this.setDirty(flag);
+  if (mask & (1 << createjs.Property.OFF)) {
+    this.setOff(motion.getOff());
+  }
+  if (mask & (1 << createjs.Property.VISIBLE)) {
+    var visible = motion.getVisible();
+    if (this.values_[createjs.Property.VISIBLE] != visible) {
+      flag |= createjs.DisplayObject.DIRTY_ALL;
+      this.values_[createjs.Property.VISIBLE] = visible;
+    }
+  }
+  this.dirty |= flag;
 };
 
 // Add getters and setters for applications to access internal variables.

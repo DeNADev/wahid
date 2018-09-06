@@ -125,16 +125,7 @@ createjs.player_ = null;
  * @type {number}
  * @private
  */
-createjs.retry_ = 1;
-
-/**
- * The user-action event that plays an empty sound. (This is a workaround for
- * WebKit Bug 149367 <http://webkit.org/b/149367>.)
- * @type {string}
- * @private
- */
-createjs.USER_ACTION_EVENT_ =
-    MouseEvent['WEBKIT_FORCE_AT_MOUSE_DOWN'] ? 'touchend' : 'touchstart';
+createjs.retry_ = 2;
 
 /**
  * A class that plays sound files on an <iframe> element. This class is used for
@@ -175,6 +166,23 @@ createjs.FramePlayer.Sound = function(id, parent) {
 };
 
 /**
+ * Whether this sound should be played when the browser finishes decoding it.
+ * (A game may send a play request for this sound while the browser is
+ * decoding it.)
+ * @type {number}
+ * @private
+ */
+createjs.FramePlayer.Sound.prototype.auto_ = 0;
+
+/**
+ * Represents the number of loop counts of this sound. The
+ * createjs.FramePlayer object currently supports only -1 (infinite).
+ * @type {number}
+ * @private
+ */
+createjs.FramePlayer.Sound.prototype.loop_ = 0;
+
+/**
  * The volume of this sound.
  * @type {number}
  * @private
@@ -194,23 +202,6 @@ createjs.FramePlayer.Sound.prototype.offset_ = -1;
  * @private
  */
 createjs.FramePlayer.Sound.prototype.duration_ = 0;
-
-/**
- * Whether this sound should be played when the browser finishes decoding it.
- * (A game may send a play request for this sound while the browser is
- * decoding it.)
- * @type {number}
- * @private
- */
-createjs.FramePlayer.Sound.prototype.auto_ = 0;
-
-/**
- * Represents the number of loop counts of this sound. The
- * createjs.FramePlayer object currently supports only -1 (infinite).
- * @type {number}
- * @private
- */
-createjs.FramePlayer.Sound.prototype.loop_ = 0;
 
 /**
  * The clones that wait for this sound to be decoded. A game may send clone
@@ -393,10 +384,23 @@ createjs.FramePlayer.handleTimeout_ = function() {
       'a': createjs.FrameCommand.TOUCH
     }, '*');
   } else {
-    --createjs.retry_;
+    // Decrement the retry count only when this AudioContext object does not
+    // have the state property, i.e. on browsers which do not use trustworthy
+    // WebAudio implementation.
+    if (!createjs.context_.state) {
+      --createjs.retry_;
+    }
+    // Choose the user-action event that re-plays an empty sound. Chrome and
+    // Mobile Safari on iOS 9.0 have to use 'touchend' events due to WebKit
+    // Bug 149367 <http://webkit.org/b/149367>.
+    var event;
+    if (createjs.iphone_ && navigator.userAgent.indexOf('OS 9_0') < 0) {
+      event = 'touchstart';
+    } else {
+      event = 'touchend';
+    }
     var player = /** @type {EventListener} */ (createjs.player_);
-    createjs.global.addEventListener(
-        createjs.USER_ACTION_EVENT_, player, false);
+    createjs.global.addEventListener(event, player, false);
   }
 };
 
@@ -433,6 +437,10 @@ createjs.FramePlayer.prototype['handleEvent'] = function(event) {
     if (command == createjs.FrameCommand.LOAD) {
       createjs.debug('load=' + id);
       if (this.sounds_[id]) {
+        event.source.postMessage({
+          'a': createjs.FrameCommand.DECODE,
+          'b': id
+        }, '*');
         return;
       }
       var sound = new createjs.FramePlayer.Sound(id, event.source);
@@ -474,10 +482,36 @@ createjs.FramePlayer.prototype['handleEvent'] = function(event) {
     createjs.debug('> type=' + type);
     var global = createjs.global;
     global.removeEventListener(type, this, false);
-    // This frame receives a user action. Plays an empty sound and verify the
-    // host browser actually plays it again. (Mobile Safari 9 does not play
-    // sounds on first touch when it is scrolling its view.)
-    createjs.FramePlayer.playEmptySound_();
+
+    if (!createjs.context_.currentTime) {
+      // Resume the progression of the global AudioContext object and re-play
+      // all sounds played by the object. Chrome for Android (55 or later) needs
+      // to resume an AudioContext object on a user-action event for an <iframe>
+      // element to play sounds <http://crbug.com/614115>.
+      if (!createjs.iphone_) {
+        if (createjs.context_.resume) {
+          createjs.context_.resume();
+          var sounds = this.sounds_;
+          for (var key in sounds) {
+            var sound = sounds[key];
+            if (sound.source_) {
+              sound.stop_();
+              sound.play_(sound.loop_, sound.volume_);
+            }
+          }
+        }
+      }
+      // This frame receives a user action. Plays an empty sound and verify the
+      // host browser actually plays it again. (Mobile Safari 9 does not play
+      // sounds on first touch when it is scrolling its view.)
+      createjs.FramePlayer.playEmptySound_();
+    } else {
+      // Send a TOUCH message to the host when this AudioContext object can
+      // actually play sounds without user actions. This player waits for user
+      // actions on some Android browsers (e.g. SO-02G) that take > 100 ms to
+      // start playing empty sounds.
+      createjs.FramePlayer.handleTimeout_();
+    }
   }
 };
 

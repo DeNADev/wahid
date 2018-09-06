@@ -24,7 +24,6 @@
 
 /// <reference path="base.js"/>
 /// <reference path="event_dispatcher.js"/>
-/// <reference path="object_list.js"/>
 /// <reference path="tick_event.js"/>
 /// <reference path="tick_listener.js"/>
 /// <reference path="user_agent.js"/>
@@ -164,7 +163,7 @@ createjs.Ticker.prototype.useRAF_ = false;
  * objects and createjs.Tween objects to update them without dispatching 'tick'
  * events. (There is some overhead for the createjs.EventDispatcher class to
  * dispatch a 'tick' event.)
- * @type {createjs.ObjectList}
+ * @type {createjs.Ticker.ListenerList}
  * @private
  */
 createjs.Ticker.prototype.tickListeners_ = null;
@@ -192,33 +191,119 @@ createjs.Ticker.prototype.retry_ = createjs.Ticker.RETRY;
 createjs.Ticker.prototype.timestamp_ = 0;
 
 /**
- * A class that collects the specified number of values.
+ * The inner class that encapsulates a list of createjs.TickListener objects.
+ * @param {createjs.TickListener} listener
+ * @constructor
+ */
+createjs.Ticker.ListenerList = function(listener) {
+  /// <param type="createjs.TickListener" name="listener"/>
+  /**
+   * The listeners added to this list.
+   * @type {Array.<createjs.TickListener>}
+   * @private
+   */
+  this.listeners_ = [listener];
+
+  /**
+   * The clone of the listener list. This clone is used for adding listeners and
+   * for removing them while a ticker is dispatching a 'tick' event to the
+   * listeners in this list.
+   * @type {Array.<createjs.TickListener>}
+   * @private
+   */
+  this.clone_ = null;
+
+  /**
+   * Whether this list is locked.
+   * @type {boolean}
+   * @private
+   */
+  this.locked_ = false;
+};
+
+/**
+ * Retrieves the editable items of this list.
+ * @return {Array.<createjs.TickListener>}
+ * @private
+ * @const
+ */
+createjs.Ticker.ListenerList.prototype.getListeners_ = function() {
+  /// <returns type="Array" elementType="createjs.TickListener"/>
+  if (!this.locked_) {
+    return this.listeners_;
+  }
+  if (!this.clone_) {
+    this.clone_ = this.listeners_.slice();
+  }
+  return this.clone_;
+};
+
+/**
+ * Locks this list for iteration.
+ * @return {Array.<createjs.TickListener>}
+ * @private
+ * @const
+ */
+createjs.Ticker.ListenerList.prototype.lock_ = function() {
+  /// <returns type="Array" elementType="createjs.TickListener"/>
+  this.locked_ = true;
+  return this.listeners_;
+};
+
+/**
+ * Unlocks this list.
+ * @private
+ * @const
+ */
+createjs.Ticker.ListenerList.prototype.unlock_ = function() {
+  this.locked_ = false;
+  if (this.clone_) {
+    this.listeners_ = this.clone_;
+    this.clone_ = null;
+  }
+};
+
+/**
+ * Removes all listeners from this list.
+ * @private
+ * @const
+ */
+createjs.Ticker.ListenerList.prototype.removeAllListeners_ = function() {
+  if (!this.locked_) {
+    this.listeners_ = [];
+  } else {
+    this.clone_ = [];
+  }
+};
+
+/**
+ * A class that calculates the performance of CreateJS-Lite. This class collects
+ * timestamps (used by the global ticker) and calculates FPS values.
  * @constructor
  */
 createjs.Ticker.PerformanceCounter = function() {
   /**
+   * The current index to the ring buffer.
    * @type {number}
    */
   this.offset_ = 0;
 
   /**
-   * @type {Array.<number>}
+   * The ring buffer that stores timestamps.
+   * @type {Float64Array}
    */
-  this.values_ = [
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  ];
+  this.values_ = new Float64Array(64);
 };
 
 /**
+ * The size of the ring buffer. (This size must be a power of two.)
  * @const {number}
  * @private
  */
 createjs.Ticker.PerformanceCounter.SIZE = 64;
  
 /**
+ * The bit-mask that maps an index to an ring-buffer index.
  * @const {number}
  * @private
  */
@@ -229,6 +314,7 @@ createjs.Ticker.PerformanceCounter.MASK =
 /**
  * Adds a value to this object.
  * @param {number} value
+ * @const
  */
 createjs.Ticker.PerformanceCounter.prototype.addValue = function(value) {
   /// <param type="number" name="value"/>
@@ -240,6 +326,7 @@ createjs.Ticker.PerformanceCounter.prototype.addValue = function(value) {
 /**
  * Returns the average of the values stored in this object.
  * @return {number}
+ * @const
  */
 createjs.Ticker.PerformanceCounter.prototype.getAverage = function() {
   /// <returns type="number"/>
@@ -258,6 +345,7 @@ createjs.Ticker.PerformanceCounter.prototype.getAverage = function() {
 /**
  * Returns the frames per second.
  * @return {number}
+ * @const
  */
 createjs.Ticker.PerformanceCounter.prototype.getFPS = function() {
   /// <returns type="number"/>
@@ -329,12 +417,13 @@ createjs.Ticker.tick_ = function(timestamp) {
     var runTime = time - ticker.pausedTime_;
     var tickListeners = ticker.tickListeners_;
     if (tickListeners) {
-      var listeners = ticker.tickListeners_.lock();
-      for (var i = 0; i < listeners.length; ++i) {
-        var listener = /** @type {createjs.TickListener} */ (listeners[i]);
+      var listeners = ticker.tickListeners_.lock_();
+      var length = listeners.length;
+      for (var i = 0; i < length; ++i) {
+        var listener = listeners[i];
         listener.handleTick(runTime);
       }
-      tickListeners.unlock();
+      tickListeners.unlock_();
     }
     if (ticker.hasListener('tick')) {
       var event = createjs.Ticker.getEvent_(elapsedTime, paused, time, runTime);
@@ -644,10 +733,19 @@ createjs.Ticker.addListener = function(type, listener, opt_useCapture) {
     createjs.Ticker.setupTick_();
   }
   if (listener.handleTick) {
-    if (!ticker.tickListeners_) {
-      ticker.tickListeners_ = new createjs.ObjectList();
+    var listeners = ticker.tickListeners_;
+    if (!listeners) {
+      ticker.tickListeners_ = new createjs.Ticker.ListenerList(
+          /** @type {createjs.TickListener} */ (listener));
+    } else {
+      var list = listeners.getListeners_();
+      for (var i = list.length - 1; i >= 0; --i) {
+        if (list[i] === listener) {
+          return listener;
+        }
+      }
+      list.push(listener);
     }
-    ticker.tickListeners_.pushUniqueItem(listener);
     return listener;
   }
   return ticker.on(type, listener);
@@ -671,7 +769,13 @@ createjs.Ticker.removeListener = function(type, listener, opt_useCapture) {
   if (listener.handleTick) {
     var listeners = ticker.tickListeners_;
     if (listeners) {
-      listeners.removeItem(listener);
+      var list = listeners.getListeners_();
+      for (var i = list.length - 1; i >= 0; --i) {
+        if (list[i] === listener) {
+          list.splice(i, 1);
+          return;
+        }
+      }
     }
     return;
   }
@@ -688,7 +792,7 @@ createjs.Ticker.removeAllListeners = function(opt_type) {
   var ticker = createjs.Ticker.getInstance_();
   var listeners = ticker.tickListeners_;
   if (listeners) {
-    listeners.removeAllItems();
+    listeners.removeAllListeners_();
   }
   ticker.removeAllListeners(opt_type || '');
 };

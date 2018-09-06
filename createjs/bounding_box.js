@@ -34,6 +34,20 @@
  */
 createjs.BoundingBox = function() {
   createjs.Object.call(this);
+
+  /**
+   * The array representing this box.
+   *   +-------+----------+
+   *   | index | property |
+   *   +-------+----------+
+   *   | 0     | minX     |
+   *   | 1     | minY     |
+   *   | 2     | maxX     |
+   *   | 3     | maxY     |
+   *   +-------+----------+
+   * @const {Float32Array}
+   */
+  this.b = createjs.createFloat32Array([10000, 10000, -10000, -10000]);
 };
 createjs.inherits('BoundingBox', createjs.BoundingBox, createjs.Object);
 
@@ -46,46 +60,22 @@ createjs.BoundingBox.clone = function(box) {
   /// <param type="createjs.BoundingBox" name="box"/>
   /// <returns type="createjs.BoundingBox"/>
   var clone = new createjs.BoundingBox();
-  clone.minX = box.minX;
-  clone.minY = box.minY;
-  clone.maxX = box.maxX;
-  clone.maxY = box.maxY;
+  clone.b[0] = box.b[0];
+  clone.b[1] = box.b[1];
+  clone.b[2] = box.b[2];
+  clone.b[3] = box.b[3];
   return clone;
 };
-
-/**
- * The left position of this bounding box.
- * @type {number}
- */
-createjs.BoundingBox.prototype.minX = 10000;
-
-/**
- * The top position of this bounding box.
- * @type {number}
- */
-createjs.BoundingBox.prototype.minY = 10000;
-
-/**
- * The right position of this bounding box.
- * @type {number}
- */
-createjs.BoundingBox.prototype.maxX = -10000;
-
-/**
- * The bottom position of this bounding box.
- * @type {number}
- */
-createjs.BoundingBox.prototype.maxY = -10000;
 
 /**
  * Resets all properties of this object to the initial state.
  * @const
  */
 createjs.BoundingBox.prototype.reset = function() {
-  this.minX = 10000;
-  this.minY = 10000;
-  this.maxX = -10000;
-  this.maxY = -10000;
+  this.b[0] = 10000;
+  this.b[1] = 10000;
+  this.b[2] = -10000;
+  this.b[3] = -10000;
 };
 
 /**
@@ -95,7 +85,7 @@ createjs.BoundingBox.prototype.reset = function() {
  */
 createjs.BoundingBox.prototype.getLeft = function() {
   /// <returns type="number"/>
-  return this.minX;
+  return this.b[0];
 };
 
 /**
@@ -105,7 +95,7 @@ createjs.BoundingBox.prototype.getLeft = function() {
  */
 createjs.BoundingBox.prototype.getTop = function() {
   /// <returns type="number"/>
-  return this.minY;
+  return this.b[1];
 };
 
 /**
@@ -115,7 +105,7 @@ createjs.BoundingBox.prototype.getTop = function() {
  */
 createjs.BoundingBox.prototype.getWidth = function() {
   /// <returns type="number"/>
-  return this.maxX - this.minX;
+  return this.b[2] - this.b[0];
 };
 
 /**
@@ -125,7 +115,7 @@ createjs.BoundingBox.prototype.getWidth = function() {
  */
 createjs.BoundingBox.prototype.getHeight = function() {
   /// <returns type="number"/>
-  return this.maxY - this.minY;
+  return this.b[3] - this.b[1];
 };
 
 /**
@@ -137,8 +127,8 @@ createjs.BoundingBox.prototype.getHeight = function() {
 createjs.BoundingBox.prototype.isEqual = function(box) {
   /// <param type="createjs.BoundingBox" name="box"/>
   /// <returns type="boolean"/>
-  return this.minX == box.minX && this.maxX == box.maxX &&
-      this.minY == box.minY && this.maxY == box.maxY;
+  return this.b[0] == box.b[0] && this.b[2] == box.b[2] &&
+      this.b[1] == box.b[1] && this.b[3] == box.b[3];
 };
 
 /**
@@ -150,10 +140,10 @@ createjs.BoundingBox.prototype.isEqual = function(box) {
 createjs.BoundingBox.prototype.update = function(x, y) {
   /// <param type="number" name="x"/>
   /// <param type="number" name="y"/>
-  this.minX = createjs.min(x, this.minX);
-  this.minY = createjs.min(y, this.minY);
-  this.maxX = createjs.max(x, this.maxX);
-  this.maxY = createjs.max(y, this.maxY);
+  this.b[0] = createjs.min(x, this.b[0]);
+  this.b[1] = createjs.min(y, this.b[1]);
+  this.b[2] = createjs.max(x, this.b[2]);
+  this.b[3] = createjs.max(y, this.b[3]);
 };
 
 /**
@@ -163,10 +153,10 @@ createjs.BoundingBox.prototype.update = function(x, y) {
  */
 createjs.BoundingBox.prototype.inflate = function(box) {
   /// <param type="createjs.BoundingBox" name="box"/>
-  this.minX = createjs.min(box.minX, this.minX);
-  this.minY = createjs.min(box.minY, this.minY);
-  this.maxX = createjs.max(box.maxX, this.maxX);
-  this.maxY = createjs.max(box.maxY, this.maxY);
+  this.b[0] = createjs.min(box.b[0], this.b[0]);
+  this.b[1] = createjs.min(box.b[1], this.b[1]);
+  this.b[2] = createjs.max(box.b[2], this.b[2]);
+  this.b[3] = createjs.max(box.b[3], this.b[3]);
 };
 
 /**
@@ -176,12 +166,12 @@ createjs.BoundingBox.prototype.inflate = function(box) {
  */
 createjs.BoundingBox.prototype.addMargin = function(margin) {
   /// <param type="number" name="margin"/>
-  this.minX -= margin;
-  this.minY -= margin;
-  this.maxX += margin;
-  this.maxY += margin;
-  this.maxX = this.minX + createjs.truncate(this.maxX - this.minX);
-  this.maxY = this.minY + createjs.truncate(this.maxY - this.minY);
+  this.b[0] -= margin;
+  this.b[1] -= margin;
+  this.b[2] += margin;
+  this.b[3] += margin;
+  this.b[2] = this.b[0] + createjs.truncate(this.b[2] - this.b[0]);
+  this.b[3] = this.b[1] + createjs.truncate(this.b[3] - this.b[1]);
 };
 
 /**
@@ -194,8 +184,8 @@ createjs.BoundingBox.prototype.containBox = function(box) {
   /// <param type="createjs.BoundingBox" name="box"/>
   /// <returns type="boolean"/>
   createjs.assert(!this.isEmpty() && !box.isEmpty());
-  return this.minX <= box.minX && box.maxX <= this.maxX &&
-      this.minY <= box.minY && box.maxY <= this.maxY;
+  return this.b[0] <= box.b[0] && box.b[2] <= this.b[2] &&
+      this.b[1] <= box.b[1] && box.b[3] <= this.b[3];
 };
 
 /**
@@ -212,10 +202,10 @@ createjs.BoundingBox.prototype.hasIntersection = function(box) {
   // Especially for two rectangles, their separation axises become an X-axis and
   // a Y-axis. So, these rectangles have intersection when there are not any
   // gaps in their projections both to the X-axis and to the Y-axis.
-  var maxMinX = createjs.max(this.minX, box.minX);
-  var minMaxX = createjs.min(this.maxX, box.maxX);
-  var maxMinY = createjs.max(this.minY, box.minY);
-  var minMaxY = createjs.min(this.maxY, box.maxY);
+  var maxMinX = createjs.max(this.b[0], box.b[0]);
+  var minMaxX = createjs.min(this.b[2], box.b[2]);
+  var maxMinY = createjs.max(this.b[1], box.b[1]);
+  var minMaxY = createjs.min(this.b[3], box.b[3]);
   return maxMinX < minMaxX && maxMinY < minMaxY;
 };
 
@@ -233,8 +223,8 @@ createjs.BoundingBox.prototype.isDirty = function(width, height) {
   /// <param type="number" name="height"/>
   /// <returns type="boolean"/>
   if (this.isEmpty() ||
-      this.maxX <= 0 || width <= this.minX ||
-      this.maxY <= 0 || height <= this.minY) {
+      this.b[2] <= 0 || width <= this.b[0] ||
+      this.b[3] <= 0 || height <= this.b[1]) {
     return false;
   }
   return true;
@@ -253,22 +243,22 @@ createjs.BoundingBox.prototype.needClip = function(width, height) {
   /// <param type="number" name="width"/>
   /// <param type="number" name="height"/>
   /// <returns type="boolean"/>
-  if (this.minX <= 0 && width <= this.maxX &&
-      this.maxY <= 0 && height <= this.maxY) {
+  if (this.b[0] <= 0 && width <= this.b[2] &&
+      this.b[1] <= 0 && height <= this.b[3]) {
     return false;
   }
   // Snap this bounding box to a pixel boundary.
-  this.minX = (this.minX <= 0) ? 0 : createjs.floor(this.minX);
-  this.minY = (this.minY <= 0) ? 0 : createjs.floor(this.minY);
-  this.maxX = createjs.ceil(this.maxX);
-  this.maxY = createjs.ceil(this.maxY);
+  this.b[0] = (this.b[0] <= 0) ? 0 : createjs.floor(this.b[0]);
+  this.b[1] = (this.b[1] <= 0) ? 0 : createjs.floor(this.b[1]);
+  this.b[2] = createjs.ceil(this.b[2]);
+  this.b[3] = createjs.ceil(this.b[3]);
   return true;
 };
 
 /** @override */
 createjs.BoundingBox.prototype.isEmpty = function() {
   /// <returns type="boolean"/>
-  return this.maxX <= this.minX;
+  return this.b[2] <= this.b[0];
 };
 
 /** @override */
@@ -276,5 +266,5 @@ createjs.BoundingBox.prototype.contain = function(x, y) {
   /// <param type="number" name="x"/>
   /// <param type="number" name="y"/>
   /// <returns type="boolean"/>
-  return this.minX <= x && x <= this.maxX && this.minY <= y && y <= this.maxY;
+  return this.b[0] <= x && x <= this.b[2] && this.b[1] <= y && y <= this.b[3];
 };

@@ -30,39 +30,27 @@
 /// <reference path="tick_event.js"/>
 /// <reference path="ticker.js"/>
 /// <reference path="tween_motion.js"/>
-/// <reference path="tween_object.js"/>
 /// <reference path="tween_state.js"/>
-/// <reference path="tween_target.js"/>
 
 /**
  * A class that implements a tween.
- * @param {createjs.TweenTarget} target
+ * @param {createjs.DisplayObject} target
  * @extends {createjs.EventDispatcher}
- * @implements {createjs.TweenObject}
  * @implements {createjs.TickListener}
  * @constructor
  */
 createjs.Tween = function(target) {
+  /// <param type="createjs.DisplayObject" name="target"/>
   createjs.EventDispatcher.call(this);
-
-  /**
-   * The target object of this tween.
-   * @type {createjs.TweenTarget}
-   * @private
-   */
-  this.target_ = target;
-
-  if (createjs.DEBUG) {
-    ++createjs.Counter.totalTweens;
-  }
+  this.initializeTween_(target);
 };
 createjs.inherits('Tween', createjs.Tween, createjs.EventDispatcher);
 
 /**
  * Whether the tween loops when it reaches the end.
- * @type {boolean}
+ * @type {number}
  */
-createjs.Tween.prototype.loop_ = false;
+createjs.Tween.prototype.loop_ = 0;
 
 /**
  * Whether this tween is paused now.
@@ -131,7 +119,7 @@ createjs.Tween.prototype.useTicks_ = false;
 
 /**
  * The target object of this tween.
- * @type {createjs.TweenTarget}
+ * @type {createjs.DisplayObject}
  * @private
  */
 createjs.Tween.prototype.target_ = null;
@@ -158,6 +146,13 @@ createjs.Tween.prototype.commands_ = null;
 createjs.Tween.prototype.motions_ = null;
 
 /**
+ * The mapping table from a frame number to a motion number.
+ * @type {Array.<number>}
+ * @private
+ */
+createjs.Tween.prototype.frames_ = null;
+
+/**
  * The list of states of this tween.
  * @type {Array.<createjs.TweenState>}
  * @private
@@ -180,15 +175,16 @@ createjs.Tween.prototype.targetIds_ = null;
 createjs.Tween.prototype.mask_ = 0;
 
 /**
- * The target object of this tween.
- * @type {createjs.TweenTarget}
+ * The proxy object. A tween changes its target properties with the proxy when
+ * it has.
+ * @type {createjs.DisplayObject}
  * @private
  */
 createjs.Tween.prototype.proxy_ = null;
 
 /**
  * A list of targets to be added by a state tween.
- * @type {Array.<createjs.TweenTarget>}
+ * @type {Array.<createjs.DisplayObject>}
  * @private
  */
 createjs.Tween.prototype.targets_ = null;
@@ -336,14 +332,14 @@ createjs.Tween.Command = function(duration, properties, ease) {
 /**
  * Compiles this command and Writes its result to a createjs.TweenMotion object.
  * @param {number} time
- * @param {createjs.TweenTarget} target
+ * @param {createjs.DisplayObject} target
  * @param {createjs.TweenMotion} motion
  * @return {number}
  * @const
  */
 createjs.Tween.Command.prototype.setMotion = function(time, target, motion) {
   /// <param type="number" name="time"/>
-  /// <param type="createjs.TweenTarget" name="target"/>
+  /// <param type="createjs.DisplayObject" name="target"/>
   /// <param type="createjs.TweenMotion" name="motion"/>
   motion.initialize(time, this.duration_, this.ease_);
   if (this.properties_) {
@@ -381,14 +377,14 @@ createjs.Tween.Command.prototype.setState = function(time, ids, state) {
     //   +-----+----------------------------------------+-------------+
     //   |     | type                                   | description |
     //   +-----+----------------------------------------+-------------+
-    //   | 't' | createjs.TweenTarget                   | target      |
+    //   | 't' | createjs.DisplayObject                 | target      |
     //   | 'p' | Object,<string,boolean|number|string>  | properties  |
     //   +-----+----------------------------------------+-------------+
     var end_ = /** @type {Array.<Object>} */ (this.properties_['state']);
     var length = end_.length;
     for (var i = 0; i < length; ++i) {
       var end = end_[i];
-      var t = /** @type {createjs.TweenTarget} */ (end['t']);
+      var t = /** @type {createjs.DisplayObject} */ (end['t']);
       var id = ids[t.getTargetId()];
       var value = values[id];
       value.updateOff(0);
@@ -416,7 +412,7 @@ createjs.Tween.Command.prototype.setState = function(time, ids, state) {
 /**
  * Returns a new createjs.Tween instance. This is a factory method for
  * createjs.Tween objects.
- * @param {createjs.TweenTarget} target
+ * @param {createjs.DisplayObject} target
  * @param {Object=} opt_properties
  * @param {Object=} opt_pluginData
  * @param {boolean=} opt_override
@@ -425,6 +421,11 @@ createjs.Tween.Command.prototype.setState = function(time, ids, state) {
  */
 createjs.Tween.get =
     function(target, opt_properties, opt_pluginData, opt_override) {
+  /// <param type="createjs.DisplayObject" name="target"/>
+  /// <param type="Object" optional="true" name="opt_properties"/>
+  /// <param type="Object" optional="true" name="opt_pluginData"/>
+  /// <param type="boolean" optional="true" name="opt_override"/>
+  /// <returns type="createjs.Tween"/>
   // Reset the target if it does not implement the createjs.TweenTarget
   // interface.
   if (target && !target.registerTween) {
@@ -437,7 +438,7 @@ createjs.Tween.get =
   }
   var tween = new createjs.Tween(target);
   if (opt_properties) {
-    tween.loop_ = !!opt_properties['loop'];
+    tween.loop_ = opt_properties['loop'] | 0;
     tween.paused_ = !!opt_properties['paused'];
     tween.useTicks_ = !!opt_properties['useTicks'];
   }
@@ -448,14 +449,76 @@ createjs.Tween.get =
 };
 
 /**
- * Compiles tween commands and creates steps.
- * @param {Array.<createjs.TweenObject>} cache
- * @param {number} cacheId
+ * Removes all existing tweens from a target.
+ * @param {createjs.DisplayObject} target
+ * @const
+ */
+createjs.Tween.removeTweens = function(target) {
+  /// <param type="createjs.DisplayObject" name="target"/>
+  target.resetTweens();
+};
+
+/**
+ * Removes all existing Tweens.
+ * @const
+ */
+createjs.Tween.removeAllTweens = function() {
+  createjs.notImplemented();
+};
+
+/**
+ * Returns whether there are any active Tweens attached to the specified target
+ * or returns whether there are any registered Tweens.
+ * @param {createjs.DisplayObject=} opt_target
+ * @return {boolean}
+ * @const
+ */
+createjs.Tween.hasActiveTweens = function(opt_target) {
+  /// <param type="createjs.DisplayObject" optional="true" name="target"/>
+  /// <returns type="boolean"/>
+  if (opt_target) {
+    return opt_target.hasTweens();
+  }
+  createjs.notImplemented();
+  return true;
+};
+
+/**
+ * Installs a plug-in.
+ * @param {Object} plugIn
+ * @param {Array} properties
+ * @const
+ */
+createjs.Tween.installPlugin = function(plugIn, properties) {
+  /// <param type="Object" name="plugIn"/>
+  /// <param type="Array" name="properties"/>
+  createjs.notImplemented();
+};
+
+/**
+ * Initializes this tween.
+ * @param {createjs.DisplayObject} target
  * @private
  */
-createjs.Tween.prototype.compileCommands_ = function(cache, cacheId) {
-  /// <param type="Array" elementType="createjs.TweenObject" name="cache"/>
+createjs.Tween.prototype.initializeTween_ = function(target) {
+  /// <param type="createjs.DisplayObject" name="target"/>
+  this.target_ = target;
+  if (createjs.DEBUG) {
+    ++createjs.Counter.totalTweens;
+  }
+};
+
+/**
+ * Compiles tween commands and creates steps.
+ * @param {Array.<createjs.Tween>} cache
+ * @param {number} cacheId
+ * @param {boolean} useTicks
+ * @private
+ */
+createjs.Tween.prototype.compileCommands_ = function(cache, cacheId, useTicks) {
+  /// <param type="Array" elementType="createjs.Tween" name="cache"/>
   /// <param type="number" name="cacheId"/>
+  /// <param type="boolean" name="useTicks"/>
   if (!this.commands_) {
     return;
   }
@@ -468,6 +531,7 @@ createjs.Tween.prototype.compileCommands_ = function(cache, cacheId) {
     if (tween) {
       this.motions_ = tween.motions_;
       this.states_ = tween.states_;
+      this.frames_ = tween.frames_;
       this.mask_ = tween.mask_;
       return;
     }
@@ -487,6 +551,9 @@ createjs.Tween.prototype.compileCommands_ = function(cache, cacheId) {
     // * The property values at the end of the last motion.
     var motion = new createjs.TweenMotion();
     if (!this.motions_) {
+      if (useTicks) {
+        this.frames_ = [];
+      }
       this.motions_ = [];
       this.target_.getTweenMotion(motion);
     } else {
@@ -494,6 +561,14 @@ createjs.Tween.prototype.compileCommands_ = function(cache, cacheId) {
     }
     var duration = commands[0].setMotion(this.time_, this.target_, motion);
     if (duration) {
+      if (useTicks) {
+        var start = this.time_;
+        var end = this.time_ + duration;
+        var index = this.motions_.length;
+        for (var position = start; position < end; ++position) {
+          this.frames_[position] = index;
+        }
+      }
       this.time_ += duration;
       this.motions_.push(motion);
     }
@@ -505,10 +580,21 @@ createjs.Tween.prototype.compileCommands_ = function(cache, cacheId) {
       motion.copy(nextMotion);
       duration = commands[i].setMotion(this.time_, this.target_, nextMotion);
       if (duration) {
+        if (useTicks) {
+          var start = this.time_;
+          var end = this.time_ + duration;
+          var index = this.motions_.length;
+          for (var position = start; position < end; ++position) {
+            this.frames_[position] = index;
+          }
+        }
         this.time_ += duration;
         this.motions_.push(nextMotion);
       }
       motion = nextMotion;
+    }
+    if (useTicks) {
+      this.frames_[this.time_] = this.motions_.length - 1;
     }
     // Copy the mask of the last motion, which represents all properties changed
     // by this tween. (This mask is used in moving its position backwards.)
@@ -527,6 +613,9 @@ createjs.Tween.prototype.compileCommands_ = function(cache, cacheId) {
     var size = this.targets_.length;
     var state = new createjs.TweenState(size);
     if (!this.states_) {
+      if (useTicks) {
+        this.frames_ = [];
+      }
       this.states_ = [];
       for (var i = 0; i < size; ++i) {
         this.targets_[i].getTweenMotion(state.get(i));
@@ -536,6 +625,14 @@ createjs.Tween.prototype.compileCommands_ = function(cache, cacheId) {
     }
     var duration = commands[0].setState(this.time_, this.targetIds_, state);
     if (duration) {
+      if (useTicks) {
+        var start = this.time_;
+        var end = this.time_ + duration;
+        var index = this.states_.length;
+        for (var position = start; position < end; ++position) {
+          this.frames_[position] = index;
+        }
+      }
       this.time_ += duration;
       this.states_.push(state);
     }
@@ -545,6 +642,14 @@ createjs.Tween.prototype.compileCommands_ = function(cache, cacheId) {
       state.copy(nextState);
       duration = commands[i].setState(this.time_, this.targetIds_, nextState);
       if (duration) {
+        if (useTicks) {
+          var start = this.time_;
+          var end = this.time_ + duration;
+          var index = this.states_.length;
+          for (var position = start; position < end; ++position) {
+            this.frames_[position] = index;
+          }
+        }
         this.time_ += duration;
         this.states_.push(nextState);
       }
@@ -555,10 +660,11 @@ createjs.Tween.prototype.compileCommands_ = function(cache, cacheId) {
 
 /**
  * Registers this tween to the target object.
- * @param {createjs.TweenTarget} target
+ * @param {createjs.DisplayObject} target
  * @private
  */
 createjs.Tween.prototype.register_ = function(target) {
+  /// <param type="createjs.DisplayObject" name="target"/>
   this.registered_ = true;
   // A time-based tween uses this registration time as its start time, i.e. the
   // first updateTween() call uses time elapsed since registration.
@@ -572,10 +678,11 @@ createjs.Tween.prototype.register_ = function(target) {
 
 /**
  * Unregisters this tween from the target object.
- * @param {createjs.TweenTarget} target
+ * @param {createjs.DisplayObject} target
  * @private
  */
 createjs.Tween.prototype.unregister_ = function(target) {
+  /// <param type="createjs.DisplayObject" name="target"/>
   this.registered_ = false;
   this.lastTime_ = 0;
   if (target) {
@@ -589,12 +696,12 @@ createjs.Tween.prototype.unregister_ = function(target) {
  * Sets properties of the specified DisplayObject object. This method is added
  * to an action queue when an applications calls the set() method.
  * @param {Object} properties
- * @param {createjs.TweenTarget} target
+ * @param {createjs.DisplayObject} target
  * @private
  */
 createjs.Tween.prototype.setProperties_ = function(properties, target) {
   /// <param type="Object" name="properties"/>
-  /// <param type="createjs.TweenTarget" name="target"/>
+  /// <param type="createjs.DisplayObject" name="target"/>
 };
 
 /**
@@ -611,7 +718,7 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
   if (createjs.DEBUG) {
     ++createjs.Counter.runningTweens;
   }
-  this.compileCommands_(null, 0);
+  this.compileCommands_(null, 0, this.useTicks_);
   if (position >= this.duration_) {
     if (!this.loop_ || !this.duration_) {
       position = this.duration_;
@@ -628,12 +735,26 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
       // tween and copy its values to the target of this tween.
       var length = this.motions_.length - 1;
       if (length >= 0) {
+        if (this.frames_) {
+          var i = this.frames_[position];
+          var motion = this.motions_[i];
+          if (motion.needUpdate(position, seek, i, this.step_)) {
+            var mask = motion.interpolate(position);
+            if (mask & (1 << createjs.Property.LOOP)) {
+              this.loop_ = motion.getLoop();
+            }
+            this.target_.setTweenMotion(
+                motion, seek ? this.mask_ : mask, this.proxy_);
+          }
+          this.step_ = i;
+          return position;
+        }
         for (var i = this.step_; i < length; ++i) {
           var motion = this.motions_[i];
           if (motion.contain(position)) {
             if (motion.needUpdate(position, seek, i, this.step_)) {
               var mask = motion.interpolate(position);
-              if (mask & (1 << createjs.TweenMotion.ID.LOOP)) {
+              if (mask & (1 << createjs.Property.LOOP)) {
                 this.loop_ = motion.getLoop();
               }
               this.target_.setTweenMotion(
@@ -648,7 +769,7 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
         var motion = this.motions_[length];
         if (motion.needUpdate(position, seek, length, this.step_)) {
           var mask = motion.interpolate(position);
-          if (mask & (1 << createjs.TweenMotion.ID.LOOP)) {
+          if (mask & (1 << createjs.Property.LOOP)) {
             this.loop_ = motion.getLoop();
           }
           this.target_.setTweenMotion(
@@ -661,6 +782,20 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
     if (this.states_) {
       var length = this.states_.length - 1;
       if (length >= 0) {
+        if (this.frames_) {
+          var i = this.frames_[position];
+          var state = this.states_[i];
+          if (state.needUpdate(position, seek, i, this.step_)) {
+            var targetLength = this.targets_.length;
+            for (var j = 0; j < targetLength; ++j) {
+              var value = state.get(j);
+              var mask = value.interpolateState(position);
+              this.targets_[j].setTweenMotion(value, mask, this.proxy_);
+            }
+          }
+          this.step_ = i;
+          return position;
+        }
         for (var i = this.step_; i < length; ++i) {
           var state = this.states_[i];
           if (state.contain(position)) {
@@ -668,7 +803,7 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
               var targetLength = this.targets_.length;
               for (var j = 0; j < targetLength; ++j) {
                 var value = state.get(j);
-                var mask = value.interpolate(position);
+                var mask = value.interpolateState(position);
                 this.targets_[j].setTweenMotion(value, mask, this.proxy_);
               }
             }
@@ -681,7 +816,7 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
           var targetLength = this.targets_.length;
           for (var j = 0; j < targetLength; ++j) {
             var value = state.get(j);
-            var mask = value.interpolate(position);
+            var mask = value.interpolateState(position);
             this.targets_[j].setTweenMotion(value, mask, this.proxy_);
           }
         }
@@ -739,54 +874,12 @@ createjs.Tween.prototype.runActions_ = function(start, end) {
 };
 
 /**
- * Removes all existing tweens from a target.
- * @param {createjs.TweenTarget} target
- * @const
- */
-createjs.Tween.removeTweens = function(target) {
-  target.resetTweens();
-};
-
-/**
- * Removes all existing Tweens.
- * @const
- */
-createjs.Tween.removeAllTweens = function() {
-  createjs.notImplemented();
-};
-
-/**
- * Returns whether there are any active Tweens attached to the specified target
- * or returns whether there are any registered Tweens.
- * @param {createjs.TweenTarget=} opt_target
- * @return {boolean}
- * @const
- */
-createjs.Tween.hasActiveTweens = function(opt_target) {
-  if (opt_target) {
-    return opt_target.hasTweens();
-  }
-  createjs.notImplemented();
-  return true;
-};
-
-/**
- * Installs a plug-in.
- * @param {Object} plugin
- * @param {Array} properties
- * @const
- */
-createjs.Tween.installPlugin = function(plugin, properties) {
-  createjs.notImplemented();
-};
-
-/**
  * Returns the target object of this tween.
- * @return {createjs.TweenTarget}
+ * @return {createjs.DisplayObject}
  * @const
  */
 createjs.Tween.prototype.getTarget = function() {
-  /// <returns type="createjs.TweenTarget"/>
+  /// <returns type="createjs.DisplayObject"/>
   return this.target_;
 };
 
@@ -813,12 +906,12 @@ createjs.Tween.prototype.getPosition = function() {
 /**
  * Pauses or plays this tween.
  * @param {boolean} value
- * @return {createjs.TweenObject}
+ * @return {createjs.Tween}
  * @const
  */
 createjs.Tween.prototype.setPaused = function(value) {
   /// <param type="boolean" name="value"/>
-  /// <returns type="createjs.TweenObject"/>
+  /// <returns type="createjs.Tween"/>
   var paused = !!value;
   var time = createjs.Ticker.getRunTime();
   if (paused) {
@@ -885,7 +978,7 @@ createjs.Tween.prototype.to = function(properties, duration, opt_ease) {
     var end = /** @type {Array.<Object>} */ (properties['state']);
     for (var i = 0; i < end.length; ++i) {
       var state = end[i];
-      var t = /** @type {createjs.TweenTarget} */ (state['t']);
+      var t = /** @type {createjs.DisplayObject} */ (state['t']);
       var id = t.getTargetId();
       if (this.targetIds_[id] == null) {
         var index = this.targets_.length;
@@ -924,13 +1017,13 @@ createjs.Tween.prototype.call = function(callback, opt_params, opt_scope) {
 /**
  * Queues an action to set the specified properties on the specified target.
  * @param {Object} properties
- * @param {createjs.TweenTarget=} opt_target
+ * @param {createjs.DisplayObject=} opt_target
  * @return {createjs.Tween}
  * @const
  */
 createjs.Tween.prototype.set = function(properties, opt_target) {
   /// <param type="Object" name="properties"/>
-  /// <param type="createjs.TweenTarget" optional="true" name="opt_target"/>
+  /// <param type="createjs.DisplayObject" optional="true" name="opt_target"/>
   /// <returns type="createjs.Tween"/>
   return this;
 };
@@ -965,7 +1058,14 @@ createjs.Tween.prototype.pause = function(tween) {
   return this.call(tween.setPaused, [true], tween);
 };
 
-/** @override */
+/**
+ * Updates the position of this tween.
+ * @param {number} time
+ * @param {number} flag
+ * @param {number} next
+ * @return {number}
+ * @const
+ */
 createjs.Tween.prototype.updateTween = function(time, flag, next) {
   /// <param type="number" name="time"/>
   /// <param type="number" name="flag"/>
@@ -979,7 +1079,7 @@ createjs.Tween.prototype.updateTween = function(time, flag, next) {
   if (next >= 0) {
     this.action_ = 0;
     if (this.position_ != next) {
-      var update = flag & createjs.TweenObject.Flag.UPDATE;
+      var update = flag & createjs.TweenFlag.UPDATE;
       this.setPosition(next, update);
       if (update) {
         return this.position_;
@@ -997,8 +1097,8 @@ createjs.Tween.prototype.updateTween = function(time, flag, next) {
   var previous = this.updateAnimation_(position, this.seek_);
   this.seek_ = false;
   this.position_ = -1;
-  flag &= createjs.TweenObject.Flag.PLAY_MODE;
-  if (flag != createjs.TweenTarget.PlayMode.SYNCHED) {
+  flag &= createjs.TweenFlag.PLAY_MODE;
+  if (flag != createjs.PlayMode.SYNCHED) {
     this.runActions_(this.previous_, position);
   }
   this.updating_ = false;
@@ -1013,7 +1113,11 @@ createjs.Tween.prototype.updateTween = function(time, flag, next) {
   return this.previous_;
 };
 
-/** @override */
+/**
+ * Starts playing this tween.
+ * @param {number} time
+ * @const
+ */
 createjs.Tween.prototype.playTween = function(time) {
   /// <param type="number" name="time"/>
   if (this.paused_) {
@@ -1025,7 +1129,11 @@ createjs.Tween.prototype.playTween = function(time) {
   }
 };
 
-/** @override */
+/**
+ * Stops playing this tween.
+ * @param {number} time
+ * @const
+ */
 createjs.Tween.prototype.stopTween = function(time) {
   /// <param type="number" name="time"/>
   if (!this.paused_) {
@@ -1035,11 +1143,19 @@ createjs.Tween.prototype.stopTween = function(time) {
   }
 };
 
-/** @override */
+/**
+ * Sets a proxy that intermediates this tween and its target.
+ * @param {createjs.DisplayObject} proxy
+ * @param {Array.<createjs.DisplayObject>} targets
+ * @param {Array.<createjs.Tween>} cache
+ * @param {number} cacheId
+ * @return {number}
+ * @const
+ */
 createjs.Tween.prototype.setProxy = function(proxy, targets, cache, cacheId) {
-  /// <param type="createjs.TweenTarget" name="proxy"/>
-  /// <param type="Array" elementType="createjs.TweenTarget" name="targets"/>
-  /// <param type="Array" elementType="createjs.TweenObject" name="cache"/>
+  /// <param type="createjs.DisplayObject" name="proxy"/>
+  /// <param type="Array" elementType="createjs.DisplayObject" name="targets"/>
+  /// <param type="Array" elementType="createjs.Tween" name="cache"/>
   /// <param type="number" name="cacheId"/>
   /// <returns type="number"/>
   if (!proxy || this.target_ !== proxy) {
@@ -1060,19 +1176,19 @@ createjs.Tween.prototype.setProxy = function(proxy, targets, cache, cacheId) {
       this.proxy_ = proxy;
       if (this.target_) {
         var target = this.target_;
-        if (target.getPlayMode() == createjs.TweenTarget.PlayMode.SYNCHED) {
+        if (target.getPlayMode() == createjs.PlayMode.SYNCHED) {
           proxy.synchronize(this.target_, true);
         }
       } else {
         for (var i = 0; i < this.targets_.length; ++i) {
           var target = this.targets_[i];
-          if (target.getPlayMode() == createjs.TweenTarget.PlayMode.SYNCHED) {
+          if (target.getPlayMode() == createjs.PlayMode.SYNCHED) {
             proxy.synchronize(target, true);
           }
         }
       }
     }
-    this.compileCommands_(cache, cacheId);
+    this.compileCommands_(cache, cacheId, true);
     // When this tween has a proxy, the proxy runs the tween on behalf of its
     // target and this tween does not have to register itself to its target any
     // longer. This method marks this tween as registered to prevent this tween
@@ -1089,7 +1205,12 @@ createjs.Tween.prototype.setProxy = function(proxy, targets, cache, cacheId) {
   return this.duration_;
 };
 
-/** @override */
+/**
+ * Sets the play offset of this tween.
+ * @param {number} position
+ * @param {number} mode
+ * @const
+ */
 createjs.Tween.prototype.setPosition = function(position, mode) {
   /// <param type="number" name="position"/>
   /// <param type="number" name="mode"/>
@@ -1113,9 +1234,15 @@ createjs.Tween.prototype.setPosition = function(position, mode) {
   this.seek_ = true;
 };
 
-/** @override */
+/**
+ * Sets the properties of this tween.
+ * @param {number} loop
+ * @param {number} position
+ * @param {boolean} single
+ * @const
+ */
 createjs.Tween.prototype.setProperties = function(loop, position, single) {
-  /// <param type="boolean" name="loop"/>
+  /// <param type="number" name="loop"/>
   /// <param type="number" name="position"/>
   /// <param type="boolean" name="single"/>
   this.loop_ = loop;
@@ -1125,7 +1252,11 @@ createjs.Tween.prototype.setProperties = function(loop, position, single) {
   }
 };
 
-/** @override */
+/**
+ * Returns whether this tween reaches its end.
+ * @return {boolean}
+ * @const
+ */
 createjs.Tween.prototype.isEnded = function() {
   return this.ended_;
 };
@@ -1133,7 +1264,7 @@ createjs.Tween.prototype.isEnded = function() {
 /** @override */
 createjs.Tween.prototype.handleTick = function(time) {
   createjs.assert(!this.target_);
-  this.updateTween(time, createjs.TweenTarget.PlayMode.INDEPENDENT, -1);
+  this.updateTween(time, createjs.PlayMode.INDEPENDENT, -1);
   if (this.ended_) {
     createjs.Ticker.removeListener('tick', this, false);
   }

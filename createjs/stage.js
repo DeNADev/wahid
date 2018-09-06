@@ -46,24 +46,9 @@
  * @constructor
  */
 createjs.Stage = function(canvas) {
+  /// <param type="HTMLCanvasElement" name="canvas"/>
   createjs.Container.call(this);
-
-  /**
-   * The renderer object that renders CreateJS objects in the output <canvas>
-   * element.
-   * @type {createjs.Renderer}
-   * @private
-   */
-  this.renderer_ = this.createRenderer_(canvas);
-
-  /**
-   * Mapping from a pointer ID to its data.
-   * @type {Array.<createjs.Stage.Pointer>}
-   * @private
-   */
-  this.pointers_ = [];
-
-  this.enableDOMEvents(true);
+  this.initializeStage_(canvas);
 };
 createjs.inherits('Stage', createjs.Stage, createjs.Container);
 
@@ -217,6 +202,18 @@ createjs.Stage.prototype.domEvents_ = 0;
  * @private
  */
 createjs.Stage.prototype.preventDefault_ = false;
+
+/**
+ * Initializes this stage.
+ * @param {HTMLCanvasElement|string} canvas
+ * @private
+ */
+createjs.Stage.prototype.initializeStage_ = function(canvas) {
+  /// <param type="HTMLCanvasElement" name="canvas"/>
+  this.renderer_ = this.createRenderer_(canvas);
+  this.pointers_ = [];
+  this.enableDOMEvents(true);
+};
 
 /**
  * Creates a renderer used for rendering objects to the specified canvas.
@@ -406,12 +403,12 @@ createjs.Stage.prototype.updatePointer_ = function(pointer, x, y, mouse) {
   // Update the position of this pointer only when it has been moved by at least
   // four pixels to avoid updating it too often. (It is slow to update a pointer
   // position on mobile devices.)
-  if (createjs.abs(pointer.page_.x - x) <= 4 &&
-      createjs.abs(pointer.page_.y - y) <= 4) {
+  if (createjs.abs(pointer.page_.v[0] - x) <= 4 &&
+      createjs.abs(pointer.page_.v[1] - y) <= 4) {
     return;
   }
-  pointer.page_.x = x;
-  pointer.page_.y = y;
+  pointer.page_.v[0] = x;
+  pointer.page_.v[1] = y;
   var renderer = this.getRenderer_();
   var canvas = renderer.getCanvas();
   var width =  renderer.getWidth();
@@ -438,8 +435,8 @@ createjs.Stage.prototype.updatePointer_ = function(pointer, x, y, mouse) {
   y = (y - top) / (bottom - top) * height;
   var inBounds = (0 <= x && x < width) && (0 <= y && y < height);
   if (inBounds) {
-    pointer.point_.x = x;
-    pointer.point_.y = y;
+    pointer.point_.v[0] = x;
+    pointer.point_.v[1] = y;
   }
   pointer.inBounds_ = inBounds;
   pointer.raw_.x = x;
@@ -450,9 +447,9 @@ createjs.Stage.prototype.updatePointer_ = function(pointer, x, y, mouse) {
     this['mouseY'] = y;
     this['mouseInBounds'] = inBounds;
   }
-  mouse.setStage(pointer.point_.x, pointer.point_.y);
+  mouse.setStage(pointer.point_.v[0], pointer.point_.v[1]);
   mouse.setPrimary(primary);
-  mouse.setRaw(pointer.raw_.x, pointer.raw_.y);
+  mouse.setRaw(pointer.raw_.v[0], pointer.raw_.v[1]);
 };
 
 /**
@@ -847,7 +844,7 @@ createjs.Stage.prototype.handleTick = function(time) {
   this.sendDrawEvent_('drawstart');
   this.updateTweens(time);
   this.renderer_.begin();
-  this.layout(this.renderer_, this, this.getDirty(), time, 1);
+  this.layout(this.renderer_, this, this.dirty, time, 1);
   this.renderer_.paint(time);
   this.sendDrawEvent_('drawend');
 };
@@ -855,7 +852,8 @@ createjs.Stage.prototype.handleTick = function(time) {
 /** @override */
 createjs.Stage.prototype.handleEvent = function(event) {
   /// <param type="Event" name="event"/>
-  if (createjs.Config.isPreventedEvent(event, this.domEvents_)) {
+  if (createjs.UserAgent.isChrome() &&
+      createjs.Config.isPreventedEvent(event, this.domEvents_)) {
     // Kick the global ticker and try updating this stage on Android Chrome,
     // which does not call a setInterval() callback (including the
     // createjs.Ticker.handleTimeout() method) while it sends touch events.

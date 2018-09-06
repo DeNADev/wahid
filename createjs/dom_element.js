@@ -127,11 +127,11 @@ createjs.DOMElement.prototype.layout =
   }
   if (dirty & createjs.DisplayObject.DIRTY_TRANSFORM) {
     var ratio = renderer.getCSSRatio();
-    var tx = state.tx * ratio.x;
-    var ty = state.ty * ratio.y;
+    var tx = state.m[4] * ratio.v[0];
+    var ty = state.m[5] * ratio.v[1];
     var transform = 'matrix(' +
-        state.a + ',' + state.b + ',' + state.c + ',' + state.d + ',' +
-        tx + ',' + ty + ')';
+        state.m[0] + ',' + state.m[1] + ',' + state.m[2] + ',' + state.m[3] +
+        ',' + tx + ',' + ty + ')';
     style[this.isWebKit_ ? 'webkitTransform' : 'transform'] = transform;
   }
   return 0;

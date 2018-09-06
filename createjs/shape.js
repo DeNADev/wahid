@@ -34,14 +34,9 @@
  * @constructor
  */
 createjs.Shape = function(opt_graphics) {
+  /// <param type="createjs.Graphics" optional="true" name="opt_graphics"/>
   createjs.DisplayObject.call(this);
-
-  /**
-   * The createjs.Graphics object that actually represents this shape.
-   * @type {createjs.Graphics}
-   * @private
-   */
-  this.graphics_ = opt_graphics ? opt_graphics : new createjs.Graphics();
+  this.initializeShape_(opt_graphics);
 };
 createjs.inherits('Shape', createjs.Shape, createjs.DisplayObject);
 
@@ -74,6 +69,16 @@ createjs.Shape.prototype.hitTestPoint_ = null;
 createjs.Shape.prototype.hitTestResult_ = null;
 
 /**
+ * Initializes this shape.
+ * @param {createjs.Graphics=} opt_graphics
+ * @private
+ */
+createjs.Shape.prototype.initializeShape_ = function(opt_graphics) {
+  /// <param type="createjs.Graphics" optional="true" name="opt_graphics"/>
+  this.graphics_ = opt_graphics ? opt_graphics : new createjs.Graphics();
+};
+
+/**
  * Returns the createjs.Graphics object owned by this object.
  * @return {createjs.Graphics}
  * @const
@@ -104,9 +109,9 @@ createjs.Shape.prototype.setGraphics = function(graphics) {
     this.graphics_ = graphics;
     if (graphics) {
       var box = graphics.box;
-      this.setBoundingBox(box.minX, box.minY, box.maxX, box.maxY);
+      this.setBoundingBox(box.b[0], box.b[1], box.b[2], box.b[3]);
       for (var i = 0; i < owners.length; ++i) {
-        owners[i].setDirty(createjs.DisplayObject.DIRTY_MASK);
+        owners[i].dirty |= createjs.DisplayObject.DIRTY_MASK;
       }
     }
   }
@@ -131,7 +136,7 @@ createjs.Shape.prototype.handleAttach = function(flag) {
     }
   }
   var box = graphics.box;
-  this.setBoundingBox(box.minX, box.minY, box.maxX, box.maxY);
+  this.setBoundingBox(box.b[0], box.b[1], box.b[2], box.b[3]);
 };
 
 /** @override */
@@ -166,18 +171,18 @@ if (createjs.USE_PIXEL_TEST) {
       // other is for a 'touchup' event. This cache avoids reading the pixels of
       // its createjs.Graphics object twice.
       if (this.hitTestPoint_) {
-        var dx = this.hitTestPoint_.x - point.x;
-        var dy = this.hitTestPoint_.y - point.y;
+        var dx = this.hitTestPoint_.v[0] - point.v[0];
+        var dy = this.hitTestPoint_.v[1] - point.v[1];
         if (dx * dx + dy * dy <= 4) {
           return this.hitTestResult_;
         }
-        this.hitTestPoint_.x = point.x;
-        this.hitTestPoint_.y = point.y;
+        this.hitTestPoint_.v[0] = point.v[0];
+        this.hitTestPoint_.v[1] = point.v[1];
       } else {
-        this.hitTestPoint_ = new createjs.Point(point.x, point.y);
+        this.hitTestPoint_ = new createjs.Point(point.v[0], point.v[1]);
       }
       // Read the pixel at the specified position.
-      var local = new createjs.Point(point.x, point.y);
+      var local = new createjs.Point(point.v[0], point.v[1]);
       this.getInverse().transformPoint(local);
       if (!this.graphics_.hitTestObject(local)) {
         object = null;
@@ -201,9 +206,9 @@ createjs.Shape.prototype.layout =
     return 0;
   }
   if (graphics.isDirty()) {
-    this.setDirty(createjs.DisplayObject.DIRTY_SHAPE);
+    this.dirty |= createjs.DisplayObject.DIRTY_SHAPE;
     var box = graphics.box;
-    this.setBoundingBox(box.minX, box.minY, box.maxX, box.maxY);
+    this.setBoundingBox(box.b[0], box.b[1], box.b[2], box.b[3]);
   }
   return createjs.Shape.superClass_.layout.call(
       this, renderer, parent, dirty, time, draw);
@@ -224,6 +229,8 @@ createjs.Shape.prototype.isVisible = function() {
 
 /** @override */
 createjs.Shape.prototype.set = function(properties) {
+  /// <param type="Object" name="properties"/>
+  /// <returns type="createjs.DisplayObject"/>
   createjs.Shape.superClass_.set.call(this, properties);
   var value = properties['graphics'];
   if (value) {
@@ -260,8 +267,8 @@ createjs.Shape.prototype.getTweenMotion = function(motion) {
 createjs.Shape.prototype.setTweenMotion = function(motion, mask, proxy) {
   /// <param type="createjs.TweenMotion" name="motion"/>
   /// <param type="number" name="mask"/>
-  /// <param type="createjs.TweenTarget" name="proxy"/>
-  if (mask & (1 << createjs.TweenMotion.ID.GRAPHICS)) {
+  /// <param type="createjs.DisplayObject" name="proxy"/>
+  if (mask & (1 << createjs.Property.GRAPHICS)) {
     this.setGraphics(motion.getGraphics());
   }
   createjs.Shape.superClass_.setTweenMotion.call(this, motion, mask, proxy);

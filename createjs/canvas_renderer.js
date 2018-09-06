@@ -141,7 +141,7 @@ createjs.CanvasRenderer.prototype.updateScissor_ = function(scissor) {
   }
   this.scissor_ = scissor;
   this.saveContext_();
-  this.setTransformation(1, 0, 0, 1, 0, 0);
+  this.context_.setTransform(1, 0, 0, 1, 0, 0);
   this.context_.beginPath();
   this.context_.rect(scissor.getLeft(), scissor.getTop(),
                      scissor.getWidth(), scissor.getHeight());
@@ -281,10 +281,16 @@ createjs.CanvasRenderer.prototype.destroyMask = function() {
 createjs.CanvasRenderer.prototype.drawMask = function(mask, composition) {
   /// <param type="createjs.CanvasRenderer" name="mask"/>
   /// <param type="number" name="composition"/>
-  this.setTransformation(1, 0, 0, 1, 0, 0);
-  this.setAlpha(1);
-  this.setComposition(createjs.Renderer.Composition.SOURCE_OVER);
-  this.drawCanvas(
+  this.context_.setTransform(1, 0, 0, 1, 0, 0);
+  if (this.alpha_ != 1) {
+    this.alpha_ = 1;
+    this.context_.globalAlpha = 1;
+  }
+  if (this.compositeOperation_ != createjs.Renderer.Composition.SOURCE_OVER) {
+    this.compositeOperation_ = createjs.Renderer.Composition.SOURCE_OVER;
+    this.context_.globalCompositeOperation = 'source-over';
+  }
+  this.context_.drawImage(
       mask.getCanvas(), 0, 0, this.getWidth(), this.getHeight());
 };
 
@@ -296,29 +302,15 @@ createjs.CanvasRenderer.prototype.destroy = function() {
 };
 
 /** @override */
-createjs.CanvasRenderer.prototype.setTransformation =
-    function(a, b, c, d, tx, ty) {
-  /// <param type="number" name="a"/>
-  /// <param type="number" name="b"/>
-  /// <param type="number" name="c"/>
-  /// <param type="number" name="d"/>
-  /// <param type="number" name="tx"/>
-  /// <param type="number" name="ty"/>
-  this.context_.setTransform(a, b, c, d, tx, ty);
-};
-
-/** @override */
-createjs.CanvasRenderer.prototype.setAlpha = function(alpha) {
-  /// <param type="number" name="alpha"/>
+createjs.CanvasRenderer.prototype.setProperties = function(m) {
+  /// <param type="Float32Array" name="m"/>
+  this.context_.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
+  var alpha = m[6];
   if (this.alpha_ != alpha) {
     this.alpha_ = alpha;
     this.context_.globalAlpha = alpha;
   }
-};
-
-/** @override */
-createjs.CanvasRenderer.prototype.setComposition = function(operation) {
-  /// <param type="number" name="operation"/>
+  var operation = m[7];
   if (this.compositeOperation_ != operation) {
     this.compositeOperation_ = operation;
     this.context_.globalCompositeOperation =
@@ -327,14 +319,10 @@ createjs.CanvasRenderer.prototype.setComposition = function(operation) {
 };
 
 /** @override */
-createjs.CanvasRenderer.prototype.drawCanvas =
-    function(canvas, x, y, width, height) {
+createjs.CanvasRenderer.prototype.drawCanvas = function(canvas, values) {
   /// <param type="HTMLCanvasElement" name="canvas"/>
-  /// <param type="number" name="x"/>
-  /// <param type="number" name="y"/>
-  /// <param type="number" name="width"/>
-  /// <param type="number" name="height"/>
-  this.context_.drawImage(canvas, x, y, width, height);
+  /// <param type="Float32Array" name="m"/>
+  this.context_.drawImage(canvas, values[0], values[1], values[2], values[3]);
 };
 
 /** @override */
@@ -349,19 +337,11 @@ createjs.CanvasRenderer.prototype.drawVideo =
 };
 
 /** @override */
-createjs.CanvasRenderer.prototype.drawPartial =
-    function(image, srcX, srcY, srcWidth, srcHeight, x, y, width, height) {
+createjs.CanvasRenderer.prototype.drawPartial = function(image, values) {
   /// <param type="HTMLImageElement" name="image"/>
-  /// <param type="number" name="srcX"/>
-  /// <param type="number" name="srcY"/>
-  /// <param type="number" name="srcWidth"/>
-  /// <param type="number" name="srcHeight"/>
-  /// <param type="number" name="x"/>
-  /// <param type="number" name="y"/>
-  /// <param type="number" name="width"/>
-  /// <param type="number" name="height"/>
-  this.context_.drawImage(
-      image, srcX, srcY, srcWidth, srcHeight, x, y, width, height);
+  /// <param type="Float32Array" name="values"/>
+  this.context_.drawImage(image, values[0], values[1], values[2], values[3],
+      values[4], values[5], values[6], values[7]);
 };
 
 /** @override */
@@ -372,8 +352,8 @@ createjs.CanvasRenderer.prototype.addObject = function(object) {
   // call its 'beginPaintObject()' method and to update properties of this
   // renderer so it can render succeeding objects.
   var box = object.getRenderBox();
-  if (box.maxX <= 0 || box.maxY <= 0 ||
-      this.getWidth() <= box.minX || this.getHeight() <= box.minY) {
+  if (box.b[2] <= 0 || box.b[3] <= 0 ||
+      this.getWidth() <= box.b[0] || this.getHeight() <= box.b[1]) {
     object.beginPaintObject(this);
     return;
   }

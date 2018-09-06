@@ -26,7 +26,6 @@
 /// <reference path="counter.js"/>
 /// <reference path="display_object.js"/>
 /// <reference path="shadow.js"/>
-/// <reference path="tween_target.js"/>
 /// <reference path="word_breaker.js"/>
 
 /**
@@ -42,37 +41,7 @@ createjs.Text = function(text, font, color) {
   /// <param type="string" name="font"/>
   /// <param type="string" name="color"/>
   createjs.DisplayObject.call(this);
-
-  /**
-   * The text to be displayed.
-   * @type {string}
-   * @private
-   */
-  this.text_ = text;
-
-  /**
-   * The font style to use. Any valid value for the CSS font attribute is
-   * acceptable (ex. "bold 36px Arial").
-   * @type {string}
-   * @private
-   */
-  this.font_ = font;
-
-  /**
-   * The color to draw the text in. Any valid value for the CSS color attribute
-   * is acceptable (ex. "#F00"). Default is "#000". It will also accept valid
-   * canvas fillStyle values.
-   * @type {string}
-   * @private
-   */
-  this.textColor_ = color;
-
-  /**
-   * The offset position of the text.
-   * @type {createjs.Point}
-   * @private
-   */
-  this.offset_ = new createjs.Point(0, 0);
+  this.initializeText_(text, font, color);
 };
 createjs.inherits('Text', createjs.Text, createjs.DisplayObject);
 
@@ -375,10 +344,19 @@ createjs.Text.prototype.font_ = '';
 createjs.Text.prototype.textColor_ = '';
 
 /**
- * @type {createjs.Point}
+ * The parameters for the createjs.Renderer.prototype.drawCanvas() method.
+ *   +-------+----------+
+ *   | index | property |
+ *   +-------+----------+
+ *   | 0     | x        |
+ *   | 1     | y        |
+ *   | 2     | width    |
+ *   | 3     | height   |
+ *   +-------+----------+
+ * @type {Float32Array}
  * @private
  */
-createjs.Text.prototype.offset_ = null;
+createjs.Text.prototype.drawValues_ = null;
 
 /**
  * The horizontal text alignment. This value must be one of "start", "end",
@@ -476,6 +454,23 @@ createjs.Text.prototype.renderer_ = null;
  * @private
  */
 createjs.Text.prototype.output_ = null;
+
+/**
+ * Initializes this text.
+ * @param {string} text
+ * @param {string} font
+ * @param {string} color
+ * @private
+ */
+createjs.Text.prototype.initializeText_ = function(text, font, color) {
+  /// <param type="string" name="text"/>
+  /// <param type="string" name="font"/>
+  /// <param type="string" name="color"/>
+  this.text_ = text;
+  this.font_ = font;
+  this.textColor_ = color;
+  this.drawValues_ = createjs.createFloat32Array([0, 0, 0, 0]);
+};
 
 /**
  * Returns the cache renderer used for drawing text to a cache.
@@ -613,8 +608,10 @@ createjs.Text.prototype.paintCache_ = function() {
     x = this.width_;
   }
   var y = margin;
-  this.offset_.x = -x;
-  this.offset_.y = -y;
+  this.drawValues_[0] = -x;
+  this.drawValues_[1] = -y;
+  this.drawValues_[2] = this.width_;
+  this.drawValues_[3] = this.height_;
   var maxWidth = this.maxWidth_ || 10000;
   if (this.outline_) {
     renderer.setStrokeColor_(this.textColor_);
@@ -886,9 +883,6 @@ createjs.Text.prototype.isVisible = function() {
 /** @override */
 createjs.Text.prototype.handleAttach = function(flag) {
   /// <param type="number" name="flag"/>
-  if (flag && this.textDirty_ && this.text_) {
-    this.paintCache_();
-  }
 };
 
 /** @override */
@@ -924,8 +918,8 @@ createjs.Text.prototype.layout =
   /// <param type="number" name="draw"/>
   /// <returns type="number"/>
   if (this.textDirty_ && draw) {
+    this.dirty |= createjs.DisplayObject.DIRTY_SHAPE;
     this.paintCache_();
-    this.setDirty(createjs.DisplayObject.DIRTY_SHAPE);
   }
   if (!this.output_) {
     this.output_ = renderer;
@@ -937,8 +931,7 @@ createjs.Text.prototype.layout =
 /** @override */
 createjs.Text.prototype.paintObject = function(renderer) {
   /// <param type="createjs.Renderer" name="renderer"/>
-  renderer.drawCanvas(this.renderer_.getCanvas_(),
-      this.offset_.x, this.offset_.y, this.width_, this.height_);
+  renderer.drawCanvas(this.renderer_.getCanvas_(), this.drawValues_);
 };
 
 /** @override */
@@ -976,7 +969,7 @@ createjs.Text.prototype.getBounds = function() {
 };
 
 /** @override */
-createjs.Text.prototype.getTweenMotion = function (motion) {
+createjs.Text.prototype.getTweenMotion = function(motion) {
   /// <param type="createjs.TweenMotion" name="motion"/>
   /// <returns type="boolean"/>
   if (!createjs.Text.superClass_.getTweenMotion.call(this, motion)) {
@@ -987,11 +980,11 @@ createjs.Text.prototype.getTweenMotion = function (motion) {
 };
 
 /** @override */
-createjs.Text.prototype.setTweenMotion = function (motion, mask, proxy) {
+createjs.Text.prototype.setTweenMotion = function(motion, mask, proxy) {
   /// <param type="createjs.TweenMotion" name="motion"/>
   /// <param type="number" name="mask"/>
-  /// <param type="createjs.TweenTarget" name="proxy"/>
-  if (mask & (1 << createjs.TweenMotion.ID.TEXT)) {
+  /// <param type="createjs.DisplayObject" name="proxy"/>
+  if (mask & (1 << createjs.Property.TEXT)) {
     var text = motion.getText();
     if (this.text_ != text) {
       this.text_ = text;

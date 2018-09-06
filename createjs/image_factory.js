@@ -76,6 +76,8 @@ createjs.ImageFactory.create_ = function(path, source, listener, format) {
   /// <param type="number" name="format"/>
   /// <returns type="HTMLImageElement"/>
   var image = /** @type {HTMLImageElement} */ (document.createElement('img'));
+  image.addEventListener('load', listener, false);
+  image.addEventListener('error', listener, false);
   var scheme = (source.charCodeAt(0) << 24) + (source.charCodeAt(1) << 16) +
       (source.charCodeAt(2) << 8) + source.charCodeAt(3);
   if (scheme != 0x64617461) {
@@ -84,8 +86,6 @@ createjs.ImageFactory.create_ = function(path, source, listener, format) {
     // an anonymously-shared HTMLImageElement object with its source a Data URI.
     image.crossOrigin = 'anonymous';
   }
-  image.addEventListener('load', listener, false);
-  image.addEventListener('error', listener, false);
   image.format_ = format;
   image.src = source;
   return image;

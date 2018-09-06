@@ -39,26 +39,7 @@
  */
 createjs.Graphics = function() {
   createjs.Object.call(this);
-
-  /**
-   * The bounding box of this graphics.
-   * @type {createjs.BoundingBox}
-   */
-  this.box = new createjs.BoundingBox();
-
-  /**
-   * A list of all paths.
-   * @type {Array.<createjs.Graphics.Command>}
-   * @private
-   */
-  this.path_ = [];
-
-  /**
-   * The current path.
-   * @type {Array.<createjs.Graphics.Command>}
-   * @private
-   */
-  this.active_ = [];
+  this.initializeGraphics_();
 };
 createjs.inherits('Graphics', createjs.Graphics, createjs.Object);
 
@@ -151,6 +132,20 @@ createjs.Graphics.prototype.fill_ = null;
 createjs.Graphics.prototype.margin_ = 0;
 
 /**
+ * The parameters for the createjs.Renderer.prototype.drawCanvas() method.
+ *   +-------+----------+
+ *   | index | property |
+ *   +-------+----------+
+ *   | 0     | x        |
+ *   | 1     | y        |
+ *   | 2     | width    |
+ *   | 3     | height   |
+ *   +-------+----------+
+ * @type {Float32Array}
+ * @private
+ */
+createjs.Graphics.prototype.drawValues_ = null;
+
 /**
  * An inner class that renders graphic commands with the Canvas 2D API.
  * @param {number} flag
@@ -2184,8 +2179,8 @@ createjs.Graphics.DecodePath.get = function(encoded, box) {
     instance = new createjs.Graphics.DecodePath(encoded);
     createjs.Graphics.DecodePath.instances_[encoded] = instance;
   }
-  box.update(instance.box_.minX, instance.box_.minY);
-  box.update(instance.box_.maxX, instance.box_.maxY);
+  box.update(instance.box_.b[0], instance.box_.b[1]);
+  box.update(instance.box_.b[2], instance.box_.b[3]);
   return instance;
 };
 
@@ -2454,6 +2449,17 @@ createjs.Graphics.reset = function() {
 };
 
 /**
+ * Initializes this graphics.
+ * @private
+ */
+createjs.Graphics.prototype.initializeGraphics_ = function() {
+  this.box = new createjs.BoundingBox();
+  this.path_ = [];
+  this.active_ = [];
+  this.drawValues_ = createjs.createFloat32Array([0, 0, 0, 0]);
+};
+
+/**
  * Returns the renderer used for drawing paths.
  * @param {string} key
  * @param {number} flag
@@ -2486,9 +2492,14 @@ createjs.Graphics.prototype.updateCache_ = function(flag) {
   // path commands if the object is not an empty one. The HTML5 specification
   // prohibits calling the 'drawImage()' method with an empty HTMLCanvasElement
   // object. (In fact, Safari throws an exception.)
-  this.box.addMargin(this.margin_);
-  var width = this.box.getWidth();
-  var height = this.box.getHeight();
+  var box = this.box;
+  box.addMargin(this.margin_);
+  var width = box.getWidth();
+  var height = box.getHeight();
+  this.drawValues_[0] = box.getLeft();
+  this.drawValues_[1] = box.getTop();
+  this.drawValues_[2] = width;
+  this.drawValues_[3] = height;
   if (width < 1 || height < 1) {
     return;
   }
@@ -2518,7 +2529,7 @@ createjs.Graphics.prototype.updateCache_ = function(flag) {
     }
   }
   var renderer = this.getRenderer_(key, flag);
-  renderer.setBox_(this.box.minX, this.box.minY, width, height);
+  renderer.setBox_(box.b[0], box.b[1], width, height);
   for (var i = 0; i < length; ++i) {
     path[i].paint(renderer);
   }
@@ -2654,8 +2665,8 @@ createjs.Graphics.prototype.hitTestObject = function(point) {
   /// <param type="createjs.Point" name="point"/>
   /// <returns type="number"/>
   if (this.renderer_) {
-    return this.renderer_.hitTestObject_(point.x - this.box.minX,
-                                         point.y - this.box.minY);
+    return this.renderer_.hitTestObject_(point.v[0] - this.box.b[0],
+                                         point.v[1] - this.box.b[1]);
   }
   return 0;
 };
@@ -2672,10 +2683,7 @@ createjs.Graphics.prototype.paint = function(renderer) {
   this.createCache_(0);
   if (this.renderer_) {
     this.renderer_.setOutput_(renderer);
-    var box = this.box;
-    renderer.drawCanvas(
-        this.renderer_.getCanvas_(),
-        box.getLeft(), box.getTop(), box.getWidth(), box.getHeight());
+    renderer.drawCanvas(this.renderer_.getCanvas_(), this.drawValues_);
   }
 };
 

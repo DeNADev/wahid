@@ -184,6 +184,14 @@ createjs.WebAudioPlugin = function() {
 };
 
 /**
+ * The dummy AudioContext instance exported to applications.
+ * @const {AudioContext}
+ */
+createjs.WebAudioPlugin['context'] = {
+  'currentTime': -1
+};
+
+/**
  * Whether this plug-in is initialized.
  * @type {boolean}
  * @private
@@ -198,11 +206,11 @@ createjs.WebAudioPlugin.initialized_ = false;
 createjs.WebAudioPlugin.audio_ = null;
 
 /**
- * The AudioContext instance used by this plug-in.
+ * The AudioContext instance internally used by this plug-in.
  * @type {AudioContext}
  * @private
  */
-createjs.WebAudioPlugin['context'] = null;
+createjs.WebAudioPlugin.context_ = null;
 
 /**
  * The node that plays an empty sound.
@@ -233,7 +241,7 @@ createjs.WebAudioPlugin.handleTouch_ = function(event) {
 
   // Use the currentTime property (instead of using the state property) for
   // backward compatibility.
-  var context = createjs.WebAudioPlugin['context'];
+  var context = createjs.WebAudioPlugin.context_;
   if (!context.currentTime) {
     // Resume the progression of the AudioContext object used by this plug-in on
     // iOS 10+ and on Chrome 49+.
@@ -258,8 +266,7 @@ createjs.WebAudioPlugin.handleTouch_ = function(event) {
  * @private
  */
 createjs.WebAudioPlugin.handleTimeout_ = function() {
-  var context = createjs.WebAudioPlugin['context'];
-  console.log('> currentTime=' + context.currentTime);
+  var context = createjs.WebAudioPlugin.context_;
   if (!context.currentTime) {
     // Choose the user-action event that re-plays an empty sound. Chrome and
     // Mobile Safari on iOS 9.0 have to use 'touchend' events due to WebKit
@@ -282,9 +289,10 @@ createjs.WebAudioPlugin.handleTimeout_ = function() {
  */
 createjs.WebAudioPlugin.playEmptySound_ = function() {
   // Play an empty sound and start a watchdog timer only when this AudioContext
-  // object does not have the state property, i.e. the AudioContext object has
-  // the resume() method. (The resume() method is more trustworthy.)
-  var context = createjs.WebAudioPlugin['context'];
+  // object does not have the state property, i.e. when the AudioContext object
+  // does not have the resume() method. (Calling the resume() method is more
+  // trustworthy than playing an empty sound.)
+  var context = createjs.WebAudioPlugin.context_;
   if (!context.state) {
     var source = context.createBufferSource();
     source.buffer = createjs.WebAudioPlugin.buffer_;
@@ -308,7 +316,7 @@ createjs.WebAudioPlugin.getContext_ = function() {
     createjs.WebAudioPlugin.initialized_ = true;
     if (createjs.AudioContext) {
       var context = new createjs.AudioContext();
-      createjs.WebAudioPlugin['context'] = context;
+      createjs.WebAudioPlugin.context_ = context;
       createjs.WebAudioPlugin.buffer_ = context.createBuffer(1, 1, 22500);
       if (!context.state) {
         // This AudioContext object does not have the state property. Play an
@@ -321,21 +329,7 @@ createjs.WebAudioPlugin.getContext_ = function() {
       }
     }
   }
-  return createjs.WebAudioPlugin['context'];
-};
-
-/**
- * Plays a dummy sound. This method creates an empty <audio> element and plays
- * it. This method is a workaround for old iPhones, which need to have an
- * <audio> element played to play sounds even with Web Audio.
- * @private
- */
-createjs.WebAudioPlugin.playDummySound_ = function() {
-  if (!createjs.WebAudioPlugin.audio_) {
-    createjs.WebAudioPlugin.audio_ =
-        /** @type {HTMLAudioElement} */ (document.createElement('audio'));
-  }
-  createjs.WebAudioPlugin.audio_.play();
+  return createjs.WebAudioPlugin.context_;
 };
 
 /**
@@ -345,7 +339,7 @@ createjs.WebAudioPlugin.playDummySound_ = function() {
 createjs.WebAudioPlugin.reset_ = function() {
   createjs.WebAudioPlugin.stopEmptySound_();
   createjs.WebAudioPlugin.audio_ = null;
-  createjs.WebAudioPlugin['context'] = null;
+  createjs.WebAudioPlugin.context_ = null;
   createjs.WebAudioPlugin.initialized_ = false;
 };
 
@@ -369,40 +363,12 @@ createjs.WebAudioPlugin.stopEmptySound_ = function() {
 };
 
 /**
- * Plays an empty sound. This method plays an empty sound both with an <audio>
- * element and with Web Audio. (This method does not play any sounds when this
- * module uses an <iframe> element, which automatically plays an empty sound.)
+ * Plays an empty sound. This method is a dummy method used only for backward
+ * compatibility.
  * @const
  */
 createjs.WebAudioPlugin.playEmptySound = function() {
-  var context = createjs.WebAudioPlugin.getContext_();
-  if (context) {
-    // Abort playing empty sounds when the createjs.Sound class uses an <iframe>
-    // element to play sounds. (The returned AudioContent object is a dummy
-    // object and cannot play sounds.)
-    if (createjs.USE_FRAME && createjs.Config.useFrame()) {
-      return;
-    }
-    // An application may call this method before this method finishes playing
-    // the previous sound. To avoid node leaks, this method stops playing the
-    // previous sound, destroys its node, and plays a new one.
-    if (createjs.WebAudioPlugin.source_) {
-      createjs.WebAudioPlugin.stopEmptySound_();
-    }
-    var source = context.createBufferSource();
-    createjs.WebAudioPlugin.source_ = source;
-    if (!createjs.WebAudioPlugin.buffer_) {
-      createjs.WebAudioPlugin.buffer_ = context.createBuffer(1, 1, 22500);
-    }
-    source.buffer = createjs.WebAudioPlugin.buffer_;
-    source.onended = createjs.WebAudioPlugin.stopEmptySound_;
-    if (source.start) {
-      source.start(0);
-    } else {
-      source.noteOn(0);
-    }
-  }
-  createjs.WebAudioPlugin.playDummySound_();
+  createjs.WebAudioPlugin.getContext_();
 };
 
 // Export the createjs.WebAudioPlugin object to the global namespace.
@@ -681,6 +647,19 @@ createjs.Sound.HTMLAudioPlayer.prototype.start_ = function() {
       clearTimeout(this.timer_);
     }
     this.timer_ = setTimeout(this.handleEnded_.bind(this), this.duration);
+  }
+  var volume = this.volume;
+  if (volume != 1) {
+    audio.volume = volume;
+  }
+  this.listen_(audio, 'ended', createjs.Sound.Player.Event.ENDED);
+  audio.play();
+
+  // Add a touch-event listener to the Window object and replay this BGM again
+  // if the browser fails playing it.
+  this.paused_ = audio.paused;
+  if (this.paused_ && this.loop) {
+    this.listen_(window, 'touchstart', createjs.Sound.Player.Event.TOUCH);
   }
 };
 
@@ -1098,6 +1077,9 @@ createjs.Sound.BufferAudioPlayer.prototype.gain_ = null;
 createjs.Sound.BufferAudioPlayer.prototype.loader_ = null;
 
 /**
+ * Whether this sound should be played when the browser finishes decoding it.
+ * (A game may send a play request for this sound while the browser is decoding
+ * it.)
  * @type {number}
  * @private
  */
@@ -1283,6 +1265,7 @@ createjs.Sound.BufferAudioPlayer.prototype.handleLoad =
   /// <param type="createjs.Loader" name="loader"/>
   /// <param type="ArrayBuffer" name="buffer"/>
   if (buffer) {
+    var context = createjs.WebAudioPlugin.getContext_();
     if (createjs.USE_FRAME) {
       // Dispatch this audio data to the <iframe> element to decode it there.
       if (createjs.Config.useFrame()) {
@@ -1295,7 +1278,6 @@ createjs.Sound.BufferAudioPlayer.prototype.handleLoad =
         return complete;
       }
     }
-    var context = createjs.WebAudioPlugin.getContext_();
     var handleDecode =
         createjs.Sound.BufferAudioPlayer.prototype.handleDecode_.bind(this);
     context.decodeAudioData(

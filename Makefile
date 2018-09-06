@@ -28,9 +28,7 @@ CLOSURE_COMPIER = tools/closure_compiler/compiler.jar
 
 # The common source files, the files used by all modules.
 COMMON_SOURCES = createjs/base.js \
-                 createjs/base64.js \
                  createjs/object.js \
-                 createjs/object_list.js \
                  createjs/config.js \
                  createjs/counter.js \
                  createjs/event.js \
@@ -38,7 +36,8 @@ COMMON_SOURCES = createjs/base.js \
                  createjs/user_agent.js \
                  createjs/location.js \
                  createjs/image_factory.js \
-                 createjs/script_factory.js
+                 createjs/script_factory.js \
+                 createjs/base64.js
 
 # The source files of our object renderer.
 EASELJS_SOURCES = createjs/point.js \
@@ -62,7 +61,6 @@ EASELJS_SOURCES = createjs/point.js \
                   createjs/tween_property.js \
                   createjs/tween_motion.js \
                   createjs/tween_state.js \
-                  createjs/tween_target.js \
                   createjs/display_object.js \
                   createjs/container.js \
                   createjs/shape.js \
@@ -79,7 +77,8 @@ EASELJS_SOURCES = createjs/point.js \
                   createjs/tick_event.js \
                   createjs/ticker.js \
                   createjs/touch.js \
-                  createjs/button_helper.js
+                  createjs/button_helper.js \
+                  createjs/sprite_sheet_builder.js
 
 # The source file of our sound player.
 SOUNDJS_SOURCES = createjs/sound.js
@@ -96,7 +95,6 @@ PRELOADJS_SOURCES = createjs/error_event.js \
 
 # The source files of our animation player.
 TWEENJS_SOURCES = createjs/ease.js \
-                  createjs/tween_object.js \
                   createjs/tween.js \
                   createjs/timeline.js \
                   createjs/movie_clip.js

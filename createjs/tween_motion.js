@@ -43,43 +43,31 @@ createjs.TweenMotion = function() {
   this.properties_ = [
     null, null, null, null, null, null, null, null,
     null, null, null, null, null, null, null, null,
-    null, null, null, null
+    null, null, null, null, null, null, null, null
   ];
 
   /**
    * The current values of the number properties and the boolean ones.
-   * @type {Array.<number>}
+   * @type {Float32Array}
    * @private
    */
-  this.values_ = [ 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1 ];
-};
-
-/**
- * Property IDs used as indices of the property array and the value array.
- * @enum {number}
- */
-createjs.TweenMotion.ID = {
-  // Number properties
-  X: 0,
-  Y: 1,
-  SCALE_X: 2,
-  SCALE_Y: 3,
-  SKEW_X: 4,
-  SKEW_Y: 5,
-  REG_X: 6,
-  REG_Y: 7,
-  ROTATION: 8,
-  ALPHA: 9,
-  START_POSITION: 10,
-  PLAY_MODE: 11,
-  // Boolean properties
-  OFF: 12,
-  VISIBLE: 13,
-  LOOP: 14,
-  // String properties
-  TEXT: 15,
-  // Graphics property
-  GRAPHICS: 16
+  this.values_ = createjs.createFloat32Array([
+    createjs.Value.X,
+    createjs.Value.Y,
+    createjs.Value.SCALE_X,
+    createjs.Value.SCALE_Y,
+    createjs.Value.SKEW_X,
+    createjs.Value.SKEW_Y,
+    createjs.Value.REG_X,
+    createjs.Value.REG_Y,
+    createjs.Value.ROTATION,
+    createjs.Value.ALPHA,
+    createjs.Value.START_POSITION,
+    createjs.Value.PLAY_MODE,
+    createjs.Value.OFF,
+    createjs.Value.VISIBLE,
+    createjs.Value.LOOP
+  ]);
 };
 
 /**
@@ -545,11 +533,11 @@ createjs.TweenMotion.Curve.prototype.getLast = function(points, index, angle) {
 createjs.TweenMotion.prototype.properties_ = null;
 
 /**
- * The current values of the number properties of this motion.
- * @type {Array.<number>}
+ * The bit-mask representing the properties changed by this motion.
+ * @type {number}
  * @private
  */
-createjs.TweenMotion.prototype.values_ = null;
+createjs.TweenMotion.prototype.propertyMask_ = 0;
 
 /**
  * The bit-mask representing the properties changed by this motion and its
@@ -679,13 +667,37 @@ createjs.TweenMotion.prototype.getMask = function() {
 };
 
 /**
+ * Returns the raw value of the specified property.
+ * @param {number} id
+ * @return {number}
+ * @const
+ */
+createjs.TweenMotion.prototype.getValue = function(id) {
+  /// <param type="number" name="id"/>
+  /// <returns type="number"/>
+  return this.values_[id];
+};
+
+/**
+ * Changes the raw value of the specified property.
+ * @param {number} id
+ * @param {number} value
+ * @const
+ */
+createjs.TweenMotion.prototype.setValue = function(id, value) {
+  /// <param type="number" name="id"/>
+  /// <param type="number" name="value"/>
+  this.values_[id] = value;
+};
+
+/**
  * Returns the x position.
  * @return {number}
  * @const
  */
 createjs.TweenMotion.prototype.getX = function() {
   /// <returns type="number"/>
-  return this.values_[createjs.TweenMotion.ID.X];
+  return this.values_[createjs.Property.X];
 };
 
 /**
@@ -695,7 +707,7 @@ createjs.TweenMotion.prototype.getX = function() {
  */
 createjs.TweenMotion.prototype.setX = function(x) {
   /// <param type="number" name="x"/>
-  this.values_[createjs.TweenMotion.ID.X] = x;
+  this.values_[createjs.Property.X] = x;
 };
 
 /**
@@ -705,7 +717,7 @@ createjs.TweenMotion.prototype.setX = function(x) {
  */
 createjs.TweenMotion.prototype.getY = function() {
   /// <returns type="number"/>
-  return this.values_[createjs.TweenMotion.ID.Y];
+  return this.values_[createjs.Property.Y];
 };
 
 /**
@@ -715,7 +727,7 @@ createjs.TweenMotion.prototype.getY = function() {
  */
 createjs.TweenMotion.prototype.setY = function(y) {
   /// <param type="number" name="y"/>
-  this.values_[createjs.TweenMotion.ID.Y] = y;
+  this.values_[createjs.Property.Y] = y;
 };
 
 /**
@@ -725,7 +737,7 @@ createjs.TweenMotion.prototype.setY = function(y) {
  */
 createjs.TweenMotion.prototype.getScaleX = function() {
   /// <returns type="number"/>
-  return this.values_[createjs.TweenMotion.ID.SCALE_X];
+  return this.values_[createjs.Property.SCALE_X];
 };
 
 /**
@@ -735,7 +747,7 @@ createjs.TweenMotion.prototype.getScaleX = function() {
  */
 createjs.TweenMotion.prototype.setScaleX = function(scaleX) {
   /// <param type="number" name="scaleX"/>
-  this.values_[createjs.TweenMotion.ID.SCALE_X] = scaleX;
+  this.values_[createjs.Property.SCALE_X] = scaleX;
 };
 
 /**
@@ -745,7 +757,7 @@ createjs.TweenMotion.prototype.setScaleX = function(scaleX) {
  */
 createjs.TweenMotion.prototype.getScaleY = function() {
   /// <returns type="number"/>
-  return this.values_[createjs.TweenMotion.ID.SCALE_Y];
+  return this.values_[createjs.Property.SCALE_Y];
 };
 
 /**
@@ -755,7 +767,7 @@ createjs.TweenMotion.prototype.getScaleY = function() {
  */
 createjs.TweenMotion.prototype.setScaleY = function(scaleY) {
   /// <param type="number" name="scaleY"/>
-  this.values_[createjs.TweenMotion.ID.SCALE_Y] = scaleY;
+  this.values_[createjs.Property.SCALE_Y] = scaleY;
 };
 
 /**
@@ -765,7 +777,7 @@ createjs.TweenMotion.prototype.setScaleY = function(scaleY) {
  */
 createjs.TweenMotion.prototype.getSkewX = function() {
   /// <returns type="number"/>
-  return this.values_[createjs.TweenMotion.ID.SKEW_X];
+  return this.values_[createjs.Property.SKEW_X];
 };
 
 /**
@@ -775,7 +787,7 @@ createjs.TweenMotion.prototype.getSkewX = function() {
  */
 createjs.TweenMotion.prototype.setSkewX = function(skewX) {
   /// <param type="number" name="skewX"/>
-  this.values_[createjs.TweenMotion.ID.SKEW_X] = skewX;
+  this.values_[createjs.Property.SKEW_X] = skewX;
 };
 
 /**
@@ -785,7 +797,7 @@ createjs.TweenMotion.prototype.setSkewX = function(skewX) {
  */
 createjs.TweenMotion.prototype.getSkewY = function() {
   /// <returns type="number"/>
-  return this.values_[createjs.TweenMotion.ID.SKEW_Y];
+  return this.values_[createjs.Property.SKEW_Y];
 };
 
 /**
@@ -795,7 +807,7 @@ createjs.TweenMotion.prototype.getSkewY = function() {
  */
 createjs.TweenMotion.prototype.setSkewY = function(skewY) {
   /// <param type="number" name="skewY"/>
-  this.values_[createjs.TweenMotion.ID.SKEW_Y] = skewY;
+  this.values_[createjs.Property.SKEW_Y] = skewY;
 };
 
 /**
@@ -805,7 +817,7 @@ createjs.TweenMotion.prototype.setSkewY = function(skewY) {
  */
 createjs.TweenMotion.prototype.getRegX = function() {
   /// <returns type="number"/>
-  return this.values_[createjs.TweenMotion.ID.REG_X];
+  return this.values_[createjs.Property.REG_X];
 };
 
 /**
@@ -815,7 +827,7 @@ createjs.TweenMotion.prototype.getRegX = function() {
  */
 createjs.TweenMotion.prototype.setRegX = function(regX) {
   /// <param type="number" name="regX"/>
-  this.values_[createjs.TweenMotion.ID.REG_X] = regX;
+  this.values_[createjs.Property.REG_X] = regX;
 };
 
 /**
@@ -825,7 +837,7 @@ createjs.TweenMotion.prototype.setRegX = function(regX) {
  */
 createjs.TweenMotion.prototype.getRegY = function() {
   /// <returns type="number"/>
-  return this.values_[createjs.TweenMotion.ID.REG_Y];
+  return this.values_[createjs.Property.REG_Y];
 };
 
 /**
@@ -835,7 +847,7 @@ createjs.TweenMotion.prototype.getRegY = function() {
  */
 createjs.TweenMotion.prototype.setRegY = function(regY) {
   /// <param type="number" name="regY"/>
-  this.values_[createjs.TweenMotion.ID.REG_Y] = regY;
+  this.values_[createjs.Property.REG_Y] = regY;
 };
 
 /**
@@ -845,7 +857,7 @@ createjs.TweenMotion.prototype.setRegY = function(regY) {
  */
 createjs.TweenMotion.prototype.getRotation = function() {
   /// <returns type="number"/>
-  return this.values_[createjs.TweenMotion.ID.ROTATION];
+  return this.values_[createjs.Property.ROTATION];
 };
 
 /**
@@ -855,7 +867,7 @@ createjs.TweenMotion.prototype.getRotation = function() {
  */
 createjs.TweenMotion.prototype.setRotation = function(rotation) {
   /// <param type="number" name="rotation"/>
-  this.values_[createjs.TweenMotion.ID.ROTATION] = rotation;
+  this.values_[createjs.Property.ROTATION] = rotation;
 };
 
 /**
@@ -865,7 +877,7 @@ createjs.TweenMotion.prototype.setRotation = function(rotation) {
  */
 createjs.TweenMotion.prototype.getAlpha = function() {
   /// <returns type="number"/>
-  return this.values_[createjs.TweenMotion.ID.ALPHA];
+  return this.values_[createjs.Property.ALPHA];
 };
 
 /**
@@ -875,7 +887,7 @@ createjs.TweenMotion.prototype.getAlpha = function() {
  */
 createjs.TweenMotion.prototype.setAlpha = function(alpha) {
   /// <param type="number" name="alpha"/>
-  this.values_[createjs.TweenMotion.ID.ALPHA] = alpha;
+  this.values_[createjs.Property.ALPHA] = alpha;
 };
 
 /**
@@ -885,7 +897,7 @@ createjs.TweenMotion.prototype.setAlpha = function(alpha) {
  */
 createjs.TweenMotion.prototype.getStartPosition = function() {
   /// <returns type="number"/>
-  return this.values_[createjs.TweenMotion.ID.START_POSITION];
+  return this.values_[createjs.Property.START_POSITION];
 };
 
 /**
@@ -895,7 +907,7 @@ createjs.TweenMotion.prototype.getStartPosition = function() {
  */
 createjs.TweenMotion.prototype.setStartPosition = function(position) {
   /// <param type="number" name="position"/>
-  this.values_[createjs.TweenMotion.ID.START_POSITION] = position;
+  this.values_[createjs.Property.START_POSITION] = position;
 };
 
 /**
@@ -905,7 +917,7 @@ createjs.TweenMotion.prototype.setStartPosition = function(position) {
  */
 createjs.TweenMotion.prototype.getPlayMode = function() {
   /// <returns type="number"/>
-  return this.values_[createjs.TweenMotion.ID.PLAY_MODE];
+  return this.values_[createjs.Property.PLAY_MODE];
 };
 
 /**
@@ -915,7 +927,7 @@ createjs.TweenMotion.prototype.getPlayMode = function() {
  */
 createjs.TweenMotion.prototype.setPlayMode = function(playMode) {
   /// <param type="number" name="playMode"/>
-  this.values_[createjs.TweenMotion.ID.PLAY_MODE] = playMode;
+  this.values_[createjs.Property.PLAY_MODE] = playMode;
 };
 
 /**
@@ -925,7 +937,7 @@ createjs.TweenMotion.prototype.setPlayMode = function(playMode) {
  */
 createjs.TweenMotion.prototype.getOff = function() {
   /// <returns type="boolean"/>
-  return !!this.values_[createjs.TweenMotion.ID.OFF];
+  return !!this.values_[createjs.Property.OFF];
 };
 
 /**
@@ -935,37 +947,37 @@ createjs.TweenMotion.prototype.getOff = function() {
  */
 createjs.TweenMotion.prototype.setOff = function(off) {
   /// <param type="boolean" name="off"/>
-  this.values_[createjs.TweenMotion.ID.OFF] = off | 0;
+  this.values_[createjs.Property.OFF] = off | 0;
 };
 
 /**
  * Returns the visibility.
- * @return {boolean}
+ * @return {number}
  * @const
  */
 createjs.TweenMotion.prototype.getVisible = function() {
-  /// <returns type="boolean"/>
-  return !!this.values_[createjs.TweenMotion.ID.VISIBLE];
+  /// <returns type="number"/>
+  return this.values_[createjs.Property.VISIBLE];
 };
 
 /**
  * Sets the visibility.
- * @param {boolean} visible
+ * @param {number} visible
  * @const
  */
 createjs.TweenMotion.prototype.setVisible = function(visible) {
-  /// <param type="boolean" name="visible"/>
-  this.values_[createjs.TweenMotion.ID.VISIBLE] = visible | 0;
+  /// <param type="number" name="visible"/>
+  this.values_[createjs.Property.VISIBLE] = visible;
 };
 
 /**
  * Returns whether the target movie-clip starts over when it reaches its end.
- * @return {boolean}
+ * @return {number}
  * @const
  */
 createjs.TweenMotion.prototype.getLoop = function() {
-  /// <returns type="boolean"/>
-  return !!this.values_[createjs.TweenMotion.ID.LOOP];
+  /// <returns type="number"/>
+  return this.values_[createjs.Property.LOOP];
 };
 
 /**
@@ -975,7 +987,7 @@ createjs.TweenMotion.prototype.getLoop = function() {
  */
 createjs.TweenMotion.prototype.setLoop = function(loop) {
   /// <param type="boolean" name="loop"/>
-  this.values_[createjs.TweenMotion.ID.LOOP] = loop | 0;
+  this.values_[createjs.Property.LOOP] = loop | 0;
 };
 
 /**
@@ -1029,25 +1041,23 @@ createjs.TweenMotion.prototype.copy = function(motion) {
   /// <param type="createjs.TweenMotion" type="motion"/>
   // Create a new step and set the property values at the end of this step.
   var property;
-  for (var i = createjs.TweenMotion.ID.X;
-       i <= createjs.TweenMotion.ID.LOOP; ++i) {
+  for (var i = createjs.Property.X; i <= createjs.Property.LOOP; ++i) {
     property = this.getProperty_(i);
     motion.values_[i] = property ? property.getEndNumber() : this.values_[i];
   }
-  property = this.getProperty_(createjs.TweenMotion.ID.TEXT);
+  property = this.getProperty_(createjs.Property.TEXT);
   motion.text_ = property ? property.getEndText() : this.text_;
-  property = this.getProperty_(createjs.TweenMotion.ID.GRAPHICS);
+  property = this.getProperty_(createjs.Property.GRAPHICS);
   motion.graphics_ = property ? property.getEndGraphics() : this.graphics_;
 
   // When this value has a guide, overwrite the clone properties with its end
   // position and angle.
   if (this.points_) {
     var index = this.points_.length - 4;
-    motion.values_[createjs.TweenMotion.ID.X] = this.points_[index];
-    motion.values_[createjs.TweenMotion.ID.Y] = this.points_[index + 1];
+    motion.values_[createjs.Property.X] = this.points_[index];
+    motion.values_[createjs.Property.Y] = this.points_[index + 1];
     if (this.points_[index + 2]) {
-      motion.values_[createjs.TweenMotion.ID.ROTATION] =
-          this.points_[index + 3];
+      motion.values_[createjs.Property.ROTATION] = this.points_[index + 3];
     }
   }
 
@@ -1064,11 +1074,12 @@ createjs.TweenMotion.prototype.copy = function(motion) {
  */
 createjs.TweenMotion.prototype.updateOff = function(end) {
   /// <param type="number" name="end"/>
-  if (this.values_[createjs.TweenMotion.ID.OFF] != end) {
+  if (this.values_[createjs.Property.OFF] != end) {
     var property = new createjs.TweenProperty();
-    property.setBinary(this.values_[createjs.TweenMotion.ID.OFF], end);
-    this.properties_[createjs.TweenMotion.ID.OFF] = property;
-    this.mask_ |= 1 << createjs.TweenMotion.ID.OFF;
+    property.setBinary(this.values_[createjs.Property.OFF], end);
+    this.properties_[createjs.Property.OFF] = property;
+    this.mask_ |= 1 << createjs.Property.OFF;
+    this.propertyMask_ |= 1 << createjs.Property.OFF;
   }
 };
 
@@ -1092,10 +1103,12 @@ createjs.TweenMotion.prototype.updateGuide =
   var end = (opt_end == null) ? 1 : opt_end;
   var angle = 0;
   var orientation;
-  if (!opt_orientation || mask & (1 << createjs.TweenMotion.ID.ROTATION)) {
+  if (!opt_orientation || mask & (1 << createjs.Property.ROTATION)) {
     orientation = createjs.TweenMotion.Orientation.NONE;
-    this.mask_ |= (1 << createjs.TweenMotion.ID.X) |
-                  (1 << createjs.TweenMotion.ID.Y);
+    this.mask_ |= (1 << createjs.Property.X) |
+                  (1 << createjs.Property.Y);
+    this.propertyMask_ |= (1 << createjs.Property.X) |
+                          (1 << createjs.Property.Y);
   } else {
     var ORIENT = {
       'auto': createjs.TweenMotion.Orientation.AUTO,
@@ -1105,9 +1118,12 @@ createjs.TweenMotion.prototype.updateGuide =
     orientation =
         ORIENT[opt_orientation] || createjs.TweenMotion.Orientation.FIXED;
     angle = createjs.atan2(path[3] - path[1], path[2] - path[0]);
-    this.mask_ |= (1 << createjs.TweenMotion.ID.X) |
-                  (1 << createjs.TweenMotion.ID.Y) |
-                  (1 << createjs.TweenMotion.ID.ROTATION);
+    this.mask_ |= (1 << createjs.Property.X) |
+                  (1 << createjs.Property.Y) |
+                  (1 << createjs.Property.ROTATION);
+    this.propertyMask_ |= (1 << createjs.Property.X) |
+                          (1 << createjs.Property.Y) |
+                          (1 << createjs.Property.ROTATION);
   }
   // A 'guide' property always changes the 'x' and 'y' properties, i.e. it
   // changes number properties.
@@ -1198,23 +1214,23 @@ createjs.TweenMotion.prototype.updateProperties = function(properties) {
    * @const {Object.<string,number>}
    */
   var ID_MAP = {
-    'x': createjs.TweenMotion.ID.X,
-    'y': createjs.TweenMotion.ID.Y,
-    'scaleX': createjs.TweenMotion.ID.SCALE_X,
-    'scaleY': createjs.TweenMotion.ID.SCALE_Y,
-    'skewX': createjs.TweenMotion.ID.SKEW_X,
-    'skewY': createjs.TweenMotion.ID.SKEW_Y,
-    'regX': createjs.TweenMotion.ID.REG_X,
-    'regY': createjs.TweenMotion.ID.REG_Y,
-    'rotation': createjs.TweenMotion.ID.ROTATION,
-    'alpha': createjs.TweenMotion.ID.ALPHA,
-    '_off': createjs.TweenMotion.ID.OFF,
-    'visible': createjs.TweenMotion.ID.VISIBLE,
-    'text': createjs.TweenMotion.ID.TEXT,
-    'graphics': createjs.TweenMotion.ID.GRAPHICS,
-    'startPosition': createjs.TweenMotion.ID.START_POSITION,
-    'loop': createjs.TweenMotion.ID.LOOP,
-    'playMode': createjs.TweenMotion.ID.PLAY_MODE
+    'x': createjs.Property.X,
+    'y': createjs.Property.Y,
+    'scaleX': createjs.Property.SCALE_X,
+    'scaleY': createjs.Property.SCALE_Y,
+    'skewX': createjs.Property.SKEW_X,
+    'skewY': createjs.Property.SKEW_Y,
+    'regX': createjs.Property.REG_X,
+    'regY': createjs.Property.REG_Y,
+    'rotation': createjs.Property.ROTATION,
+    'alpha': createjs.Property.ALPHA,
+    'startPosition': createjs.Property.START_POSITION,
+    'playMode': createjs.Property.PLAY_MODE,
+    '_off': createjs.Property.OFF,
+    'visible': createjs.Property.VISIBLE,
+    'loop': createjs.Property.LOOP,
+    'text': createjs.Property.TEXT,
+    'graphics': createjs.Property.GRAPHICS
   };
   var graphics = null;
   var mask = 0;
@@ -1223,14 +1239,14 @@ createjs.TweenMotion.prototype.updateProperties = function(properties) {
     var property = new createjs.TweenProperty();
     var id = ID_MAP[key];
     mask |= 1 << id;
-    if (id <= createjs.TweenMotion.ID.START_POSITION) {
+    if (id <= createjs.Property.START_POSITION) {
       property.setNumber(this.values_[id], createjs.castNumber(end));
       this.noNumber_ = false;
-    } else if (id == createjs.TweenMotion.ID.PLAY_MODE) {
+    } else if (id == createjs.Property.PLAY_MODE) {
       property.setPlayMode(this.values_[id], createjs.castString(end));
-    } else if (id <= createjs.TweenMotion.ID.LOOP) {
+    } else if (id <= createjs.Property.LOOP) {
       property.setBinary(this.values_[id], end | 0);
-    } else if (id == createjs.TweenMotion.ID.GRAPHICS) {
+    } else if (id == createjs.Property.GRAPHICS) {
       graphics = /** @type {createjs.Graphics} */ (end);
       property.setGraphics(this.graphics_, graphics);
     } else {
@@ -1241,6 +1257,7 @@ createjs.TweenMotion.prototype.updateProperties = function(properties) {
 
   // Merge the mask of properties parsed by this method.
   this.mask_ |= mask;
+  this.propertyMask_ |= mask;
 
   // Parse a 'guide' property AFTER parsing the other properties to ignore its
   // 'orient' property when the input property has a 'rotation' property.
@@ -1302,45 +1319,81 @@ createjs.TweenMotion.prototype.interpolate = function(time) {
   // one. This guide should use the value of the 'rotation' property.)
   if (this.points_) {
     var index = time << 2;
-    this.values_[createjs.TweenMotion.ID.X] = this.points_[index];
-    this.values_[createjs.TweenMotion.ID.Y] = this.points_[index + 1];
+    this.values_[createjs.Property.X] = this.points_[index];
+    this.values_[createjs.Property.Y] = this.points_[index + 1];
     if (this.points_[index + 2]) {
-      this.values_[createjs.TweenMotion.ID.ROTATION] = this.points_[index + 3];
+      this.values_[createjs.Property.ROTATION] = this.points_[index + 3];
     }
   }
 
   // Scan properties to update this motion.
   // Scan number properties.
-  var property;
-  for (var i = createjs.TweenMotion.ID.X;
-       i <= createjs.TweenMotion.ID.ALPHA; ++i) {
-    property = this.getProperty_(i);
-    if (property) {
-      this.values_[i] = property.getNumber(ratio);
+  var kTransformMask = (1 << createjs.Property.X) |
+                       (1 << createjs.Property.Y) |
+                       (1 << createjs.Property.SCALE_X) |
+                       (1 << createjs.Property.SCALE_Y) |
+                       (1 << createjs.Property.SKEW_X) |
+                       (1 << createjs.Property.SKEW_Y) |
+                       (1 << createjs.Property.REG_X) |
+                       (1 << createjs.Property.REG_Y) |
+                       (1 << createjs.Property.ROTATION) |
+                       (1 << createjs.Property.ALPHA);
+  if (this.propertyMask_ & kTransformMask) {
+    for (var i = createjs.Property.X; i <= createjs.Property.ALPHA; ++i) {
+      var property = this.getProperty_(i);
+      if (property) {
+        this.values_[i] = property.getNumber(ratio);
+      }
     }
   }
-  // A 'startPosition' property is an autonomous clock, i.e. a position
-  // automatically increased by the target createjs.MovieClip object.
-  property = this.getProperty_(createjs.TweenMotion.ID.START_POSITION);
-  this.values_[createjs.TweenMotion.ID.START_POSITION] =
-      property ? property.getNumber(position) : -1;
-  // Scan binary properties.
-  for (var i = createjs.TweenMotion.ID.PLAY_MODE;
-       i <= createjs.TweenMotion.ID.LOOP; ++i) {
-    property = this.getProperty_(i);
-    if (property) {
-      this.values_[i] = property.getBinary(ratio);
+  var kPropertyMask = (1 << createjs.Property.START_POSITION) |
+                      (1 << createjs.Property.PLAY_MODE) |
+                      (1 << createjs.Property.OFF) |
+                      (1 << createjs.Property.VISIBLE) |
+                      (1 << createjs.Property.LOOP) |
+                      (1 << createjs.Property.TEXT) |
+                      (1 << createjs.Property.GRAPHICS);
+  if (this.propertyMask_ & kPropertyMask) {
+    // A 'startPosition' property is an autonomous clock, i.e. a position
+    // automatically increased by the target createjs.MovieClip object.
+    var property = this.getProperty_(createjs.Property.START_POSITION);
+    this.values_[createjs.Property.START_POSITION] =
+        property ? property.getNumber(position) : -1;
+    // Scan binary properties.
+    for (var i = createjs.Property.PLAY_MODE; i <= createjs.Property.LOOP; ++i) {
+      property = this.getProperty_(i);
+      if (property) {
+        this.values_[i] = property.getBinary(ratio);
+      }
     }
-  }
-  // Scan the text property.
-  property = this.getProperty_(createjs.TweenMotion.ID.TEXT);
-  if (property) {
-    this.text_ = property.getText(ratio);
-  }
-  // Scan the graphics (or Object) property.
-  property = this.getProperty_(createjs.TweenMotion.ID.GRAPHICS);
-  if (property) {
-    this.graphics_ = property.getGraphics(ratio);
+    // Scan the text property.
+    property = this.getProperty_(createjs.Property.TEXT);
+    if (property) {
+      this.text_ = property.getText(ratio);
+    }
+    // Scan the graphics (or Object) property.
+    property = this.getProperty_(createjs.Property.GRAPHICS);
+    if (property) {
+      this.graphics_ = property.getGraphics(ratio);
+    }
   }
   return this.mask_;
-}
+};
+
+/**
+ * Calculates the property values of a child motion of a createjs.TweenState
+ * object. A state tween mostly consists only of an '_off' property and this
+ * method is optimized for the case.
+ * @param {number} time
+ * @return {number}
+ * @const
+ */
+createjs.TweenMotion.prototype.interpolateState = function(time) {
+  if (this.propertyMask_ == (1 << createjs.Property.OFF)) {
+    var position = (time - this.start_) * this.scale_;
+    var property = this.getProperty_(createjs.Property.OFF);
+    this.values_[createjs.Property.OFF] = property.getBinary(position);
+    return this.mask_;
+  }
+  return this.interpolate(time);
+};

@@ -731,6 +731,18 @@ createjs.LoadQueue.prototype.handleFileError = function(loader, type, message) {
   this.updateProgress_();
   this.sendError_(loader.getItem().exportValues(), 'FILE_LOAD_ERROR');
   this.removeLoader_(loader);
+  var item = loader.getItem();
+  if (item.isScript()) {
+    // Remove this non-existent script from the scripts array so the
+    // handleFileComplete() method can ignore it.
+    var length = this.scripts_.length;
+    for (var i = 0; i < length; ++i) {
+      if (this.scripts_[i] === item) {
+        this.scripts_.splice(i, 1);
+        break;
+      }
+    }
+  }
   this.loadNext_();
 };
 

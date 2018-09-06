@@ -32,56 +32,34 @@
  * @constructor
  */
 createjs.TweenProperty = function() {
+  /**
+   * The values of this property when it is a number property or a boolean one.
+   *   +-------+----------+
+   *   | index | property |
+   *   +-------+----------+
+   *   | 0     | start    |
+   *   | 1     | end      |
+   *   | 2     | step     |
+   *   +-------+----------+
+   * @type {Float32Array}
+   * @private
+   */
+  this.numbers_ = createjs.createFloat32Array([0, 0, 0]);
 };
 
 /**
- * The start value (when this property is a number property).
- * @type {number}
+ * The values of this property when it is a string property.
+ * @type {Array.<string>}
  * @private
  */
-createjs.TweenProperty.prototype.startNumber_ = 0;
+createjs.TweenProperty.prototype.texts_ = null;
 
 /**
- * The end value (when this property is a number property).
- * @type {number}
+ * The values of this property when it is a createjs.Graphics property.
+ * @type {Array.<createjs.Graphics>}
  * @private
  */
-createjs.TweenProperty.prototype.endNumber_ = 0;
-
-/**
- * The difference between the start value and the end value.
- * @type {number}
- * @private
- */
-createjs.TweenProperty.prototype.stepNumber_ = 0;
-
-/**
- * The start value (when this property is a string property).
- * @type {string}
- * @private
- */
-createjs.TweenProperty.prototype.startText_ = '';
-
-/**
- * The end value (when this property is a string property).
- * @type {string}
- * @private
- */
-createjs.TweenProperty.prototype.endText_ = '';
-
-/**
- * The start value (when this property is a createjs.Graphics property).
- * @type {createjs.Graphics}
- * @private
- */
-createjs.TweenProperty.prototype.startGraphics_ = null;
-
-/**
- * The end value (when this property is a createjs.Graphics property).
- * @type {createjs.Graphics}
- * @private
- */
-createjs.TweenProperty.prototype.endGraphics_ = null;
+createjs.TweenProperty.prototype.graphics_ = null;
 
 /**
  * Returns the end value in number.
@@ -90,7 +68,7 @@ createjs.TweenProperty.prototype.endGraphics_ = null;
  */
 createjs.TweenProperty.prototype.getEndNumber = function() {
   /// <returns type="number"/>
-  return this.endNumber_;
+  return this.numbers_[1];
 }
 
 /**
@@ -100,7 +78,7 @@ createjs.TweenProperty.prototype.getEndNumber = function() {
  */
 createjs.TweenProperty.prototype.getEndText = function() {
   /// <returns type="string"/>
-  return this.endText_;
+  return this.texts_[1];
 }
 
 /**
@@ -110,7 +88,7 @@ createjs.TweenProperty.prototype.getEndText = function() {
  */
 createjs.TweenProperty.prototype.getEndGraphics = function() {
   /// <returns type="createjs.Graphics"/>
-  return this.endGraphics_;
+  return this.graphics_[1];
 }
 
 /**
@@ -122,7 +100,7 @@ createjs.TweenProperty.prototype.getEndGraphics = function() {
 createjs.TweenProperty.prototype.getNumber = function(ratio) {
   /// <param type="number" name="ratio"/>
   /// <returns type="number"/>
-  return this.startNumber_ + ratio * this.stepumber_;
+  return this.numbers_[0] + ratio * this.numbers_[2];
 };
 
 /**
@@ -134,9 +112,9 @@ createjs.TweenProperty.prototype.getNumber = function(ratio) {
 createjs.TweenProperty.prototype.setNumber = function(start, end) {
   /// <param type="number" name="start"/>
   /// <param type="number" name="end"/>
-  this.startNumber_ = start;
-  this.endNumber_ = end;
-  this.stepumber_ = end - start;
+  this.numbers_[0] = start;
+  this.numbers_[1] = end;
+  this.numbers_[2] = end - start;
 };
 
 /**
@@ -148,7 +126,7 @@ createjs.TweenProperty.prototype.setNumber = function(start, end) {
 createjs.TweenProperty.prototype.getBinary = function(ratio) {
   /// <param type="number" name="ratio"/>
   /// <returns type="number"/>
-  return ratio == 1 ? this.endNumber_ : this.startNumber_;
+  return this.numbers_[createjs.truncate(ratio)];
 };
 
 /**
@@ -160,8 +138,8 @@ createjs.TweenProperty.prototype.getBinary = function(ratio) {
 createjs.TweenProperty.prototype.setBinary = function(start, end) {
   /// <param type="number" name="start"/>
   /// <param type="number" name="end"/>
-  this.startNumber_ = start;
-  this.endNumber_ = end;
+  this.numbers_[0] = start;
+  this.numbers_[1] = end;
 };
 
 /**
@@ -173,11 +151,11 @@ createjs.TweenProperty.prototype.setBinary = function(start, end) {
 createjs.TweenProperty.prototype.setPlayMode = function(start, end) {
   /// <param type="number" name="start"/>
   /// <param type="string" name="end"/>
-  this.startNumber_ = start;
+  this.numbers_[0] = start;
   var INDEPENDENT = 0;
   var SINGLE = 1;
   var SYNCHED = 2;
-  this.endNumber_ = (end == 'single') ? SINGLE :
+  this.numbers_[1] = (end == 'single') ? SINGLE :
       ((end == 'synched') ? SYNCHED : INDEPENDENT);
 };
 
@@ -190,7 +168,7 @@ createjs.TweenProperty.prototype.setPlayMode = function(start, end) {
 createjs.TweenProperty.prototype.getText = function(ratio) {
   /// <param type="number" name="ratio"/>
   /// <returns type="string"/>
-  return ratio == 1 ? this.endText_ : this.startText_;
+  return this.texts_[createjs.truncate(ratio)];
 };
 
 /**
@@ -202,8 +180,7 @@ createjs.TweenProperty.prototype.getText = function(ratio) {
 createjs.TweenProperty.prototype.setText = function(start, end) {
   /// <param type="string" name="start"/>
   /// <param type="string" name="end"/>
-  this.startText_ = start;
-  this.endText_ = end;
+  this.texts_ = [start, end];
 };
 
 /**
@@ -215,7 +192,7 @@ createjs.TweenProperty.prototype.setText = function(start, end) {
 createjs.TweenProperty.prototype.getGraphics = function(ratio) {
   /// <param type="number" name="ratio"/>
   /// <returns type="createjs.Graphics"/>
-  return ratio == 1 ? this.endGraphics_ : this.startGraphics_;
+  return this.graphics_[createjs.truncate(ratio)];
 };
 
 /**
@@ -227,6 +204,5 @@ createjs.TweenProperty.prototype.getGraphics = function(ratio) {
 createjs.TweenProperty.prototype.setGraphics = function(start, end) {
   /// <param type="createjs.Graphics" name="start"/>
   /// <param type="createjs.Graphics" name="end"/>
-  this.startGraphics_ = start;
-  this.endGraphics_ = end;
+  this.graphics_ = [start, end];
 };

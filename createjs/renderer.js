@@ -272,10 +272,10 @@ createjs.Renderer.Clip.cloneBox = function(box) {
   /// <param type="createjs.BoundingBox" name="box"/>
   /// <returns type="createjs.BoundingBox"/>
   var clone = new createjs.BoundingBox();
-  clone.minX = createjs.truncate(box.minX) + 1;
-  clone.minY = createjs.truncate(box.minY);
-  clone.maxX = createjs.truncate(box.maxX);
-  clone.maxY = createjs.truncate(box.maxY);
+  clone.b[0] = createjs.truncate(box.b[0]) + 1;
+  clone.b[1] = createjs.truncate(box.b[1]);
+  clone.b[2] = createjs.truncate(box.b[2]);
+  clone.b[3] = createjs.truncate(box.b[3]);
   return clone;
 };
 
@@ -541,63 +541,29 @@ createjs.Renderer.prototype.getCSSRatio = function() {
 
 /**
  * Sets an affine transformation.
- * @param {number} a
- * @param {number} b
- * @param {number} c
- * @param {number} d
- * @param {number} tx
- * @param {number} ty
+ * @param {Float32Array} m
  */
-createjs.Renderer.prototype.setTransformation = function(a, b, c, d, tx, ty) {
-  /// <param type="number" name="a"/>
-  /// <param type="number" name="b"/>
-  /// <param type="number" name="c"/>
-  /// <param type="number" name="d"/>
-  /// <param type="number" name="tx"/>
-  /// <param type="number" name="ty"/>
-  createjs.notReached();
-};
-
-/**
- * Sets the alpha value.
- * @param {number} alpha
- */
-createjs.Renderer.prototype.setAlpha = function(alpha) {
-  /// <param type="number" name="alpha"/>
+createjs.Renderer.prototype.setProperties = function(m) {
+  /// <param type="Float32Array" name="m"/>
   createjs.notReached();
 };
 
 /**
  * Sets the color matrix.
- * @param {Array.<number>} matrix
+ * @param {Float32Array} matrix
  */
 createjs.Renderer.prototype.setColorMatrix = function(matrix) {
-  /// <param type="Array" elementType="number" name="matrix"/>
-};
-
-/**
- * Sets the color-composition operation.
- * @param {number} operation
- */
-createjs.Renderer.prototype.setComposition = function(operation) {
-  /// <param type="number" name="operation"/>
-  createjs.notReached();
+  /// <param type="Float32Array" name="matrix"/>
 };
 
 /**
  * Draws an HTMLCanvasElement object to the specified rectangle.
  * @param {HTMLCanvasElement} canvas
- * @param {number} x
- * @param {number} y
- * @param {number} width
- * @param {number} height
+ * @param {Float32Array} values
  */
-createjs.Renderer.prototype.drawCanvas = function(canvas, x, y, width, height) {
+createjs.Renderer.prototype.drawCanvas = function(canvas, values) {
   /// <param type="HTMLCanvasElement" name="canvas"/>
-  /// <param type="number" name="x"/>
-  /// <param type="number" name="y"/>
-  /// <param type="number" name="width"/>
-  /// <param type="number" name="height"/>
+  /// <param type="Float32Array" name="values"/>
   createjs.notReached();
 };
 
@@ -628,28 +594,41 @@ createjs.Renderer.prototype.drawVideo = function(video, x, y, width, height) {
 };
 
 /**
- * Draws a part of an HTMLImageElement object to the specified rectangle.
- * @param {HTMLImageElement} image
- * @param {number} srcX
- * @param {number} srcY
- * @param {number} srcWidth
- * @param {number} srcHeight
+ * Starts rendering a sprite frame.
  * @param {number} x
  * @param {number} y
  * @param {number} width
  * @param {number} height
  */
-createjs.Renderer.prototype.drawPartial =
-    function(image, srcX, srcY, srcWidth, srcHeight, x, y, width, height) {
-  /// <param type="HTMLImageElement" name="image"/>
-  /// <param type="number" name="srcX"/>
-  /// <param type="number" name="srcY"/>
-  /// <param type="number" name="srcWidth"/>
-  /// <param type="number" name="srcHeight"/>
+createjs.Renderer.prototype.beginSprite = function(x, y, width, height) {
   /// <param type="number" name="x"/>
   /// <param type="number" name="y"/>
   /// <param type="number" name="width"/>
   /// <param type="number" name="height"/>
+};
+
+/**
+ * Finishes rendering a sprite frame.
+ */
+createjs.Renderer.prototype.endSprite = function() {
+};
+
+/**
+ * Draws a sprite frame.
+ * @param {HTMLCanvasElement} canvas
+ * @param {Float32Array} values
+ */
+createjs.Renderer.prototype.drawSprite = function(canvas, values) {
+};
+
+/**
+ * Draws a part of an HTMLImageElement object to the specified rectangle.
+ * @param {HTMLImageElement} image
+ * @param {Float32Array} values
+ */
+createjs.Renderer.prototype.drawPartial = function(image, values) {
+  /// <param type="HTMLImageElement" name="image"/>
+  /// <param type="Float32Array" name="values"/>
   createjs.notReached();
 };
 
@@ -692,7 +671,6 @@ createjs.Renderer.prototype.begin = function() {
  */
 createjs.Renderer.prototype.paint = function(time) {
   /// <param type="number" name="time"/>
-  createjs.notReached();
 };
 
 if (createjs.DEBUG) {

@@ -25,7 +25,6 @@
 /// <reference path="base.js"/>
 /// <reference path="event.js"/>
 /// <reference path="object.js"/>
-/// <reference path="object_list.js"/>
 
 /**
  * A class that can receive events and dispatch events. This class can dispatch
@@ -201,39 +200,102 @@ createjs.EventDispatcher.Context.prototype.dispatch = function(event) {
 };
 
 /**
- * A class that encapsulates an array that allows applications to add objects to
- * the list or to remove ones from it while they are iterating it.
- * @extends {createjs.ObjectList}
+ * The inner class that encapsulates an array of event listener and their
+ * contexts. This class allows applications to add listeners to the list or to
+ * remove ones from it while they are iterating it.
+ * @param {createjs.EventDispatcher.Context} context
  * @constructor
  */
-createjs.EventDispatcher.ObjectList = function() {
-  createjs.ObjectList.call(this);
+createjs.EventDispatcher.ContextList = function(context) {
+  /// <param type="createjs.EventDispatcher.Context" name="context"/>
+  /**
+   * The list of event contexts.
+   * @type {Array.<createjs.EventDispatcher.Context>}
+   * @private
+   */
+  this.contexts_ = [context];
+
+  /**
+   * The clone of the context list. This clone is used for adding contexts (and
+   * for removing them) when the context list is locked.
+   * @type {Array.<createjs.EventDispatcher.Context>}
+   * @private
+   */
+  this.clone_ = null;
+
+  /**
+   * Whether this list is locked.
+   * @type {boolean}
+   * @private
+   */
+  this.locked_ = false;
 };
-createjs.inherits('EventDispatcher.ObjectList',
-                  createjs.EventDispatcher.ObjectList,
-                  createjs.ObjectList);
 
 /**
- * Removes an event listener from the context list.
- * @param {Function|Object} listener
+ * Retrieves the editable contexts of this list.
+ * @return {Array.<createjs.EventDispatcher.Context>}
  * @private
+ * @const
  */
-createjs.EventDispatcher.ObjectList.prototype.removeListener_ =
-    function(listener) {
-  /// <signature>
-  ///   <param type="Function" name="callback"/>
-  /// </signature>
-  /// <signature>
-  ///   <param type="Object" name="listener"/>
-  /// </signature>
-  var list = this.getItems();
-  for (var i = 0; i < list.length; ++i) {
-    var item = /** @type {createjs.EventDispatcher.Context} */ (list[i]);
-    if (item.isEqual(listener)) {
-      list.splice(i, 1);
-      return;
-    }
+createjs.EventDispatcher.ContextList.prototype.getContexts_ = function() {
+  /// <returns type="Array" elementType="createjs.EventDispatcher.Context"/>
+  if (!this.locked_) {
+    return this.contexts_;
   }
+  if (!this.clone_) {
+    this.clone_ = this.contexts_.slice();
+  }
+  return this.clone_;
+};
+
+/**
+ * Returns the number of contexts in this list.
+ * @return {number}
+ * @private
+ * @const
+ */
+createjs.EventDispatcher.ContextList.prototype.getLength_ = function() {
+  return this.contexts_.length;
+};
+
+/**
+ * Locks this list for iteration. This method changes the state of this list to
+ * 'locked' to apply succeeding add operations and remove ones to its clone.
+ * @return {Array.<createjs.EventDispatcher.Context>}
+ * @private
+ * @const
+ */
+createjs.EventDispatcher.ContextList.prototype.lock_ = function() {
+  /// <returns type="Array" elementType="createjs.EventDispatcher.Context"/>
+  this.locked_ = true;
+  return this.contexts_;
+};
+
+/**
+ * Unlocks this list. This method changes the stage of this list to 'unlocked'
+ * and copies its clone if an application edits the list while it is locked.
+ * @const
+ */
+createjs.EventDispatcher.ContextList.prototype.unlock_ = function() {
+  this.locked_ = false;
+  if (this.clone_) {
+    this.contexts_ = this.clone_;
+    this.clone_ = null;
+  }
+};
+
+/**
+ * Returns the clone of this list.
+ * @return {Array.<createjs.EventDispatcher.Context>}
+ * @private
+ * @const
+ */
+createjs.EventDispatcher.ContextList.prototype.getClone_ = function() {
+  /// <returns type="Array" elementType="createjs.EventDispatcher.Context"/>
+  if (!this.clone_) {
+    this.clone_ = this.contexts_.slice();
+  }
+  return this.clone_;
 };
 
 /**
@@ -245,7 +307,7 @@ createjs.EventDispatcher.prototype['parent'] = null;
 
 /**
  * Event listeners for bubbling events and at-target ones.
- * @type {Object.<string,createjs.EventDispatcher.ObjectList>}
+ * @type {Object.<string,createjs.EventDispatcher.ContextList>}
  * @private
  */
 createjs.EventDispatcher.prototype.listeners_ = null;
@@ -273,30 +335,21 @@ createjs.EventDispatcher.prototype.dispatching_ = false;
 createjs.EventDispatcher.prototype.events_ = null;
 
 /**
- * Returns a mapping table of event listeners.
- * @return {Object.<string,createjs.EventDispatcher.ObjectList>}
- * @private
- */
-createjs.EventDispatcher.prototype.getListeners_ = function() {
-  /// <param type="boolean" name="capture"/>
-  /// <returns type="Object"/>
-  this.listeners_ = this.listeners_ || {};
-  return this.listeners_;
-};
-
-/**
  * Dispatches a createjs.Event object to listeners attached to this object.
  * @param {createjs.Event} event
  * @param {number} phase
  * @private
+ * @const
  */
 createjs.EventDispatcher.prototype.dispatchEvent_ = function(event, phase) {
   /// <param type="createjs.Event" name="event"/>
   /// <param type="number" name="phase"/>
   /// <var type="createjs.EventDispatcher.ObjectList" name="list"/>
-  var listeners = this.getListeners_();
-  var list = listeners[event.type];
-  if (!list || !list.getLength()) {
+  if (!this.listeners_) {
+    return;
+  }
+  var list = this.listeners_[event.type];
+  if (!list || !list.getLength_()) {
     return;
   }
   event.setProperties(this, phase);
@@ -312,23 +365,29 @@ createjs.EventDispatcher.prototype.dispatchEvent_ = function(event, phase) {
 
   // Lock the context array and dispatch this event. Event handlers may add or
   // remove event listeners while this object calls them and it causes some
-  // consistency problems, e.g. reading the object of an non-existent index.
-  // To avoid such consistency problems, this loop locks the createjs.ObjectList
-  // object so event dispatchers can change its clone, not the original array.
-  // Cloning an array is not so fast on old devices and it is better to clone an
-  // array only when an event listener adds a listener or removes one.
+  // consistency problems, e.g. reading the object of an non-existent index. To
+  // avoid such consistency problems, this loop locks the context list so event
+  // dispatchers can change its clone, not the original array. Cloning an array
+  // is not so fast on old devices and it is better to clone an array only when
+  // an event listener adds a listener or removes one.
   this.dispatching_ = true;
-  var contexts = list.lock();
+  var contexts = list.lock_();
   var length = contexts.length;
   for (var i = 0; i < length && !event.immediatePropagationStopped; ++i) {
     event.removed = false;
     var context = contexts[i];
     var remove = context.dispatch(event);
     if (remove) {
-      list.removeItem(context);
+      var clone = list.getClone_();
+      for (var j = clone.length - 1; j >= 0; --j) {
+        if (clone[j] === context) {
+          clone.splice(j, 1);
+          break;
+        }
+      }
     }
   }
-  list.unlock();
+  list.unlock_();
   this.dispatching_ = false;
 
   // Dispatch the events having queued to this object. Event listeners for these
@@ -353,6 +412,7 @@ createjs.EventDispatcher.prototype.dispatchEvent_ = function(event, phase) {
  * @param {createjs.Event} event
  * @return {boolean}
  * @protected
+ * @const
  */
 createjs.EventDispatcher.prototype.dispatchRawEvent = function(event) {
   /// <param type="createjs.Event" name="event"/>
@@ -376,6 +436,7 @@ createjs.EventDispatcher.prototype.dispatchRawEvent = function(event) {
  * @param {string} type
  * @return {boolean}
  * @protected
+ * @const
  */
 createjs.EventDispatcher.prototype.dispatchNotification = function(type) {
   /// <param type="string" name="type"/>
@@ -393,6 +454,7 @@ createjs.EventDispatcher.prototype.dispatchNotification = function(type) {
  * Returns event types that have event listeners.
  * @return {number}
  * @protected
+ * @const
  */
 createjs.EventDispatcher.prototype.getEventTypes = function() {
   /// <returns type="number"/>
@@ -413,6 +475,7 @@ createjs.EventDispatcher.prototype.getEventTypes = function() {
  * @param {Function|Object} listener
  * @param {boolean=} opt_useCapture
  * @return {Function|Object}
+ * @const
  */
 createjs.EventDispatcher.prototype.addListener =
     function(type, listener, opt_useCapture) {
@@ -452,21 +515,26 @@ createjs.EventDispatcher.prototype.on =
   ///   <param type="boolean" optional="true" name="opt_useCapture"/>
   ///   <returns type="Object"/>
   /// </signature>
-  if (!listener || opt_useCapture) {
-    return listener;
+  if (listener && !opt_useCapture) {
+    var scope = opt_scope || this;
+    var once = opt_once || false;
+    var data = opt_data || null;
+    var context =
+        new createjs.EventDispatcher.Context(listener, scope, once, data);
+    if (!this.listeners_) {
+      this.listeners_ = {};
+    }
+    var list = this.listeners_[type];
+    if (!list) {
+      this.listeners_[type] = new createjs.EventDispatcher.ContextList(context);
+    } else {
+      var contexts = list.getContexts_();
+      contexts.push(context);
+    }
+    // Update the bit-mask of event types to avoid hit-testing with display
+    // objects that do not have event listeners.
+    this.eventTypes_ |= createjs.EventDispatcher.getEventId_(type);
   }
-  var scope = opt_scope || this;
-  var once = opt_once || false;
-  var data = opt_data || null;
-  var listeners = this.getListeners_();
-  if (!listeners[type]) {
-    listeners[type] = new createjs.EventDispatcher.ObjectList();
-  }
-  listeners[type].pushItem(
-      new createjs.EventDispatcher.Context(listener, scope, once, data));
-  // Update the bit-mask of event types to avoid hit-testing with display
-  // objects that do not have event listeners.
-  this.eventTypes_ |= createjs.EventDispatcher.getEventId_(type);
   return listener;
 };
 
@@ -485,21 +553,26 @@ createjs.EventDispatcher.prototype.off =
   ///   <param type="boolean" optional="true" name="opt_useCapture"/>
   ///   <returns type="Object"/>
   /// </signature>
-  if (!listener || opt_useCapture) {
-    return;
-  }
-  var listeners = this.getListeners_();
-  var list = listeners[type];
-  if (!list || !list.getLength()) {
-    return;
-  }
-  list.removeListener_(listener);
-  // Remove the specified event from the bit-mask when this object does not have
-  // listeners to stop hit-testing this object any longer.
-  if (!list.getLength()) {
-    var mask = createjs.EventDispatcher.getEventId_(type);
-    if (mask) {
-      this.eventTypes_ &= ~mask;
+  if (listener && !opt_useCapture && this.listeners_) {
+    var list = this.listeners_[type];
+    if (list) {
+      // Remove this listener from the context list.
+      var contexts = list.getContexts_();
+      for (var i = contexts.length - 1; i >= 0; --i) {
+        var context = contexts[i];
+        if (context.isEqual(listener)) {
+          contexts.splice(i, 1);
+          break;
+        }
+      }
+      // Remove the specified event from the bit-mask when this object does
+      // not have listeners to stop hit-testing this object any longer.
+      if (!contexts.length) {
+        var mask = createjs.EventDispatcher.getEventId_(type);
+        if (mask) {
+          this.eventTypes_ &= ~mask;
+        }
+      }
     }
   }
 };
@@ -514,6 +587,7 @@ createjs.EventDispatcher.prototype.off =
  *   displayObject.removeAllEventListeners("click");
  *
  * @param {string=} opt_type
+ * @const
  */
 createjs.EventDispatcher.prototype.removeAllListeners = function(opt_type) {
   /// <param type="string" optional="true" name="opt_type"/>
@@ -539,6 +613,7 @@ createjs.EventDispatcher.prototype.removeAllListeners = function(opt_type) {
  * @param {Object|string|Event} value
  * @param {Object=} opt_target
  * @return {boolean}
+ * @const
  */
 createjs.EventDispatcher.prototype.dispatch = function(value, opt_target) {
   /// <signature>
@@ -556,14 +631,10 @@ createjs.EventDispatcher.prototype.dispatch = function(value, opt_target) {
   ///   <param type="Object" optional="true" name="opt_target"/>
   ///   <returns type="boolean"/>
   /// </signature>
-  var event = null;
   if (createjs.isString(value)) {
-    /// <var type="string" name="type"/>
-    var type = /** @type {string} */ (value);
-    return this.dispatchNotification(type);
-  } else {
-    event = new createjs.Event(value['type'], false, false);
+    return this.dispatchNotification(createjs.castString(value));
   }
+  var event = new createjs.Event(value['type'], false, false);
   return this.dispatchRawEvent(event);
 };
 
@@ -571,13 +642,14 @@ createjs.EventDispatcher.prototype.dispatch = function(value, opt_target) {
  * Indicates whether there are listeners for the specified event type.
  * @param {string} type
  * @return {boolean}
+ * @const
  */
 createjs.EventDispatcher.prototype.hasListener = function(type) {
   /// <param type="string" name="type"/>
   /// <returns type="boolean"/>
   if (this.listeners_) {
-    var listeners = this.listeners_[type];
-    if (listeners && listeners.getLength()) {
+    var list = this.listeners_[type];
+    if (list && list.getLength_()) {
       return true;
     }
   }
@@ -593,6 +665,7 @@ createjs.EventDispatcher.prototype.hasListener = function(type) {
  * flow for a listener, not just this object.
  * @param {string} type
  * @return {boolean}
+ * @const
  */
 createjs.EventDispatcher.prototype.willTrigger = function(type) {
   /// <param type="string" name="type"/>
@@ -612,6 +685,7 @@ createjs.EventDispatcher.prototype.willTrigger = function(type) {
  * descendant.
  * @param {createjs.EventDispatcher} child
  * @return {boolean}
+ * @const
  */
 createjs.EventDispatcher.prototype.contains = function(child) {
   /// <param type="createjs.EventDispatcher" name="child"/>

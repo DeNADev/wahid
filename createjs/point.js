@@ -36,15 +36,15 @@ createjs.Point = function(x, y) {
   createjs.Object.call(this);
 
   /**
-   * The x position of this point.
-   * @type {number}
+   * The two-dimensional vector representing this point.
+   *   +-------+----------+
+   *   | index | property |
+   *   +-------+----------+
+   *   | 0     | x        |
+   *   | 1     | y        |
+   *   +-------+----------+
+   * @const {Float32Array}
    */
-  this.x = x;
-
-  /**
-   * The y position of this point.
-   * @type {number}
-   */
-  this.y = y;
+  this.v = createjs.createFloat32Array([x, y]);
 };
 createjs.inherits('Point', createjs.Point, createjs.Object);

@@ -140,22 +140,25 @@ createjs.SpriteSheet.Frame =
   this.image = image;
 
   /**
-   * The source rectangle of this frame.
-   * @const {createjs.Rectangle}
+   * The parameters for the createjs.Renderer.prototype.drawPartial() method.
+   *   +-------+-------------+
+   *   | index | property    |
+   *   +-------+-------------+
+   *   | 0     | rect.x      |
+   *   | 1     | rect.y      |
+   *   | 2     | rect.width  |
+   *   | 3     | rect.height |
+   *   | 4     | -regX       |
+   *   | 5     | -regY       |
+   *   | 6     | width       |
+   *   | 7     | height      |
+   *   +-------+-------------+
+   * @const {Float32Array}
    */
-  this.rect = rectangle;
-
-  /**
-   * The x position of the destination of this frame.
-   * @const {number}
-   */
-  this.regX = regX;
-
-  /**
-   * The y position of the destination of this frame.
-   * @const {number}
-   */
-  this.regY = regY;
+  this.values = createjs.createFloat32Array([
+    rectangle.x, rectangle.y, rectangle.width, rectangle.height,
+    -regX, -regY, width, height
+  ]);
 };
 
 /**
@@ -284,6 +287,16 @@ createjs.SpriteSheet.Animation.prototype.getFrameLength = function() {
 createjs.SpriteSheet.Animation.prototype.getFrame = function(frame) {
   /// <returns type="number"/>
   return this.frames_[frame];
+};
+
+/**
+ * Sets an array of frames to this animation.(This method is used by the
+ * createjs.SpriteSheetBuilder class to generate sprite sheets at run time.)
+ * @param {Array.<number>} frames
+ * @const
+ */
+createjs.SpriteSheet.Animation.prototype.setFrames = function(frames) {
+  this.frames_ = frames;
 };
 
 /**
@@ -618,7 +631,37 @@ createjs.SpriteSheet.prototype.getFrameBounds = function(index, opt_rectangle) {
   }
   var rectangle = opt_rectangle || new createjs.Rectangle(0, 0, 0, 0);
   return rectangle.initialize(
-      -frame.regX, -frame.regY, frame.rect.width, frame.rect.height);
+      frame.values[4], frame.values[5], frame.values[2], frame.values[3]);
+};
+
+/**
+ * Attaches animation frames (and images) to this sprite sheet. (This method is
+ * used by the createjs.SpriteSheetBuilder class to generate sprite sheets at
+ * run time.)
+ * @param {Array.<HTMLImageElement>} images
+ * @param {Array.<createjs.SpriteSheet.Frame>} frames
+ * @const
+ */
+createjs.SpriteSheet.prototype.setFrames = function(images, frames) {
+  /// <param type="Array" elementType="HTMLImageElement" name="images"/>
+  /// <param type="Array" name="frames"/>
+  this.images_ = images;
+  this.frames_ = frames;
+};
+
+/**
+ * Attaches an array of frame rectangles to this sprite sheet. (This method is
+ * used by the createjs.SpriteSheetBuilder class to generate sprint sheets at
+ * run time.)
+ * @param {Array.<string>} animations
+ * @param {Object.<string,createjs.SpriteSheet.Animation>} data
+ * @const
+ */
+createjs.SpriteSheet.prototype.setAnimations = function(animations, data) {
+  /// <param type="Array" name="frames"/>
+  /// <param type="Object" name="data"/>
+  this.animations_ = animations;
+  this.data_ = data;
 };
 
 /** @override */

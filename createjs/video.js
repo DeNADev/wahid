@@ -109,6 +109,21 @@ createjs.Video.prototype.canvas_ = null;
 createjs.Video.prototype.context_ = null;
 
 /**
+ * The parameters for the createjs.Renderer.prototype.drawCanvas() method.
+ *   +-------+----------+
+ *   | index | property |
+ *   +-------+----------+
+ *   | 0     | x        |
+ *   | 1     | y        |
+ *   | 2     | width    |
+ *   | 3     | height   |
+ *   +-------+----------+
+ * @type {Float32Array}
+ * @private
+ */
+createjs.Video.prototype.drawValues_ = null;
+
+/**
  * Starts playing this video. This method does not only start playing the
  * <video> element attached to this object but it also resets the time-stamp to
  * force drawing this object.
@@ -233,11 +248,16 @@ createjs.Video.prototype.paintObject = function(renderer) {
     // WebGLTexture objects with <video> elements.)
     var canvas = this.canvas_;
     if (!canvas) {
+      var boxWidth = this.getBoxWidth();
+      var boxHeight = this.getBoxHeight();
       canvas = createjs.createCanvas();
-      canvas.width = this.getBoxWidth();
-      canvas.height = this.getBoxHeight();
+      canvas.width = boxWidth;
+      canvas.height = boxHeight;
       this.canvas_ = canvas;
       this.context_ = createjs.getRenderingContext2D(canvas);
+      this.drawValues_ = createjs.createFloat32Array([0, 0, 0, 0]);
+      this.drawValues_[2] = boxWidth;
+      this.drawValues_[3] = boxHeight;
       current = -1;
     }
     if (this.lastTime_ != current) {
@@ -245,7 +265,7 @@ createjs.Video.prototype.paintObject = function(renderer) {
       this.context_.drawImage(video, 0, 0);
       canvas.dirty_ = 1;
     }
-    renderer.drawCanvas(canvas, 0, 0, this.getBoxWidth(), this.getBoxHeight());
+    renderer.drawCanvas(canvas, this.drawValues_);
   } else {
     if (this.lastTime_ != current) {
       this.lastTime_ = current;

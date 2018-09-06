@@ -35,6 +35,28 @@
  * @constructor
  */
 createjs.Transform = function() {
+  /**
+   * The transform values. Its first eight values are set by this transform and
+   * the last eight values are set by renderers as listed in the following
+   * table.
+   *   +-------+-------------+
+   *   | index | property    |
+   *   +-------+-------------+
+   *   | 0     | a           |
+   *   | 1     | b           |
+   *   | 2     | c           |
+   *   | 3     | d           |
+   *   | 4     | tx          |
+   *   | 5     | ty          |
+   *   | 6     | alpha       |
+   *   | 7     | composition |
+   *   +-------+-------------+
+   * @type {Float32Array}
+   * @const
+   */
+  this.m = createjs.createFloat32Array([
+    1, 0, 0, 1, 0, 0, 1, 0
+  ]);
 };
 
 /**
@@ -61,46 +83,14 @@ createjs.Transform.DIRTY_SKEW = (1 << 1);
 createjs.Transform.prototype.dirty_ = 0;
 
 /**
- * The horizontal scale.
- * @type {number}
+ * Returns whether this transform has its skew factors non-zero.
+ * @return {number}
+ * @const
  */
-createjs.Transform.prototype.a = 1;
-
-/**
- * The horizontal skew.
- * @type {number}
- */
-createjs.Transform.prototype.b = 0;
-
-/**
- * The vertical skew.
- * @type {number}
- */
-createjs.Transform.prototype.c = 0;
-
-/**
- * The vertical scale.
- * @type {number}
- */
-createjs.Transform.prototype.d = 1;
-
-/**
- * The horizontal translation.
- * @type {number}
- */
-createjs.Transform.prototype.tx = 0;
-
-/**
- * The vertical translation.
- * @type {number}
- */
-createjs.Transform.prototype.ty = 0;
-
-/**
- * Whether this transform is invertible.
- * @type {number}
- */
-createjs.Transform.prototype.invertible = 1;
+createjs.Transform.prototype.hasSkew = function() {
+  /// <returns type="number"/>
+  return this.dirty_ & createjs.Transform.DIRTY_SKEW;
+};
 
 /**
  * Prepends the specified transform with this transform. This method multiplies
@@ -120,60 +110,59 @@ createjs.Transform.prototype.invertible = 1;
  */
 createjs.Transform.prototype.prepend_ = function(transform) {
   /// <param type="createjs.Transform" name="transform"/>
-  var a = this.a;
-  var b = this.b;
-  var c = this.c;
-  var d = this.d;
-  var tx = this.tx;
-  var ty = this.ty;
+  var m = this.m;
+  var a = m[0];
+  var b = m[1];
+  var c = m[2];
+  var d = m[3];
+  var tx = m[4];
+  var ty = m[5];
+  var m0 = transform.m;
+  var a0 = m0[0];
+  var b0 = m0[1];
+  var c0 = m0[2];
+  var d0 = m0[3];
+  var tx0 = m0[4];
+  var ty0 = m0[5];
   if (!this.dirty_) {
     // Copy the parent transform (including its dirty flag) to this transform
     // when this transform is an identity one. (A dirty flag will be used in
     // calculating a bounding box.)
-    this.a = transform.a;
-    this.b = transform.b;
-    this.c = transform.c;
-    this.d = transform.d;
-    this.invertible = transform.invertible;
+    m[0] = a0;
+    m[1] = b0;
+    m[2] = c0;
+    m[3] = d0;
     this.dirty_ = transform.dirty_;
   } else {
-    this.a = transform.a * a + transform.c * b;
-    this.b = transform.b * a + transform.d * b;
-    this.c = transform.a * c + transform.c * d;
-    this.d = transform.b * c + transform.d * d;
-    this.invertible = (this.a * this.d - this.b * this.c) ? 1 : 0;
+    m[0] = a0 * a + c0 * b;
+    m[1] = b0 * a + d0 * b;
+    m[2] = a0 * c + c0 * d;
+    m[3] = b0 * c + d0 * d;
   }
-  this.tx = transform.a * tx + transform.c * ty + transform.tx;
-  this.ty = transform.b * tx + transform.d * ty + transform.ty;
+  m[4] = a0 * tx + c0 * ty + tx0;
+  m[5] = b0 * tx + d0 * ty + ty0;
 };
 
 /**
  * Generates matrix properties from transform properties used by display
  * objects, and appends them with this matrix.
- * @param {createjs.Point} position
- * @param {createjs.Point} scale
- * @param {number} rotation
- * @param {createjs.Point} skew
- * @param {createjs.Point} registration
+ * @param {Float32Array} values
  * @const
  */
-createjs.Transform.prototype.set =
-    function(position, scale, rotation, skew, registration) {
-  /// <param type="createjs.Point" name="position"/>
-  /// <param type="createjs.Point" name="scale"/>
-  /// <param type="number" name="rotation"/>
-  /// <param type="createjs.Point" name="skew"/>
-  /// <param type="createjs.Point" name="registration"/>
+createjs.Transform.prototype.set = function(values) {
+  /// <param type="Float32Array" name="values"/>
 
   // Create a scale matrix.
   //   | a c 0 |   | scale.x 0       0 |
   //   | b d 0 | = | 0       scale.y 0 |
   //   | 0 0 1 |   | 0       0       1 |
-  var a = scale.x;
+  var a = values[createjs.Property.SCALE_X];
   var b = 0;
   var c = 0;
-  var d = scale.y;
+  var d = values[createjs.Property.SCALE_Y];
   this.dirty_ = (a != 1 || d != 1) ? createjs.Transform.DIRTY_SCALE : 0;
+
+  var rotation = values[createjs.Property.ROTATION];
   if (rotation) {
     // Multiply a rotation matrix with a scale one as listed in the following
     // formula.
@@ -191,7 +180,9 @@ createjs.Transform.prototype.set =
     d = cos * d;
     this.dirty_ |= createjs.Transform.DIRTY_SKEW;
   }
-  if (skew.x || skew.y) {
+  var skewX = values[createjs.Property.SKEW_X];
+  var skewY = values[createjs.Property.SKEW_Y];
+  if (skewX || skewY) {
     // Multiply a skew matrix with a rotation one as listed in the following
     // formula.
     //   | a c 0 |   | cos(sy) -sin(sx) 0 |   | a c 0 |
@@ -200,10 +191,10 @@ createjs.Transform.prototype.set =
     //               | cos(sy)*a-sin(sx)*b cos(sy)*c-sin(sx)*d 0 |
     //             = | sin(sy)*a+cos(sx)*b sin(sy)*c+cos(sx)*d 0 |
     //               | 0                   0                   1 |
-    var a0 = createjs.cos(skew.y);
-    var b0 = createjs.sin(skew.y);
-    var c0 = -createjs.sin(skew.x);
-    var d0 = createjs.cos(skew.x);
+    var a0 = createjs.cos(skewY);
+    var b0 = createjs.sin(skewY);
+    var c0 = -createjs.sin(skewX);
+    var d0 = createjs.cos(skewX);
     var a1 = a;
     var b1 = b;
     var c1 = c;
@@ -214,16 +205,20 @@ createjs.Transform.prototype.set =
     d = b0 * c1 + d0 * d1;
     this.dirty_ |= createjs.Transform.DIRTY_SKEW;
   }
-  this.a = a;
-  this.b = b;
-  this.c = c;
-  this.d = d;
-  this.tx = position.x;
-  this.ty = position.y;
-  if (registration.x || registration.y) {
-    this.tx -= registration.x * this.a + registration.y * this.c;
-    this.ty -= registration.x * this.b + registration.y * this.d;
+  var m = this.m;
+  m[0] = a;
+  m[1] = b;
+  m[2] = c;
+  m[3] = d;
+  m[4] = values[createjs.Property.X];
+  m[5] = values[createjs.Property.Y];
+  var regX = values[createjs.Property.REG_X];
+  var regY = values[createjs.Property.REG_Y];
+  if (regX || regY) {
+    m[4] -= regX * a + regY * c;
+    m[5] -= regX * b + regY * d;
   }
+  m[15] = 0;
 };
 
 /**
@@ -233,13 +228,14 @@ createjs.Transform.prototype.set =
  */
 createjs.Transform.prototype.copyTransform = function(transform) {
   /// <param type="createjs.Transform" name="transform"/>
-  this.a = transform.a;
-  this.b = transform.b;
-  this.c = transform.c;
-  this.d = transform.d;
-  this.tx = transform.tx;
-  this.ty = transform.ty;
-  this.invertible = transform.invertible;
+  var m = this.m;
+  m[0] = transform.m[0];
+  m[1] = transform.m[1];
+  m[2] = transform.m[2];
+  m[3] = transform.m[3];
+  m[4] = transform.m[4];
+  m[5] = transform.m[5];
+  m[15] = 0;
   this.dirty_ = transform.dirty_;
 };
 
@@ -247,22 +243,13 @@ createjs.Transform.prototype.copyTransform = function(transform) {
  * Generates matrix properties from transform properties used by display
  * objects, and appends them with this matrix.
  * @param {createjs.Transform} transform
- * @param {createjs.Point} position
- * @param {createjs.Point} scale
- * @param {number} rotation
- * @param {createjs.Point} skew
- * @param {createjs.Point} registration
+ * @param {Float32Array} values
  * @const
  */
-createjs.Transform.prototype.appendTransform =
-    function(transform, position, scale, rotation, skew, registration) {
+createjs.Transform.prototype.appendTransform = function(transform, values) {
   /// <param type="createjs.Transform" name="transform"/>
-  /// <param type="createjs.Point" name="position"/>
-  /// <param type="createjs.Point" name="scale"/>
-  /// <param type="number" name="rotation"/>
-  /// <param type="createjs.Point" name="skew"/>
-  /// <param type="createjs.Point" name="registration"/>
-  this.set(position, scale, rotation, skew, registration);
+  /// <param type="Float32Array" name="values"/>
+  this.set(values);
   this.prepend_(transform);
 };
 
@@ -273,17 +260,25 @@ createjs.Transform.prototype.appendTransform =
  */
 createjs.Transform.prototype.getInverse = function() {
   /// <returns type="createjs.Transform"/>
-  if (!this.invertible) {
+  var m = this.m;
+  var a = m[0];
+  var b = m[1];
+  var c = m[2];
+  var d = m[3];
+  var det = a * d - b * c;
+  if (!det) {
     return null;
   }
-  var idet = 1 / (this.a * this.d - this.b * this.c);
+  var idet = 1 / det;
+  var tx = m[4];
+  var ty = m[5];
   var transform = new createjs.Transform();
-  transform.a = this.d * idet;
-  transform.b = -this.b * idet;
-  transform.c = -this.c * idet;
-  transform.d = this.a * idet;
-  transform.tx = (this.c * this.ty - this.d * this.tx) * idet;
-  transform.ty = -(this.a * this.ty - this.b * this.tx) * idet;
+  transform.m[0] = d * idet;
+  transform.m[1] = -b * idet;
+  transform.m[2] = -c * idet;
+  transform.m[3] = a * idet;
+  transform.m[4] = (c * ty - d * tx) * idet;
+  transform.m[5] = -(a * ty - b * tx) * idet;
   return transform;
 };
 
@@ -305,10 +300,11 @@ createjs.Transform.prototype.getInverse = function() {
 createjs.Transform.prototype.transformPoint = function(point) {
   /// <param type="createjs.Point" name="point"></param>
   /// <returns type="createjs.Point"/>
-  var x = point.x;
-  var y = point.y;
-  point.x = this.a * x + this.c * y + this.tx;
-  point.y = this.b * x + this.d * y + this.ty;
+  var x = point.v[0];
+  var y = point.v[1];
+  var m = this.m;
+  point.v[0] = m[0] * x + m[2] * y + m[4];
+  point.v[1] = m[1] * x + m[3] * y + m[5];
   return point;
 };
 
@@ -326,60 +322,69 @@ createjs.Transform.prototype.transformPoint = function(point) {
 createjs.Transform.prototype.transformBox = function(box, output) {
   /// <param type="createjs.BoundingBox" name="box"></param>
   /// <param type="createjs.BoundingBox" name="output"></param>
-  var minX = box.minX;
-  var minY = box.minY;
-  var maxX = box.maxX;
-  var maxY = box.maxY;
+  var minX = box.b[0];
+  var minY = box.b[1];
+  var maxX = box.b[2];
+  var maxY = box.b[3];
+  var m = this.m;
+  var a = m[0];
+  var d = m[3];
   if ((this.dirty_ & createjs.Transform.DIRTY_SKEW) == 0) {
-    // This transform does not have skew factors and we can transform just the
-    // top-left corner and the bottom-right one to get its transformed bounding
-    // box.
-    //  | x0 |   | this.a this.c tx |   | box.minX |
-    //  | y0 | = | this.b this.d ty | * | box.minY |
-    //  | 1  |   | 0      0      1  |   | 1        |
-    //           | this.a * box.minX + this.c * box.minY + tx |
-    //         = | this.b * box.minX + this.d * box.minY + ty |
-    //           | 1                                          |
-    //  | x1 |   | this.a this.c tx |   | box.maxX |
-    //  | y1 | = | this.b this.d ty | * | box.maxY |
-    //  | 1  |   | 0      0      1  |   | 1        |
-    //           | this.a * box.maxX + this.c * box.maxY + tx |
-    //         = | this.b * box.maxX + this.d * box.maxY + ty |
-    //           | 1                                          |
-    var x0 = this.a * minX + this.c * minY;
-    var x1 = this.a * maxX + this.c * maxY;
-    if (x0 < x1) {
-      output.minX = x0;
-      output.maxX = x1;
-    } else {
-      output.minX = x1;
-      output.maxX = x0;
-    }
-    var y0 = this.b * minX + this.d * minY;
-    var y1 = this.b * maxX + this.d * maxY;
-    if (y0 < y1) {
-      output.minY = y0;
-      output.maxY = y1;
-    } else {
-      output.minY = y1;
-      output.maxY = y0;
-    }
+    // Apply this transform to the top-left corner '(minX,minY)' and the
+    // bottom-right one '(maxX,maxY)' when this transform does not have skew
+    // factors.
+    //  | x0 |   | a 0 tx |   | minX |
+    //  | y0 | = | 0 d ty | * | minY |
+    //  | 1  |   | 0 0 1  |   | 1    |
+    //
+    //  | x1 |   | a 0 tx |   | maxX |
+    //  | y1 | = | 0 d ty | * | maxY |
+    //  | 1  |   | 0 0 1  |   | 1    |
+    var x0 = a * minX;
+    var x1 = a * maxX;
+    output.b[0] = createjs.min(x0, x1);
+    output.b[2] = createjs.max(x0, x1);
+    var y0 = d * minY;
+    var y1 = d * maxY;
+    output.b[1] = createjs.min(y0, y1);
+    output.b[3] = createjs.max(y0, y1);
   } else {
-    var x0 = this.a * minX + this.c * minY;
-    var x1 = this.a * maxX + this.c * minY;
-    var x2 = this.a * minX + this.c * maxY;
-    var x3 = this.a * maxX + this.c * maxY;
-    output.minX = createjs.min(createjs.min(createjs.min(x0, x1), x2), x3);
-    output.maxX = createjs.max(createjs.max(createjs.max(x0, x1), x2), x3);
-    var y0 = this.b * minX + this.d * minY;
-    var y1 = this.b * maxX + this.d * minY;
-    var y2 = this.b * minX + this.d * maxY;
-    var y3 = this.b * maxX + this.d * maxY;
-    output.minY = createjs.min(createjs.min(createjs.min(y0, y1), y2), y3);
-    output.maxY = createjs.max(createjs.max(createjs.max(y0, y1), y2), y3);
+    // Apply this transform to all corners '(minX,minY)', '(maxX,minY)',
+    // '(minX,maxY)', and '(maxX,maxY)'.
+    //  | x0 |   | a c tx |   | minX |
+    //  | y0 | = | b d ty | * | minY |
+    //  | 1  |   | 0 0 1  |   | 1    |
+    //
+    //  | x1 |   | a c tx |   | maxX |
+    //  | y1 | = | b d ty | * | minY |
+    //  | 1  |   | 0 0 1  |   | 1    |
+    //
+    //  | x0 |   | a c tx |   | minX |
+    //  | y0 | = | b d ty | * | maxY |
+    //  | 1  |   | 0 0 1  |   | 1    |
+    //
+    //  | x1 |   | a c tx |   | maxX |
+    //  | y1 | = | b d ty | * | maxY |
+    //  | 1  |   | 0 0 1  |   | 1    |
+    var b = m[1];
+    var c = m[2];
+    var x0 = a * minX + c * minY;
+    var x1 = a * maxX + c * minY;
+    var x2 = a * minX + c * maxY;
+    var x3 = a * maxX + c * maxY;
+    output.b[0] = createjs.min(createjs.min(createjs.min(x0, x1), x2), x3);
+    output.b[2] = createjs.max(createjs.max(createjs.max(x0, x1), x2), x3);
+    var y0 = b * minX + d * minY;
+    var y1 = b * maxX + d * minY;
+    var y2 = b * minX + d * maxY;
+    var y3 = b * maxX + d * maxY;
+    output.b[1] = createjs.min(createjs.min(createjs.min(y0, y1), y2), y3);
+    output.b[3] = createjs.max(createjs.max(createjs.max(y0, y1), y2), y3);
   }
-  output.minX += this.tx;
-  output.maxX += this.tx;
-  output.minY += this.ty;
-  output.maxY += this.ty;
+  var tx = m[4];
+  var ty = m[5];
+  output.b[0] += tx;
+  output.b[2] += tx;
+  output.b[1] += ty;
+  output.b[3] += ty;
 };

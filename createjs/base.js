@@ -52,7 +52,7 @@ createjs.DENA_MAJOR_VERSION = 0;
  * Represents the minor version of this library.
  * @define {number}
  */
-createjs.DENA_MINOR_VERSION = 8;
+createjs.DENA_MINOR_VERSION = 9;
 
 /**
  * Represents the build number of this library. (This define is a placeholder
@@ -142,7 +142,8 @@ createjs.SUPPORT_AMD = false;
 createjs.USE_FRAME = true;
 
 /**
- * Represents whether to read pixels in hit-testing.
+ * Represents whether the createjs.Bitmap class and the createjs.Shape class
+ * read pixels in hit-testing.
  * @define {boolean}
  */
 createjs.USE_PIXEL_TEST = true;
@@ -173,6 +174,133 @@ createjs.BlobBuilder = createjs.global['WebKitBlobBuilder'];
  */
 createjs.AudioContext =
     createjs.global['webkitAudioContext'] || createjs.global['AudioContext'];
+
+/**
+ * Property IDs assigned to animated properties.
+ * @enum {number}
+ * @const
+ */
+createjs.Property = {
+  X: 0,                // x: number
+  Y: 1,                // y: number
+  SCALE_X: 2,          // scaleX: number
+  SCALE_Y: 3,          // scaleY: number
+  SKEW_X: 4,           // skewX: number
+  SKEW_Y: 5,           // skewY: number
+  REG_X: 6,            // regX: number
+  REG_Y: 7,            // regY: number
+  ROTATION: 8,         // rotation: number
+  ALPHA: 9,            // alpha: number
+  START_POSITION: 10,  // startPosition: number (integer)
+  PLAY_MODE: 11,       // playMode: number (integer)
+  OFF: 12,             // off: boolean
+  VISIBLE: 13,         // visible: boolean
+  LOOP: 14,            // loop: boolean
+  TEXT: 15,            // text: string
+  GRAPHICS: 16         // graphics: Object
+};
+
+/**
+ * Animation-Property IDs assigned to animated properties.
+ * @enum {number}
+ * @const
+ */
+createjs.Animation = {
+  X: 0,                // x: number
+  Y: 1,                // y: number
+  SCALE_X: 2,          // scaleX: number
+  SCALE_Y: 3,          // scaleY: number
+  SKEW_X: 4,           // skewX: number
+  SKEW_Y: 5,           // skewY: number
+  REG_X: 6,            // regX: number
+  REG_Y: 7,            // regY: number
+  ROTATION: 8,         // rotation: number
+  ALPHA: 9,            // alpha: number
+  TIME: 11,            // time: number
+  DURATION: 12,        // duration: number
+  MASK: 13,            // mask: number
+  EASE: 14,            // ease: number
+  SCALE: 15            // scale: number
+};
+
+/**
+ * Animation-Property IDs assigned to animated properties.
+ * @enum {number}
+ * @const
+ */
+createjs.EaseId = {
+  LINEAR: 0,           // createjs.Ease.linear
+  FLASH_PRO: 1,        // createjs.Ease.FlashProOne
+  QUAD_IN: 2,          // createjs.Ease.quadIn
+  QUAD_OUT: 3,         // createjs.Ease.quadOut
+  QUAD_IN_OUT: 4,      // createjs.Ease.quadInOut
+  CUBIC_IN: 5,         // createjs.Ease.cubicIn
+  CUBIC_OUT: 6,        // createjs.Ease.cubicOut
+  CUBIC_IN_OUT: 7,     // createjs.Ease.cubicInOut
+  QUART_IN: 8,         // createjs.Ease.quartIn
+  QUART_OUT: 9,        // createjs.Ease.quartOut
+  QUART_IN_OUT: 10,    // createjs.Ease.quartInOut
+  QUINT_IN: 11,        // createjs.Ease.quintIn
+  QUINT_OUT: 12,       // createjs.Ease.quintOut
+  QUINT_IN_OUT: 13,    // createjs.Ease.quintInOut
+  SINE_IN: 14,         // createjs.Ease.sineIn
+  SINE_OUT: 15,        // createjs.Ease.sineOut
+  SINE_IN_OUT: 16,     // createjs.Ease.sineInOut
+  BACK_IN: 17,         // createjs.Ease.backIn
+  BACK_OUT: 18,        // createjs.Ease.backOut
+  BACK_IN_OUT: 19,     // createjs.Ease.backInOut
+  CIRC_IN: 20,         // createjs.Ease.circIn
+  CIRC_OUT: 21,        // createjs.Ease.circOut
+  CIRC_IN_OUT: 22,     // createjs.Ease.circInOut
+  BOUNCE_IN: 23,       // createjs.Ease.bounceIn
+  BOUNCE_OUT: 24,      // createjs.Ease.bounceOut
+  BOUNCE_IN_OUT: 25,   // createjs.Ease.bounceInOut
+  ELASTIC_IN: 26,      // createjs.Ease.elasticIn
+  ELASTIC_OUT: 27,     // createjs.Ease.elasticOut
+  ELASTIC_IN_OUT: 28   // createjs.Ease.elasticInOut
+};
+
+/**
+ * Default values of the animated properties.
+ * @enum {number}
+ * @const
+ */
+createjs.Value = {
+  X: 0,
+  Y: 0,
+  SCALE_X: 1,
+  SCALE_Y: 1,
+  SKEW_X: 0,
+  SKEW_Y: 0,
+  REG_X: 0,
+  REG_Y: 0,
+  ROTATION: 0,
+  ALPHA: 1,
+  START_POSITION: 0,
+  PLAY_MODE: 0,
+  OFF: 0,
+  VISIBLE: 1,
+  LOOP: 1
+};
+
+/**
+ * The play modes of a tween.
+ * @enum {number}
+ */
+createjs.PlayMode = {
+  INDEPENDENT: 0,
+  SINGLE: 1,
+  SYNCHED: 2
+};
+
+/**
+ * Masks used by the updateTween() method.
+ * @enum {number}
+ */
+createjs.TweenFlag = {
+  PLAY_MODE: 3,
+  UPDATE: 4
+};
 
 /**
  * The commands used for communicating with a createjs.FramePlayer object,
@@ -528,6 +656,17 @@ createjs.castArrayBuffer = function(value) {
 };
 
 /**
+ * Changes the type of an HTMLCanvasElement object to HTMLImageElement.
+ * @param {HTMLCanvasElement} canvas
+ * @return {HTMLImageElement}
+ */
+createjs.castImage = function(canvas) {
+  /// <param type="HTMLCanvasElement" name="canvas"/>
+  /// <returns type="HTMLImageElement"/>
+  return /** @type {HTMLImageElement} */ (/** @type {*} */ (canvas));
+};
+
+/**
  * Changes the type of the specified variable to number only if it is a number.
  * @param {*} value
  * @return {string}
@@ -829,6 +968,17 @@ createjs.createImage = function() {
 createjs.getOrigin = function() {
   /// <returns type="string"/>
   return createjs.origin_;
+};
+
+/**
+ * Creates a Float32Array object.
+ * @param {Array.<number>} array
+ * @return {Float32Array}
+ */
+createjs.createFloat32Array = function(array) {
+  /// <param type="Array" elementType="number" name="array"/>
+  /// <returns type="Float32Array"/>
+  return new Float32Array(array);
 };
 
 if (!createjs.SUPPORT_AMD) {

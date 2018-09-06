@@ -37,31 +37,13 @@
  * @constructor
  */
 createjs.Sprite = function(spriteSheet, opt_frameOrAnimation) {
+  /// <param type="createjs.SpriteSheet" optional="true" name="spriteSheet"/>
+  /// <param type="string" optional="true" name="opt_frameOrAnimation"/>
   createjs.DisplayObject.call(this);
-
   if (spriteSheet != null) {
-    /**
-     * The SpriteSheet instance exported to applications.
-     * @type {createjs.SpriteSheet}
-     */
-    this['spriteSheet'] = spriteSheet;
-
-    /**
-     * The SpriteSheet instance being played.
-     * @type {createjs.SpriteSheet}
-     * @private
-     */
-    this.spriteSheet_ = spriteSheet;
-
-    /**
-     * The number of frames to advance.
-     * @type {number}
-     * @private
-     */
-    this.framerate_ = spriteSheet.framerate;
-
+    this.initializeSprite_(spriteSheet);
     if (opt_frameOrAnimation != null) {
-      this.gotoAndPlay(opt_frameOrAnimation || 0);
+      this.gotoAndPlay(opt_frameOrAnimation);
     }
   }
 };
@@ -115,6 +97,18 @@ createjs.Sprite.prototype.lastTime_ = 0;
 createjs.Sprite.prototype.animation_ = null;
 
 /**
+ * Initializes this sprite.
+ * @param {createjs.SpriteSheet} spriteSheet
+ * @private
+ */
+createjs.Sprite.prototype.initializeSprite_ = function(spriteSheet) {
+  /// <param type="createjs.SpriteSheet" name="spriteSheet"/>
+  this['spriteSheet'] = spriteSheet;
+  this.spriteSheet_ = spriteSheet;
+  this.framerate_ = spriteSheet.framerate;
+};
+
+/**
  * Updates the bounding box of this sprite and sets its dirty flag when this
  * sprite has its frame updated.
  * @param {number} currentFrame
@@ -127,12 +121,12 @@ createjs.Sprite.prototype.updateShape_ = function(currentFrame) {
     if (!frame) {
       return;
     }
-    var minX = -frame.regX;
-    var minY = -frame.regY;
-    var maxX = minX + frame.rect.width;
-    var maxY = minY + frame.rect.height;
+    var minX = frame.values[4];         // -frame.regX;
+    var minY = frame.values[5];         // -frame.regY;
+    var maxX = minX + frame.values[6];  // frame.width;
+    var maxY = minY + frame.values[7];  // frame.height;
     this.setBoundingBox(minX, minY, maxX, maxY);
-    this.setDirty(createjs.DisplayObject.DIRTY_SHAPE);
+    this.dirty |= createjs.DisplayObject.DIRTY_SHAPE;
   }
 };
 
@@ -227,7 +221,7 @@ createjs.Sprite.prototype.goto_ = function(paused, frameOrAnimation) {
  */
 createjs.Sprite.prototype.play = function() {
   this.setIsPaused(false);
-  this.setDirty(createjs.DisplayObject.DIRTY_ALL);
+  this.dirty = createjs.DisplayObject.DIRTY_ALL;
 };
 
 /**
@@ -248,7 +242,7 @@ createjs.Sprite.prototype.stop = function() {
  */
 createjs.Sprite.prototype.gotoAndPlay = function(value) {
   this.goto_(false, value);
-  this.setDirty(createjs.DisplayObject.DIRTY_ALL);
+  this.dirty = createjs.DisplayObject.DIRTY_ALL;
 };
 
 /**
@@ -323,11 +317,7 @@ createjs.Sprite.prototype.paintObject = function(renderer) {
   var frame =
       this.spriteSheet_.getFrame(createjs.floor(this.getCurrentFrame()));
   createjs.assert(!!frame);
-  var rect = frame.rect;
-  renderer.drawPartial(
-      frame.image,
-      rect.x, rect.y, rect.width, rect.height,
-      -frame.regX, -frame.regY, rect.width, rect.height);
+  renderer.drawPartial(frame.image, frame.values);
 };
 
 // Export the createjs.Sprite object to the global namespace.

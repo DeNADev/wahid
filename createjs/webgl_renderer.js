@@ -77,21 +77,14 @@ createjs.WebGLRenderer = function(canvas, context, viewport) {
   this.viewport_ = viewport;
 
   // Listen the context events of WebGL.
-  canvas.addEventListener('webglcontextlost', this, false);
-  canvas.addEventListener('webglcontextrestored', this, false);
   if (createjs.DEBUG) {
+    canvas.addEventListener('webglcontextlost', this, false);
+    canvas.addEventListener('webglcontextrestored', this, false);
     document.addEventListener('keyup', this, false);
   }
 
   // Write the context used by this renderer.
   canvas.setAttribute('dena-context', createjs.WebGLRenderer.context);
-
-  // Set the given viewport rectangle to the scissor rectangle now so this
-  // renderer can render only its inside.
-  if (viewport) {
-    this.context_.enableClip();
-    this.context_.updateClip(viewport, this.getHeight());
-  }
 };
 createjs.inherits('WebGLRenderer', createjs.WebGLRenderer, createjs.Renderer);
 
@@ -1167,10 +1160,10 @@ createjs.WebGLRenderer.Context.prototype.enableClip = function() {
 createjs.WebGLRenderer.Context.prototype.updateClip = function(clip, height) {
   /// <param type="createjs.BoundingBox" name="clip"/>
   /// <param type="number" name="height"/>
-  var minX = clip.minX;
-  var minY = clip.minY;
-  var maxX = clip.maxX;
-  var maxY = clip.maxY;
+  var minX = clip.b[0];
+  var minY = clip.b[1];
+  var maxX = clip.b[2];
+  var maxY = clip.b[3];
   this.getContext_().scissor(minX, height - maxY, maxX - minX, maxY - minY);
 };
 
@@ -1569,6 +1562,30 @@ createjs.WebGLRenderer.Rectangle.prototype.set = function(x, y, width, height) {
 };
 
 /**
+ * Sets this rectangle without conversions.
+ * @param {number} minX
+ * @param {number} minY
+ * @param {number} maxX
+ * @param {number} maxY
+ * @const
+ */
+createjs.WebGLRenderer.Rectangle.prototype.setRaw =
+    function(minX, minY, maxX, maxY) {
+  /// <param type="number" name="minX"/>
+  /// <param type="number" name="minY"/>
+  /// <param type="number" name="maxX"/>
+  /// <param type="number" name="maxY"/>
+  this.points_[0] = minX;
+  this.points_[1] = minY;
+  this.points_[2] = maxX;
+  this.points_[3] = minY;
+  this.points_[4] = minX;
+  this.points_[5] = maxY;
+  this.points_[6] = maxX;
+  this.points_[7] = maxY;
+};
+
+/**
  * Binds this rectangle to the specified context.
  * @param {createjs.WebGLRenderer.Context} context
  */
@@ -1645,13 +1662,13 @@ createjs.WebGLRenderer.Transform.prototype.set = function(a, b, c, d, tx, ty) {
   /// <param type="number" name="ty"/>
   this.matrix_[0] = a;
   this.matrix_[1] = b;
-  this.matrix_[2] = 0;
+  // this.matrix_[2] = 0;
   this.matrix_[3] = c;
   this.matrix_[4] = d;
-  this.matrix_[5] = 0;
+  // this.matrix_[5] = 0;
   this.matrix_[6] = tx;
   this.matrix_[7] = ty;
-  this.matrix_[8] = 1;
+  // this.matrix_[8] = 1;
 };
 
 /**
@@ -1734,11 +1751,11 @@ createjs.WebGLRenderer.ColorMatrix.prototype.matrix_ = null;
  * Sets the values of this matrix. This method transposes the top-left 3x3
  * sub-matrix of the input matrix and copies its values. (The input matrix is a
  * matrix used by a color-matrix filter, i.e. a 5x5 matrix.)
- * @param {Array.<number>} matrix
+ * @param {Float32Array} matrix
  * @const
  */
 createjs.WebGLRenderer.ColorMatrix.prototype.set = function(matrix) {
-  /// <param type="Array" elementType="number" name="matrix"/>
+  /// <param type="Float32Array" name="matrix"/>
   this.dirty_ = true;
   this.matrix_[0 * 4 + 0] = matrix[0 * 5 + 0];
   this.matrix_[0 * 4 + 1] = matrix[1 * 5 + 0];
@@ -2133,10 +2150,10 @@ createjs.WebGLRenderer.Program = function(context, scaleX, scaleY) {
   var SCREEN = 's';
   var TRANSFORM = 'x';
   var UVPOINT = 'u';
-  var COLOR = 'c';
+  var ALPHA = 'a';
   var IMAGE = 'i';
   var MATRIX = 'm';
-  var OFFSET = 'o';
+  var COLOR = 'c';
   var PIXEL = 'v';
   var VERTEX =
     'attribute vec2 ' + POSITION + ';' +
@@ -2157,14 +2174,14 @@ createjs.WebGLRenderer.Program = function(context, scaleX, scaleY) {
   var FRAGMENT =
     'precision mediump float;' +
     'varying vec2 ' + UVPOINT + ';' +
-    'uniform vec4 ' + COLOR + ';' +
+    'uniform vec4 ' + ALPHA + ';' +
     'uniform mat4 ' + MATRIX + ';' +
-    'uniform vec4 ' + OFFSET + ';' +
+    'uniform vec4 ' + COLOR + ';' +
     'uniform sampler2D ' + IMAGE + ';' +
     'void main(){' +
       'vec4 ' + PIXEL + '=texture2D(' + IMAGE + ',' + UVPOINT + ');' +
-      'gl_FragColor=' + COLOR + '*' +
-          '(' + MATRIX + '*' + PIXEL + '+' + OFFSET + '*' + PIXEL + '[3]);' +
+      'gl_FragColor=' + ALPHA + '*' +
+          '(' + MATRIX + '*' + PIXEL + '+' + COLOR + '*' + PIXEL + '[3]);' +
     '}';
 
   /**
@@ -2229,7 +2246,7 @@ createjs.WebGLRenderer.Program = function(context, scaleX, scaleY) {
    * @private
    */
   this.alpha_ = new createjs.WebGLRenderer.Alpha(
-      context, this.program_, COLOR, 1);
+      context, this.program_, ALPHA, 1);
 
   /**
    * The color matrix.
@@ -2244,8 +2261,8 @@ createjs.WebGLRenderer.Program = function(context, scaleX, scaleY) {
    * @type {createjs.WebGLRenderer.Color}
    * @private
    */
-  this.offset_ = new createjs.WebGLRenderer.Color(
-      context, this.program_, OFFSET, 0, 0, 0);
+  this.color_ = new createjs.WebGLRenderer.Color(
+      context, this.program_, COLOR, 0, 0, 0);
 
   /**
    * The blending operation.
@@ -2317,7 +2334,7 @@ createjs.WebGLRenderer.Program.prototype.matrix_ = null;
  * @type {createjs.WebGLRenderer.Color}
  * @private
  */
-createjs.WebGLRenderer.Program.prototype.offset_ = null;
+createjs.WebGLRenderer.Program.prototype.color_ = null;
 
 /**
  * The blending operation.
@@ -2371,7 +2388,7 @@ createjs.WebGLRenderer.Program.prototype.drawTexture_ = function() {
   this.texture_.bindContext(context);
   this.alpha_.bindContext(context);
   this.matrix_.bindContext(context);
-  this.offset_.bindContext(context);
+  this.color_.bindContext(context);
   this.blend_.bindContext(context);
   context.drawRectangle();
 };
@@ -2429,20 +2446,20 @@ createjs.WebGLRenderer.Program.prototype.setAlpha = function(alpha) {
 
 /**
  * Sets the color matrix used by the color-matrix filter.
- * @param {Array.<number>} matrix
+ * @param {Float32Array} matrix
  * @const
  */
 createjs.WebGLRenderer.Program.prototype.setColorMatrix = function(matrix) {
-  /// <param type="Array" elementType="number" name="matrix"/>
+  /// <param type="Float32Array" name="matrix"/>
   if (matrix) {
     var COLOR_SCALE = 1 / 255;
     this.matrix_.set(matrix);
-    this.offset_.set(matrix[0 * 5 + 4] * COLOR_SCALE,
-                     matrix[1 * 5 + 4] * COLOR_SCALE,
-                     matrix[2 * 5 + 4] * COLOR_SCALE);
+    this.color_.set(matrix[0 * 5 + 4] * COLOR_SCALE,
+                    matrix[1 * 5 + 4] * COLOR_SCALE,
+                    matrix[2 * 5 + 4] * COLOR_SCALE);
   } else {
     this.matrix_.reset();
-    this.offset_.set(0, 0, 0);
+    this.color_.set(0, 0, 0);
   }
 };
 
@@ -2793,9 +2810,9 @@ createjs.WebGLRenderer.prototype.drawObject_ =
 createjs.WebGLRenderer.prototype.destroy = function() {
   var canvas = this.getCanvas();
   if (canvas) {
-    canvas.removeEventListener('webglcontextlost', this, false);
-    canvas.removeEventListener('webglcontextrestored', this, false);
     if (createjs.DEBUG) {
+      canvas.removeEventListener('webglcontextlost', this, false);
+      canvas.removeEventListener('webglcontextrestored', this, false);
       document.removeEventListener('keyup', this, false);
     }
   }
@@ -2804,11 +2821,6 @@ createjs.WebGLRenderer.prototype.destroy = function() {
     if (this.mask_) {
       this.mask_.destroy(context);
       this.mask_ = null;
-    }
-    var layer = this.layer_;
-    if (layer) {
-      layer.destroy(context);
-      this.layer_ = null;
     }
     var program = this.program_;
     if (program) {
@@ -2819,21 +2831,11 @@ createjs.WebGLRenderer.prototype.destroy = function() {
 };
 
 /** @override */
-createjs.WebGLRenderer.prototype.setTransformation =
-    function(a, b, c, d, tx, ty) {
-  /// <param type="number" name="a"/>
-  /// <param type="number" name="b"/>
-  /// <param type="number" name="c"/>
-  /// <param type="number" name="d"/>
-  /// <param type="number" name="tx"/>
-  /// <param type="number" name="ty"/>
-  this.getProgram_().setTransform(a, b, c, d, tx, ty);
-};
-
-/** @override */
-createjs.WebGLRenderer.prototype.setAlpha = function(alpha) {
-  /// <param type="number" name="alpha"/>
-  this.getProgram_().setAlpha(alpha);
+createjs.WebGLRenderer.prototype.setProperties = function(m) {
+  /// <param type="Float32Array" name="m"/>
+  this.getProgram_().setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
+  this.getProgram_().setAlpha(m[6]);
+  this.getProgram_().setComposition(m[7]);
 };
 
 /** @override */
@@ -2843,20 +2845,10 @@ createjs.WebGLRenderer.prototype.setColorMatrix = function(matrix) {
 };
 
 /** @override */
-createjs.WebGLRenderer.prototype.setComposition = function(operation) {
-  /// <param type="number" name="operation"/>
-  this.getProgram_().setComposition(operation);
-};
-
-/** @override */
-createjs.WebGLRenderer.prototype.drawCanvas =
-    function(canvas, x, y, width, height) {
+createjs.WebGLRenderer.prototype.drawCanvas = function(canvas, m) {
   /// <param type="HTMLCanvasElement" name="canvas"/>
-  /// <param type="number" name="x"/>
-  /// <param type="number" name="y"/>
-  /// <param type="number" name="width"/>
-  /// <param type="number" name="height"/>
-  this.getProgram_().drawImage(canvas, x, y, width, height);
+  /// <param type="Float32Array" name="m"/>
+  this.getProgram_().drawImage(canvas, m[0], m[1], m[2], m[3]);
 };
 
 /** @override */
@@ -2880,19 +2872,11 @@ createjs.WebGLRenderer.prototype.drawVideo =
 };
 
 /** @override */
-createjs.WebGLRenderer.prototype.drawPartial =
-    function(image, srcX, srcY, srcWidth, srcHeight, x, y, width, height) {
+createjs.WebGLRenderer.prototype.drawPartial = function(image, values) {
   /// <param type="HTMLImageElement" name="image"/>
-  /// <param type="number" name="srcX"/>
-  /// <param type="number" name="srcY"/>
-  /// <param type="number" name="srcWidth"/>
-  /// <param type="number" name="srcHeight"/>
-  /// <param type="number" name="x"/>
-  /// <param type="number" name="y"/>
-  /// <param type="number" name="width"/>
-  /// <param type="number" name="height"/>
-  this.getProgram_().drawPartial(
-      image, srcX, srcY, srcWidth, srcHeight, x, y, width, height);
+  /// <param type="Float32Array" name="values"/>
+  this.getProgram_().drawPartial(image, values[0], values[1], values[2],
+      values[3], values[4], values[5], values[6], values[7]);
 };
 
 /** @override */
