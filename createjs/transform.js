@@ -54,7 +54,7 @@ createjs.Transform = function() {
    * @type {Float32Array}
    * @const
    */
-  this.m = createjs.createFloat32Array([
+  this.m = createjs.cloneFloat32Array([
     1, 0, 0, 1, 0, 0, 1, 0
   ]);
 };

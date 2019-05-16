@@ -469,7 +469,7 @@ createjs.Text.prototype.initializeText_ = function(text, font, color) {
   this.text_ = text;
   this.font_ = font;
   this.textColor_ = color;
-  this.drawValues_ = createjs.createFloat32Array([0, 0, 0, 0]);
+  this.drawValues_ = createjs.cloneFloat32Array([0, 0, 0, 0]);
 };
 
 /**

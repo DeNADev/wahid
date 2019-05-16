@@ -47,7 +47,7 @@ createjs.BoundingBox = function() {
    *   +-------+----------+
    * @const {Float32Array}
    */
-  this.b = createjs.createFloat32Array([10000, 10000, -10000, -10000]);
+  this.b = createjs.cloneFloat32Array([10000, 10000, -10000, -10000]);
 };
 createjs.inherits('BoundingBox', createjs.BoundingBox, createjs.Object);
 

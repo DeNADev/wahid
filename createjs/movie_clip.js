@@ -440,6 +440,10 @@ createjs.MovieClip.prototype.goto_ = function(paused, value) {
       return;
     }
   }
+  // Truncate `position` so the tweens belonging to this movie clip can retrieve
+  // motion indices from their motion caches. (A motion cache is an array of
+  // motion indices, i.e. `position` must be an integer.)
+  position = createjs.truncate(position);
   // Changes the position of all tweens attached to this clip only when its
   // position is not equal to the current one. (This code also change the
   // position when the new position is 0 or 1 due to an incompatibility with the
@@ -631,6 +635,10 @@ createjs.MovieClip.prototype.getLabels = function() {
  */
 createjs.MovieClip.prototype.getCurrentLabel = function() {
   /// <returns type="string"/>
+  // Retrieve the sorted list of the labels and compare the current position
+  // with its start positions from its beginning. This means that if the
+  // current position is less than the start position of a label, it is on its
+  // PREVIOUS one.
   var labels = this.getLabels();
   var length = labels.length;
   var label = labels[0];
@@ -641,6 +649,7 @@ createjs.MovieClip.prototype.getCurrentLabel = function() {
   for (var i = 1; i < length; ++i) {
     label = labels[i];
     if (position < label['position']) {
+      label = labels[i - 1];
       break;
     }
   }
@@ -666,9 +675,6 @@ createjs.DisplayObject.prototype.drawFrame =
 /** @override */
 createjs.MovieClip.prototype.removeAllChildren = function(opt_destroy) {
   this.resetTweens();
-  this['timeline'] = null;
-  this.labels_ = null;
-  this.labelList_ = null;
   createjs.MovieClip.superClass_.removeAllChildren.call(this, opt_destroy);
 };
 

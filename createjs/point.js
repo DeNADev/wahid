@@ -45,6 +45,58 @@ createjs.Point = function(x, y) {
    *   +-------+----------+
    * @const {Float32Array}
    */
-  this.v = createjs.createFloat32Array([x, y]);
+  this.v = createjs.cloneFloat32Array([x, y]);
 };
 createjs.inherits('Point', createjs.Point, createjs.Object);
+
+/**
+ * Retrieves the horizontal position.
+ * @return {number}
+ * @const
+ */
+createjs.Point.prototype.getX = function() {
+  /// <returns type="number"/>
+  return this.v[0];
+};
+
+/**
+ * Sets the horizontal position.
+ * @param {number} x
+ * @const
+ */
+createjs.Point.prototype.setX = function(x) {
+  /// <param type="number" name="x"/>
+  this.v[0] = x;
+};
+
+/**
+ * Retrieves the vertical position.
+ * @return {number}
+ * @const
+ */
+createjs.Point.prototype.getY = function() {
+  /// <returns type="number"/>
+  return this.v[1];
+};
+
+/**
+ * Sets the vertical position.
+ * @param {number} y
+ * @const
+ */
+createjs.Point.prototype.setY = function(y) {
+  /// <param type="number" name="y"/>
+  this.v[1] = y;
+};
+
+// Add getters and setters for applications to access internal variables.
+Object.defineProperties(createjs.Point.prototype, {
+  'x': {
+    get: createjs.Point.prototype.getX,
+    set: createjs.Point.prototype.setX
+  },
+  'y': {
+    get: createjs.Point.prototype.getY,
+    set: createjs.Point.prototype.setY
+  }
+});

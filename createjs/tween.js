@@ -725,6 +725,7 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
       this.ended_ = true;
     } else {
       position %= this.duration_;
+      seek = true;
       this.step_ = 0;
     }
   }
@@ -738,13 +739,16 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
         if (this.frames_) {
           var i = this.frames_[position];
           var motion = this.motions_[i];
-          if (motion.needUpdate(position, seek, i, this.step_)) {
-            var mask = motion.interpolate(position);
-            if (mask & (1 << createjs.Property.LOOP)) {
-              this.loop_ = motion.getLoop();
+          if (motion) {
+            seek = motion.rewriteSeek(seek, position);
+            if (motion.needInterpolate(seek, i, this.step_)) {
+              var mask = motion.interpolate(position, seek);
+              if (mask & (1 << createjs.Property.LOOP)) {
+                this.loop_ = motion.getLoop();
+              }
+              this.target_.setTweenMotion(
+                  motion, seek ? this.mask_ : mask, this.proxy_);
             }
-            this.target_.setTweenMotion(
-                motion, seek ? this.mask_ : mask, this.proxy_);
           }
           this.step_ = i;
           return position;
@@ -752,8 +756,9 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
         for (var i = this.step_; i < length; ++i) {
           var motion = this.motions_[i];
           if (motion.contain(position)) {
-            if (motion.needUpdate(position, seek, i, this.step_)) {
-              var mask = motion.interpolate(position);
+            seek = motion.rewriteSeek(seek, position);
+            if (motion.needInterpolate(seek, i, this.step_)) {
+              var mask = motion.interpolate(position, seek);
               if (mask & (1 << createjs.Property.LOOP)) {
                 this.loop_ = motion.getLoop();
               }
@@ -767,8 +772,9 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
         // Copy the values of the last motion when its predecessors do not the
         // contain the current position.
         var motion = this.motions_[length];
-        if (motion.needUpdate(position, seek, length, this.step_)) {
-          var mask = motion.interpolate(position);
+        seek = motion.rewriteSeek(seek, position);
+        if (motion.needInterpolate(seek, length, this.step_)) {
+          var mask = motion.interpolate(position, seek);
           if (mask & (1 << createjs.Property.LOOP)) {
             this.loop_ = motion.getLoop();
           }
@@ -785,12 +791,15 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
         if (this.frames_) {
           var i = this.frames_[position];
           var state = this.states_[i];
-          if (state.needUpdate(position, seek, i, this.step_)) {
-            var targetLength = this.targets_.length;
-            for (var j = 0; j < targetLength; ++j) {
-              var value = state.get(j);
-              var mask = value.interpolateState(position);
-              this.targets_[j].setTweenMotion(value, mask, this.proxy_);
+          if (state) {
+            seek = state.rewriteSeek(seek, position);
+            if (state.needInterpolate(seek, i, this.step_)) {
+              var targetLength = this.targets_.length;
+              for (var j = 0; j < targetLength; ++j) {
+                var value = state.get(j);
+                var mask = value.interpolateState(position, seek);
+                this.targets_[j].setTweenMotion(value, mask, this.proxy_);
+              }
             }
           }
           this.step_ = i;
@@ -799,11 +808,12 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
         for (var i = this.step_; i < length; ++i) {
           var state = this.states_[i];
           if (state.contain(position)) {
-            if (state.needUpdate(position, seek, i, this.step_)) {
+            seek = state.rewriteSeek(seek, position);
+            if (state.needInterpolate(seek, i, this.step_)) {
               var targetLength = this.targets_.length;
               for (var j = 0; j < targetLength; ++j) {
                 var value = state.get(j);
-                var mask = value.interpolateState(position);
+                var mask = value.interpolateState(position, seek);
                 this.targets_[j].setTweenMotion(value, mask, this.proxy_);
               }
             }
@@ -812,11 +822,12 @@ createjs.Tween.prototype.updateAnimation_ = function(position, seek) {
           }
         }
         var state = this.states_[length];
-        if (state.needUpdate(position, seek, length, this.step_)) {
+        seek = state.rewriteSeek(seek, position);
+        if (state.needInterpolate(seek, length, this.step_)) {
           var targetLength = this.targets_.length;
           for (var j = 0; j < targetLength; ++j) {
             var value = state.get(j);
-            var mask = value.interpolateState(position);
+            var mask = value.interpolateState(position, seek);
             this.targets_[j].setTweenMotion(value, mask, this.proxy_);
           }
         }

@@ -44,7 +44,7 @@ createjs.TweenProperty = function() {
    * @type {Float32Array}
    * @private
    */
-  this.numbers_ = createjs.createFloat32Array([0, 0, 0]);
+  this.numbers_ = createjs.cloneFloat32Array([0, 0, 0]);
 };
 
 /**

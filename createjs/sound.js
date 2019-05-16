@@ -1256,6 +1256,7 @@ createjs.Sound.BufferAudioPlayer.prototype.resume_ = function() {
   if (this.source_) {
     this.stop_();
     this.playAudioBuffer_(/** @type {AudioBuffer} */ (this.item.resultObject));
+    this['playState'] = createjs.Sound.PLAY_SUCCEEDED;
   }
 };
 

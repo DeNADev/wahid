@@ -975,7 +975,7 @@ createjs.getOrigin = function() {
  * @param {Array.<number>} array
  * @return {Float32Array}
  */
-createjs.createFloat32Array = function(array) {
+createjs.cloneFloat32Array = function(array) {
   /// <param type="Array" elementType="number" name="array"/>
   /// <returns type="Float32Array"/>
   return new Float32Array(array);

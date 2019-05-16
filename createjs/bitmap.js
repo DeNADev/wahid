@@ -108,6 +108,11 @@ createjs.Bitmap.prototype.ready_ = false;
  *   | 6     | this.getBoxWidth()  |
  *   | 7     | this.getBoxHeight() |
  *   +-------+---------------------+
+ *   | 8     | srcX                |
+ *   | 9     | srcY                |
+ *   | 10    | srcWidth            |
+ *   | 11    | srcHeight           |
+ *   +-------+---------------------+
  * @type {Float32Array}
  * @private
  */
@@ -169,8 +174,9 @@ createjs.Bitmap.prototype.initializeBitmap_ = function(value) {
   }
   // Align this image to the center of its nominal bounds.
   var source = this.source_;
-  this.drawValues_ = createjs.createFloat32Array([
-    source.x, source.y, source.width, source.height, 0, 0, width, height
+  this.drawValues_ = createjs.cloneFloat32Array([
+    source.x, source.y, source.width, source.height, 0, 0, width, height,
+    0, 0, 0, 0
   ]);
   var nominalBounds = /** @type {createjs.Rectangle} */ (this['nominalBounds']);
   if (nominalBounds) {
@@ -254,7 +260,7 @@ createjs.Bitmap.prototype.setSourceRect = function(rectangle) {
   var height = rectangle.height;
   this.setBoundingBox(0, 0, width, height);
   if (!this.drawValues_) {
-    this.drawValues_ = createjs.createFloat32Array([0, 0, 0, 0, 0, 0, 0, 0]);
+    this.drawValues_ = createjs.cloneFloat32Array([0, 0, 0, 0, 0, 0, 0, 0]);
   }
   this.drawValues_.set([
     rectangle.x, rectangle.y, rectangle.width, rectangle.height,

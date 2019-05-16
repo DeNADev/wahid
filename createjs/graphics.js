@@ -2456,7 +2456,7 @@ createjs.Graphics.prototype.initializeGraphics_ = function() {
   this.box = new createjs.BoundingBox();
   this.path_ = [];
   this.active_ = [];
-  this.drawValues_ = createjs.createFloat32Array([0, 0, 0, 0]);
+  this.drawValues_ = createjs.cloneFloat32Array([0, 0, 0, 0]);
 };
 
 /**

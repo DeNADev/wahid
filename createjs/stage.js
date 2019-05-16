@@ -238,11 +238,15 @@ createjs.Stage.prototype.createRenderer_ = function(value) {
       createjs.DENA_MINOR_VERSION + '.' +
       createjs.DENA_BUILD_NUMBER + '.' +
       createjs.DENA_PATCH_LEVEL);
+  var WEBGL_OPTIONS = {
+    'antialias': false,
+    'depth': false
+  };
   if (!createjs.WebGLRenderer.id) {
     createjs.WebGLRenderer.id = 1;
     var CONTEXTS = ['webgl', 'experimental-webgl'];
     for (var i = 0; i < CONTEXTS.length; ++i) {
-      var context = canvas.getContext(CONTEXTS[i]);
+      var context = canvas.getContext(CONTEXTS[i], WEBGL_OPTIONS);
       if (context) {
         createjs.WebGLRenderer.context = CONTEXTS[i];
         return new createjs.WebGLRenderer(canvas, context, null);
@@ -250,7 +254,8 @@ createjs.Stage.prototype.createRenderer_ = function(value) {
     }
   }
   if (createjs.WebGLRenderer.context) {
-    var context = canvas.getContext(createjs.WebGLRenderer.context);
+    var context =
+        canvas.getContext(createjs.WebGLRenderer.context, WEBGL_OPTIONS);
     return new createjs.WebGLRenderer(canvas, context, null);
   }
   return new createjs.CanvasRenderer(canvas, null);
@@ -746,10 +751,8 @@ createjs.Stage.prototype.enableDOMEvents = function(enable) {
       this.removeListeners_(canvas, createjs.Stage.Event.MOUSE);
     } else {
       this.addListeners_(canvas, createjs.Stage.Event.MOUSE);
-      if (createjs.UserAgent.isIPhone()) {
-        window.addEventListener('hashchange', this, false);
-        window.addEventListener('unload', this, false);
-      }
+      window.addEventListener('hashchange', this, false);
+      window.addEventListener('unload', this, false);
     }
   }
 };

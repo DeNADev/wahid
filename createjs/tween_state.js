@@ -148,23 +148,32 @@ createjs.TweenState.prototype.copy = function(state) {
 };
 
 /**
- * Returns whether this value set needs to update its values.
+ * Rewrites the `seek` value.
+ * @param {boolean} seek
  * @param {number} position
+ * @return {boolean}
+ * @const
+ */
+createjs.TweenState.prototype.rewriteSeek = function(seek, position) {
+  /// <return type="boolean"/>
+  return seek || position == this.start_ || position == this.end_;
+};
+
+/**
+ * Returns whether this value set needs to interpolate its values.
  * @param {boolean} seek
  * @param {number} step
  * @param {number} previous
  * @return {boolean}
  * @const
  */
-createjs.TweenState.prototype.needUpdate =
-    function(position, seek, step, previous) {
-  /// <param type="number" name="position"/>
+createjs.TweenState.prototype.needInterpolate = function(seek, step, previous) {
   /// <param type="boolean" name="seek"/>
   /// <param type="number" name="step"/>
   /// <param type="number" name="previous"/>
   /// <returns type="boolean"/>
   if (step == previous) {
-    if (!seek && position != this.start_ && position != this.end_) {
+    if (!seek) {
       return false;
     }
   }

@@ -155,7 +155,7 @@ createjs.SpriteSheet.Frame =
    *   +-------+-------------+
    * @const {Float32Array}
    */
-  this.values = createjs.createFloat32Array([
+  this.values = createjs.cloneFloat32Array([
     rectangle.x, rectangle.y, rectangle.width, rectangle.height,
     -regX, -regY, width, height
   ]);

@@ -51,7 +51,7 @@ createjs.TweenMotion = function() {
    * @type {Float32Array}
    * @private
    */
-  this.values_ = createjs.createFloat32Array([
+  this.values_ = createjs.cloneFloat32Array([
     createjs.Value.X,
     createjs.Value.Y,
     createjs.Value.SCALE_X,
@@ -1271,19 +1271,29 @@ createjs.TweenMotion.prototype.updateProperties = function(properties) {
 };
 
 /**
- * Returns whether this motion needs to update its values. It is not so fast for
- * a motion to update its values. This method is used by tweens to updating
- * their motions only when they have to.
+ * Rewrites the `seek` value.
+ * @param {boolean} seek
  * @param {number} position
+ * @return {boolean}
+ * @const
+ */
+createjs.TweenMotion.prototype.rewriteSeek = function(seek, position) {
+  /// <return type="boolean"/>
+  return seek || position == this.start_ || position == this.end_;
+};
+
+/**
+ * Returns whether this motion needs to interpolate its values. It is not so
+ * fast for a motion to interpolate its values. This method is used by tweens to
+ * interpolating their motions only when they have to.
  * @param {boolean} seek
  * @param {number} step
  * @param {number} previous
  * @return {boolean}
  * @const
  */
-createjs.TweenMotion.prototype.needUpdate =
-    function(position, seek, step, previous) {
-  /// <param type="number" name="position"/>
+createjs.TweenMotion.prototype.needInterpolate =
+    function(seek, step, previous) {
   /// <param type="boolean" name="seek"/>
   /// <param type="number" name="step"/>
   /// <param type="number" name="previous"/>
@@ -1291,7 +1301,7 @@ createjs.TweenMotion.prototype.needUpdate =
   // This motion needs to update its values only when its current values are not
   // equal to its previously-interpolated ones.
   if (this.noNumber_ && step == previous) {
-    if (!seek && position != this.start_ && position != this.end_) {
+    if (!seek) {
       return false;
     }
   }
@@ -1301,11 +1311,13 @@ createjs.TweenMotion.prototype.needUpdate =
 /**
  * Calculates the property values of this motion.
  * @param {number} time
+ * @param {boolean} seek
  * @return {number}
  * @const
  */
-createjs.TweenMotion.prototype.interpolate = function(time) {
+createjs.TweenMotion.prototype.interpolate = function(time, seek) {
   /// <param type="number" name="time"/>
+  /// <param type="boolean" name="seek"/>
   /// <returns type="number"/>
 
   // Calculate the normalized position (a number in [0,1)) from an absolute
@@ -1357,8 +1369,15 @@ createjs.TweenMotion.prototype.interpolate = function(time) {
     // A 'startPosition' property is an autonomous clock, i.e. a position
     // automatically increased by the target createjs.MovieClip object.
     var property = this.getProperty_(createjs.Property.START_POSITION);
-    this.values_[createjs.Property.START_POSITION] =
-        property ? property.getNumber(position) : -1;
+    if (property) {
+      var startPosition;
+      if (seek || position == 0 || position == 1) {
+        startPosition = property.getNumber(position);
+      } else {
+        startPosition = -1;
+      }
+      this.values_[createjs.Property.START_POSITION] = startPosition;
+    }
     // Scan binary properties.
     for (var i = createjs.Property.PLAY_MODE; i <= createjs.Property.LOOP; ++i) {
       property = this.getProperty_(i);
@@ -1385,15 +1404,19 @@ createjs.TweenMotion.prototype.interpolate = function(time) {
  * object. A state tween mostly consists only of an '_off' property and this
  * method is optimized for the case.
  * @param {number} time
+ * @param {boolean} seek
  * @return {number}
  * @const
  */
-createjs.TweenMotion.prototype.interpolateState = function(time) {
+createjs.TweenMotion.prototype.interpolateState = function(time, seek) {
+  /// <param type="number" name="time"/>
+  /// <param type="boolean" name="seek"/>
+  /// <returns type="number"/>
   if (this.propertyMask_ == (1 << createjs.Property.OFF)) {
     var position = (time - this.start_) * this.scale_;
     var property = this.getProperty_(createjs.Property.OFF);
     this.values_[createjs.Property.OFF] = property.getBinary(position);
     return this.mask_;
   }
-  return this.interpolate(time);
+  return this.interpolate(time, seek);
 };

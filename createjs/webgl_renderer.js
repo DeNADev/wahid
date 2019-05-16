@@ -162,7 +162,7 @@ createjs.WebGLRenderer.prototype.mask_ = null;
 
 if (createjs.DEBUG) {
   /**
-   * The interval period or the FPS of the 'createjs.Ticker' object.
+   * The interval period or the FPS of the `createjs.Ticker` object.
    * @type {number}
    * @private
    */
@@ -171,7 +171,7 @@ if (createjs.DEBUG) {
 
 /**
  * Constants used by WebGL. These constants are copied from the
- * WebGLRenderingContext interface so the closure compiler can inline them.
+ * `WebGLRenderingContext` interface so the closure compiler can inline them.
  * (Although it is dirty to use numbers, it is faster to use numbers than to
  * read object properties.)
  * @enum {number}
@@ -809,7 +809,7 @@ createjs.WebGLRenderer.Context.prototype.createRectangleBuffer =
 };
 
 /**
- * Deletes a WebGLBuffer object used by rectangles.
+ * Deletes a `WebGLBuffer` object used by rectangles.
  * @param {WebGLBuffer} buffer
  * @const
  */
@@ -838,9 +838,9 @@ createjs.WebGLRenderer.Context.prototype.setRectangleBuffer =
 };
 
 /**
- * Retrieves the location to an attribute and assigns it to the WebGLBuffer
+ * Retrieves the location to an attribute and assigns it to the `WebGLBuffer`
  * object currently bound to this context. (This method expects to be called
- * after a createRectangleBuffer() call or a setRectangleBuffer() call.)
+ * after a `createRectangleBuffer()` call or a `setRectangleBuffer()` call.)
  * @param {WebGLProgram} program
  * @param {string} key
  * @return {number}
@@ -944,8 +944,8 @@ createjs.WebGLRenderer.Context.prototype.getTextureType = function(image) {
 };
 
 /**
- * Creates a new texture from an HTMLImageElement object, an HTMLCanvasElement
- * object, or an HTMLVideoElement object.
+ * Creates a new texture from an `HTMLImageElement object`, an
+ * `HTMLCanvasElement` object, or an `HTMLVideoElement` object.
  * @param {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement} image
  * @return {WebGLTexture}
  * @const
@@ -1150,8 +1150,8 @@ createjs.WebGLRenderer.Context.prototype.enableClip = function() {
  * Updates the clipping rectangle. This method converts the given bounding box
  * (in the HTML coordinate) to a scissor rectangle (in the WebGL coordinate) and
  * uses the converted rectangle for the scissor test. (WebGL uses the bottom-up
- * coordinate system for scissor rectangles, i.e. (0,0) represents the
- * bottom-left corner of a scissor rectangle and (width,height) represents its
+ * coordinate system for scissor rectangles, i.e. `(0,0)` represents the
+ * bottom-left corner of a scissor rectangle and `(width,height)` represents its
  * top-right corner, respectively.)
  * @param {createjs.BoundingBox} clip
  * @param {number} height
@@ -1356,7 +1356,7 @@ createjs.WebGLRenderer.Alpha.prototype.bindContext = function(context) {
 
 /**
  * An inner class that encapsulates a point used by this renderer. This renderer
- * uses a uniform vector (x, y) to represent a point.
+ * uses a uniform vector `(x,y)` to represent a point.
  * @param {createjs.WebGLRenderer.Context} context
  * @param {WebGLProgram} program
  * @param {string} key
@@ -1456,12 +1456,14 @@ createjs.WebGLRenderer.Vector.prototype.bindContext = function(context) {
 
 /**
  * An inner class that encapsulates a rectangle used by this renderer. This
- * renderer uses a couple of triangles (0,0)-(width,0)-(0,height) and
- * (width,0)-(0,height)-(width,height) to represent a rectangle.
+ * renderer uses a couple of triangles `(0,0)-(width,0)-(0,height)` and
+ * `(width,0)-(0,height)-(width,height)` to represent a rectangle.
+ * ```
  *       (0,0) +--+ (width,0)
  *             | /|
  *             |/ |
  *  (0,height) +--+ (width,height)
+ * ```
  * @param {createjs.WebGLRenderer.Context} context
  * @param {WebGLProgram} program
  * @param {string} key
@@ -1599,9 +1601,11 @@ createjs.WebGLRenderer.Rectangle.prototype.bindContext = function(context) {
  * This renderer uses a 3x3 matrix listed below to apply an affine
  * transform used by the Canvas 2D API in its vertex shader. (This class uses
  * transposed matrices because WebGL uses them by default.)
+ * ```
  *   | a  b  0 |
  *   | c  d  0 |
  *   | tx ty 1 |
+ * ```
  * @param {createjs.WebGLRenderer.Context} context
  * @param {WebGLProgram} program
  * @param {string} key
@@ -2209,7 +2213,7 @@ createjs.WebGLRenderer.Program = function(context, scaleX, scaleY) {
                                         this.shaders_.getFragment());
 
   /**
-   * The vector representing the output <canvas> element of this program.
+   * The vector representing the output `<canvas>` element of this program.
    * @type {createjs.WebGLRenderer.Vector}
    * @private
    */
@@ -2217,7 +2221,7 @@ createjs.WebGLRenderer.Program = function(context, scaleX, scaleY) {
       context, this.program_, SCREEN, scaleX, -scaleY);
 
   /**
-   * The affine transform used by CreateJS.
+   * The affine transform.
    * @type {createjs.WebGLRenderer.Transform}
    * @private
    */
@@ -2295,7 +2299,7 @@ createjs.WebGLRenderer.Program.prototype.program_ = null;
 createjs.WebGLRenderer.Program.prototype.screen_ = null;
 
 /**
- * The affine transform used by CreateJS.
+ * The affine transform.
  * @type {createjs.WebGLRenderer.Transform}
  * @private
  */
@@ -2522,14 +2526,7 @@ createjs.WebGLRenderer.Program.prototype.drawPartial =
   /// <param type="number" name="width"/>
   /// <param type="number" name="height"/>
   this.position_.set(x, y, width, height);
-  if (!image.scaleX_) {
-    image.scaleX_ = 1 / image.width;
-    image.scaleY_ = 1 / image.height;
-  }
-  var scaleX = image.scaleX_;
-  var scaleY = image.scaleY_;
-  this.texture_.set(
-      srcX * scaleX, srcY * scaleY, srcWidth * scaleX, srcHeight * scaleY);
+  this.texture_.set(srcX, srcY, srcWidth, srcHeight);
 
   // Bind the given image and draw it.
   this.bindImage_(image);
@@ -2778,13 +2775,14 @@ createjs.WebGLRenderer.prototype.drawObject_ =
     //    mask;
     // 2. Enable a scissor test with the bounding box of the mask to prevent
     //    the render object from being rendered outside of the mask;
-    // 3. Draw the render object with the SOURCE_OVER operation;
+    // 3. Draw the render object with the `SOURCE_OVER` operation;
     // 4. Draw the mask bitmap (a bitmap filled in white) with the
-    //    DESTINATION-IN operation to get the intersection between the render
+    //    `DESTINATION_IN` operation to get the intersection between the render
     //    object and the mask, and;
     // 5. Draw the frame buffer to this frame buffer.
     var frame = this.getMask_(context);
-    if (!this.scissor_) {
+    var box = this.scissor_ || this.viewport_;
+    if (!box) {
       context.enableClip();
     }
     context.updateClip(scissor.getBox(), height);
@@ -2793,10 +2791,10 @@ createjs.WebGLRenderer.prototype.drawObject_ =
     var shape = scissor.getShape();
     shape.beginPaintObject(this);
     shape.paintObject(this);
-    if (!this.scissor_) {
+    if (!box) {
       context.disableClip();
     } else {
-      context.updateClip(this.scissor_, height);
+      context.updateClip(box, height);
     }
     context.bindFramebuffer(null);
     this.drawMask_(frame, width, height, scissor.getComposition());
@@ -2875,8 +2873,23 @@ createjs.WebGLRenderer.prototype.drawVideo =
 createjs.WebGLRenderer.prototype.drawPartial = function(image, values) {
   /// <param type="HTMLImageElement" name="image"/>
   /// <param type="Float32Array" name="values"/>
-  this.getProgram_().drawPartial(image, values[0], values[1], values[2],
-      values[3], values[4], values[5], values[6], values[7]);
+  // Calculate the scaling factors that convert coordinates from the HTML
+  // coordinate system `(0,0)-(width,height)`to the WebGL one `(0,0)-(1,1)`.
+  if (!image.scales_) {
+    image.scales_ = new Float32Array([1 / image.width, 1 / image.height]);
+  }
+  // Converts the source coordinates from the HTML coordinate system to the
+  // WebGL one and caches them.
+  if (!values[11]) {
+    var scaleX = image.scales_[0];
+    var scaleY = image.scales_[1];
+    values[8] = values[0] * scaleX;
+    values[9] = values[1] * scaleY;
+    values[10] = values[2] * scaleX;
+    values[11] = values[3] * scaleY;
+  }
+  this.getProgram_().drawPartial(image, values[8], values[9], values[10],
+      values[11], values[4], values[5], values[6], values[7]);
 };
 
 /** @override */
@@ -2919,7 +2932,7 @@ createjs.WebGLRenderer.prototype.begin = function() {
 /** @override */
 createjs.WebGLRenderer.prototype.paint = function(time) {
   /// <param type="number" name="time"/>
-  // Exit this renderer loses its WebGL context.
+  // Exit if this renderer loses its WebGL context.
   if (!this.getContext_().getId()) {
     return;
   }

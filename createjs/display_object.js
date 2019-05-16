@@ -456,7 +456,7 @@ createjs.DisplayObject.RenderState.prototype.appendProperties =
  */
 createjs.DisplayObject.RenderState.prototype.appendClip =
     function(state, clip) {
-  this.clip_ = state.clip_ || clip;
+  this.clip_ = clip || state.clip_;
 };
 
 /**
@@ -742,7 +742,7 @@ createjs.DisplayObject.prototype.rectangle_ = null;
 createjs.DisplayObject.prototype.initialize_ = function() {
   this.targetId_ = createjs.DisplayObject.targetId_++;
   this.state_ = new createjs.DisplayObject.RenderState();
-  this.values_ = createjs.createFloat32Array([
+  this.values_ = createjs.cloneFloat32Array([
     createjs.Value.X,
     createjs.Value.Y,
     createjs.Value.SCALE_X,
